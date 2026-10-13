@@ -1,0 +1,21 @@
+{
+  "name": "bits-chain",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "hardhat build",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat ignition deploy ignition/modules/BitsPets.ts --network robinhoodTestnet",
+    "deploy:mainnet": "hardhat ignition deploy ignition/modules/BitsPets.ts --network robinhoodMainnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
+    "@types/node": "^26.6.5",
+    "hardhat": "^3.19.0",
+    "typescript": "^7.0.2",
+    "viem": "^2.57.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1"
+  }
+}
