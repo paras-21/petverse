@@ -245,6 +245,6 @@ export const useGame = create<GameState>()(
         setMuted: (muted) => set({ muted }),
       };
     },
-    { name: 'bits-pet', version: 1 },
+    { name: 'petverse-pet', version: 1 },
   ),
 );

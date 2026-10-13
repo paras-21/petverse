@@ -1,12 +1,12 @@
 {
-  "name": "bits-chain",
+  "name": "petverse-chain",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "hardhat build",
     "test": "hardhat test",
-    "deploy:testnet": "hardhat ignition deploy ignition/modules/BitsPets.ts --network robinhoodTestnet",
-    "deploy:mainnet": "hardhat ignition deploy ignition/modules/BitsPets.ts --network robinhoodMainnet"
+    "deploy:testnet": "hardhat ignition deploy ignition/modules/Petverse.ts --network robinhoodTestnet",
+    "deploy:mainnet": "hardhat ignition deploy ignition/modules/Petverse.ts --network robinhoodMainnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",

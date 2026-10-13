@@ -15,8 +15,8 @@ const display = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Bits | 8-bit Pet",
-  description: "Hatch, raise and battle an 8-bit voxel pet.",
+  title: "Petverse",
+  description: "Hatch, raise and battle your own 3D pet.",
 };
 
 export const viewport: Viewport = {

@@ -63,7 +63,7 @@ export function EggScreen() {
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-[440px] flex-col gap-5 px-4 pb-6 pt-6">
       <header>
-        <h1 className="font-display text-2xl text-ink">BITS</h1>
+        <h1 className="font-display text-2xl text-ink">PETVERSE</h1>
         <p className="mt-3 text-xl font-medium text-muted">
           {phase === 'naming' ? 'Say hello to your new friend.' : 'Something is wiggling inside this egg.'}
         </p>
