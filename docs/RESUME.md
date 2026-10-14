@@ -15,3 +15,9 @@ Work through it top to bottom. Each step has a check.
 7. **Gates.** Re-run `floor gate` for any unit that was mid-gate, then look at `floor watch` output for LAND ME,
    PARKED and READY items.
 8. **Record.** Add one line to `docs/DECISIONS.md` or `docs/LESSONS.md` if the shutdown taught you anything.
+
+## State at 2026-10-14 (planning done)
+- PRD, UX (final), architecture, spec (final) and tickets are committed on `main` (last: release 1 tickets).
+- Tickets: `_bmad-output/initiative-petverse-mvp1/tickets.toml` = 14 epics in build order. Only `epic-platform` is incepted (17 entries; tracer first, then 4 spikes).
+- Next: build `epic-platform` entry 1 (tracer). Its hitl steps (Privy app, Alchemy app + Gas Manager policy, test ETH, secrets, deploy OK) need the owner first.
+- Open for later epics: battle odds, monster/boss stats, bonuses, stake bounds, season 1 start date, ETH/USD display source, CI remote, UI test tool.
