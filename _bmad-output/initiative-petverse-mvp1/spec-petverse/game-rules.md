@@ -3,7 +3,7 @@
 Every rule value and economy number for release 1, in one place. All are **testnet defaults**: each is a timelocked
 parameter (or `GameConfig` row for off-chain values), the owner may change any of them, and tests pin whichever value
 is current. Changing one is an owner decision. Sources: PRD §4 and §4.10, owner numbers N1–N14 (DECISIONS #25, #26),
-DECISIONS, EXPERIENCE.md (UX-set values).
+DECISIONS (through #57), EXPERIENCE.md (UX-set values).
 
 ## Core terms
 
@@ -38,9 +38,9 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 | Revenge | Once per robbery, on the attacker, skips the cooldown | FR-21 |
 | Duel (FR-23) | 5 ranked duels a day; winner +rank and 10% of loser's points; loser −rank | §4.10 |
 | 2v2 (FR-24) | Team of 2 pets; winning team splits 10% of losing team's points evenly; 5 a day; matched by level ±2 | §4.10 |
-| Death Match (FR-25) | Saturday 00:00 – Sunday 23:59 UTC; any adult pet; 3 lives; loss −1 life; 0 lives = death; leave safely any time; each win +1 Survivor streak; reward = 2× ranked duel points × streak (max 5×); lives refill 1 per 7 days of good care, max 3; Co-Pet needs both owners | §4.10, #9, #20 |
+| Death Match (FR-25) | Saturday 00:00 – Sunday 23:59 UTC; any adult pet; 3 lives; loss −1 life; 0 lives = death; leave safely any time; each win +1 Survivor streak; reward per win = 2 × (10% of the opponent's pot points) × min(streak, 5), awarded as new points, not taken from the opponent; lives refill 1 per 7 days of good care, max 3; Co-Pet needs both owners; max 20 fights per pet per weekend | §4.10, #9, #20, #52, #57 |
 | Wager / dice (FR-26) | Players stake PETV; 5% of each pot burned | FR-26, FR-45 |
-| Daily wheel (FR-48) | 1 free spin per 24h. Prizes: 50% small points (20), 25% food, 15% medium points (100), 8% common cosmetic, 2% rare cosmetic | §4.10 |
+| Daily wheel (FR-48) | 1 free spin per rolling 24h from the last spin (not the UTC day). Prizes: 50% small points (20), 25% food, 15% medium points (100), 8% common cosmetic, 2% rare cosmetic | §4.10, #51 |
 | Monsters (FR-50) | 3 fights a day; win = Gold + 20 points; monsters scale to pet level | §4.10 |
 | Boss Raid (FR-53) | Up to 2 players vs the season boss; boss health shared across all raids in the season; points + Gold for damage; top raid teams get a cosmetic | FR-53 |
 | Login streak (FR-49) | Days 1–6: 10 points each; day 7: free egg-shard; resets after a missed day | §4.10 |
@@ -54,7 +54,7 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 | Co-Pet leave / end | Either owner leaves or ends (same action). In order: settle; leaver's half of the pet's unclaimed ETH (and unpaid Gold) paid to the leaver; Co-Pet bucket closed; pet becomes the remaining owner's normal pet in that owner's bucket, other half still claimable; leaver gets memory badge. No sale, buy-out or money between players | FR-30, #14, #29, AD-17 |
 | Co-Pet invite | Expires after 7 days | EXPERIENCE OQ15 |
 | Guilds (FR-31) | Up to 10 members; one leader who invites and removes; one guild per player | §4.10 |
-| Guild War (FR-32) | Weekly, Sunday; guilds paired by average level; best of 5 2v2 matches; winning guild shares a Gold prize from the season pool (paid from the Gold reserve, counts toward the daily cap) | §4.10, AD-24 |
+| Guild War (FR-32) | Weekly, Sunday; guilds paired by average level; best of 5 2v2 matches; winning guild shares a Gold prize through its own weekly `guildWar` stream, paid from the Gold reserve, counting toward the daily cap; not from the season pool | §4.10, #49, AD-5, AD-24 |
 
 ## Growth
 
@@ -62,11 +62,11 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 |---|---|---|
 | Stages | Egg → Baby → Teen → Adult → Elder → Mythic | FR-33 |
 | Path (FR-34) | Set at Teen by the action done most in life: battles → Warrior, care → Guardian, expeditions → Explorer | §4.10 |
-| Element (FR-35) | Fixed at hatch: fire, water, leaf, spark, stone; sets colour and +10% damage against one other element | §4.10 |
+| Element (FR-35) | Fixed at hatch: fire, water, leaf, spark, stone. Shown as a badge and an accent look (aura or emblem) over the coat; does not set the coat colour. +10% battle power when it beats the target's element: fire > leaf > stone > spark > water > fire | §4.10, #37, #55 |
 | Elder / Mythic (FR-36) | Elder: level 15 + 1 Elder item. Mythic: level 30 + 1 Mythic item + season trophy (top 10% finish) | §4.10 |
 | Breeding (FR-37) | 2 adults; own pets or Co-Pets only; max 5 breeds per pet; cost 1×, 2×, 4×, 8×, 16× the base egg price ($2.99); both parents need good care; 1 in 500 eggs shiny | §4.10, EXPERIENCE OQ13 |
 | Expeditions (FR-38) | 1h / 8h / 24h. Safe: 10 / 40 / 100 points. Bold: stake PETV, 3× reward, 30% chance to fail and burn the stake. No battles while away | §4.10 |
-| Species | 10; every cosmetic fits all 10 | FR-6, FR-39 |
+| Species | 10; coat = random palette of the species (`src/lib/pets.ts`); Teen, Elder, Mythic, element and shiny looks are added forms, species shape unchanged; every cosmetic fits all 10 at every stage (babies and armless species use a hand anchor) | FR-6, FR-39, #37, #38 |
 
 ## Cosmetics
 
@@ -98,20 +98,20 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 |---|---|---|
 | PETV supply (N13) | 1B fixed: curve 40%, liquidity 20%, faucet 15%, Gold reserve 15%, team 10%; no mint after deploy | FR-41, N13 |
 | Testnet curve | Our Pons-like curve graduates at 4.2 test ETH into our own Uniswap v2-style pool on 46630 | FR-41, #22 |
-| Trade tax | 5% on curve and pool: 2% ETH pot, 1% burn, 1% liquidity, 1% team | §4.10 |
+| Trade tax | 5% on curve and pool, taken in ETH: 2% ETH pot (straight to the pot), 1% burn (PETV bought and burned), 1% liquidity, 1% team | §4.10, #54 |
 | Store prices (FR-42) | Food $1; shield (8h) $1; egg $2.99 (common) to $9.99 (rare odds); Elder item $3; Mythic item $5; cosmetics $1–$20 | §4.10 |
 | Store income | Burn share by stage (below); of the rest: 50% ETH pot, 50% team | §4.10 |
 | Store burn stage | 70% of spending burned; 50% once market cap passes $1M; 30% once it passes $10M (30-minute average) | FR-45 |
-| Season Pass (FR-43) | $7.99 per season; +25% points; 10-min attack cooldown (vs 30); 20 free gas actions a day (vs 10); reward track; season skin; no auto-renew | FR-43, §4.10 |
-| Season Pass income | 30% ETH pot, 20% season pool, 50% team | §4.10 |
+| Season Pass (FR-43) | $7.99 per season; +25% points; 10-min attack cooldown (vs 30); 20 free gas actions a day (vs 10); reward track (final node shows the skin); season skin granted at purchase; no auto-renew | FR-43, §4.10, #50 |
+| Season Pass income | 30% ETH pot, 20% season pool (PETV), 50% team; no store burn | §4.10, #48 |
 | Market fee (FR-46) | 5%: half burned, half to the ETH pot | §4.10 |
 | Other burns | 5% of each wager and dice pot; full stake of a failed Bold expedition | FR-45 |
-| Gold (FR-44) | Stake PETV → Gold shares; swap back costs 2%; living pet earns 10 Gold a day; game Gold paid from the funded reserve, never minted | §4.10, #16 |
+| Gold (FR-44) | Stake PETV → Gold shares; swap back costs 2%, kept in the vault (its only growth in release 1; no spending share); living pet earns 10 Gold a day; game Gold paid from the funded reserve, never minted | §4.10, #16, #53 |
 | Gold daily cap (N14) | 0.1% of the reserve per day (~150k PETV); over-cap credit waits for a later day | #26, AD-24 |
-| Rate-move bound (N10) | Signed USD quote may move at most 5% per hour (mainnet hint 2%) | N10 |
+| Rate-move bound (N10) | Signed USD quote (`petvPerUsd` and `weiPerUsd`) may move at most 5% per hour each (mainnet hint 2%) | N10, #46 |
 | Sponsored actions | 10 per player per UTC day; 20 with Pass | #19 |
-| Faucet at sign-up (N11) | 0.01 test ETH + 3,120 PETV ($10) | N11 |
-| Faucet daily (N12) | 0.002 test ETH + 624 PETV ($2), once per UTC day | N12 |
+| Faucet at sign-up (N11) | 0.01 test ETH + 3,120 PETV (fixed; $10 at the mock rate, UI shows the live dollar value) | N11, #47 |
+| Faucet daily (N12) | 0.002 test ETH + 624 PETV (fixed; $2 at the mock rate), once per UTC day | N12, #47 |
 | Mock rate | $1 = 312 PETV in mocks only; real amounts follow the live price | EXPERIENCE |
 
 ## Seasons
@@ -121,7 +121,7 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 | Season length | 12 weeks; ranks reset each season | FR-47 |
 | Season pool / trophy epoch (N4) | 1 season | N4 |
 | Guild War prize epoch (N5) | 1 week (Sunday) | N5 |
-| Season bonus | Top players paid from the season pool, not the ETH pot | FR-47 |
+| Season bonus | Top players paid in PETV from the season pool, not the ETH pot | FR-47, #48 |
 
 ## Anti-bot and admin
 
@@ -129,8 +129,8 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 |---|---|---|
 | Free starter egg | One per verified login (email or Google) or per wallet with history; not per new empty wallet | §4.10 |
 | Small-pot age | Only pets awake at the snapshot and older than 7 days count | §4.10, #28 |
-| Flags | Many accounts from one device or funding wallet, or perfectly regular timing, flag an account for review; flagged accounts get no pot payouts and no gas sponsorship until cleared | §4.10, AD-15 |
-| Payout hold (N9) | Expires after 72 hours; a back-to-back renewal needs the Safe | N9 |
+| Flags | Many accounts from one device or funding wallet, or perfectly regular timing, flag an account for review; flagged accounts are left out of epoch payouts (small pot, season pool, trophies, Guild War) and gas sponsorship until a reviewer clears them; main-pot claims are delayed by a payout hold. Confirmed bot pet (Safe-confirmed): unclaimed pot ETH recycled to the main pot (as for a buried pet), points zeroed | §4.10, AD-15, #40, #56 |
+| Payout hold (N9) | Expires after 72 hours; RISK cannot re-hold the same pet within 72h, so every back-to-back renewal needs the Safe (no count limit); the Safe renews or clears directly, not through the timelock | N9, #41 |
 | Timelock delay (N1) | 1 hour on testnet (mainnet hint 48h) | N1 |
 | Safe | Testnet 2-of-3 team signers; proposes and cancels timelocked changes, can pause; Safe Protocol Kit / CLI if the web UI lacks 46630 | #30, AD-3 |
 
@@ -139,7 +139,9 @@ DECISIONS, EXPERIENCE.md (UX-set values).
 | Rule | Value | Source |
 |---|---|---|
 | Channels | In app, web push, Telegram; no email | FR-20, EXPERIENCE |
-| Push cap | Max 3 a day; per-type opt-outs | EXPERIENCE OQ6 |
+| Kinds | All channels: robbed, hungry, asleep, close to passing away (24h before death), passed away. In app only: claim ready, wheel ready, streak at risk, Co-Pet partner needs to agree / left | #42 |
+| One at a time | In-app pill: newest unread. Push and Telegram: most urgent due (close to death > robbed > asleep > hungry > Co-Pet > passed away > partner left > claim ready > wheel / streak) | #43 |
+| Push cap | Max 3 a day (close to death counts); per-type opt-outs | EXPERIENCE OQ6, #42 |
 | Quiet hours | No pushes 22:00–08:00 local, except close-to-death | EXPERIENCE OQ14 |
 | Push permission | Asked after the first feed | EXPERIENCE OQ6 |
 

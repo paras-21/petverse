@@ -1,0 +1,140 @@
+# tickets.toml — epic-seasons' agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md): CAP-26, and the reward-track part of CAP-23 that
+# epic-store-pass's Boundaries hand to this epic.
+# Lanes (never touch the same code): A = contract (4 SeasonRewards);
+# B = worker season-end jobs (1 projection → 2 → 3 → 8); C = app screens (5 Season page; 6 Pass reward track; 7 Claims);
+# live testnet steps (9 → 10).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a ranked duel puts a pet on the Season card, and a season boundary resets it"
+description = "Delivers the thinnest path through every layer the epic touches: the indexer writes a SeasonRank projection (writer = indexer) keyed by chainId, season and petId from epic-battle 6.2's ranked-duel event (which must carry the season and the new rank; MatchArena already keys rank by SeasonPass.seasonOf, so a new season starts at 1,000), one seasonStandings(season, block) function orders pets by rank (ties: earlier reach, then lower petId) for entries 2, 3 and 5 to reuse, a /api/season route returns season number, weeks left and the player's best pet's position, and a bare Play › Season card shows \"Week N of 12\" and \"Your rank #N\"."
+verify = "On the Hardhat local node with a 1-hour test season, two ranked duels move a pet to #1 on the Season card, and after the boundary passes the card shows season 2, MatchArena's rank view for the pet reads 1,000, and the projection rebuilt from the deploy block matches."
+covers = ["CAP-26"]
+after = ["6.2","5.10","1.6","1.9"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-14-indexer-is-one-in-repo-worker-with-a-cursor-and-idempotent-writes",
+  "_bmad-output/initiative-petverse-mvp1/spec-petverse/game-rules.md#seasons",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Season-end job posts the season-pool bonus root"
+description = "Adds the season-end job to the worker and the seasonPool payer path: after the season's end plus confirmations and once the indexer passes the snapshot block, it takes the top pets from entry 1's seasonStandings, excludes flagged and held pets via epic-pot's exclusion list, splits the PETV that epic-store-pass 5.10 sends to the seasonPool stream (20% of Pass income) by the owner's bonus split, stores Epoch and EpochLeaf rows, posts (seasonPool, season, root, datasetHash, total) with EPOCH_POSTER under the funded cap, and adds the PETV payout hook for the seasonPool stream (set through the timelock in entry 9) so the bonus never touches the ETH pot."
+verify = "A worker and contract test on a local node with a seasonPool stream funded by a Pass buy posts one root at the shortened season end, the epic-pot rebuild script reproduces it from the public route, a top pet's owner claims the bonus in PETV after the delay, and PetCore's ETH pot balance is unchanged."
+covers = ["CAP-26"]
+after = [1,"3.4","3.5","3.6","5.10"]
+hitl = false
+risk = "high"
+unknown = "How many top pets share the season-pool bonus, and in what split?"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Season-end job posts the trophies root: top 10% and top raid teams"
+description = "Extends entry 2's season-end job with the trophies stream: leaves for the top 10% (rounded up) of pets with at least one ranked duel that season by seasonStandings, flagged and held pets excluded as in entry 2, plus the top raid teams' leaves from epic-death-match-raid 15.5's top-team leaf function, posted as one trophies root per season, with claims minting the season's soulbound trophy (epic-cosmetics-market 7.5) and the raid prize through the trophies payout hook."
+verify = "A worker and contract test on a local node with 20 ranked pets and two raid teams posts one trophies root holding exactly 2 trophy leaves and the raid leaves, a winner claims a trophy that then refuses to transfer, and the dataset rebuilds the same root."
+covers = ["CAP-26"]
+after = [2, "7.5", "15.5"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "SeasonRewards: the Season Pass reward track pays during the season"
+description = "Adds an upgradeable SeasonRewards module behind the timelock with 12 weekly nodes per season whose contents (points through PetCore, cosmetics through Cosmetics) are timelocked parameters, letting an active Pass holder (SeasonPass.isActive) claim node w once week w of the current season has started, once per address, with the final node showing the season skin that epic-store-pass grants at purchase, plus the Ignition wiring that proposes its PetCore points role and Cosmetics granter role through the timelock (entry 9 executes them on 46630)."
+verify = "Contract tests on Hardhat show a Pass holder claiming week 1 and week 2 nodes only after each week starts and only once, a non-holder refused, contents changeable only through the timelock, and a new season's nodes opening fresh."
+covers = ["CAP-23"]
+after = ["5.10", "7.5"]
+hitl = false
+risk = "medium"
+unknown = "What do reward-track nodes 1 to 11 pay (points, PETV or which cosmetics)?"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Season page with leaderboard, season pool and Hall of Fame"
+description = "Grows the tracer's card into the spine's Season card and page reached from Play › Season and a new Season row in epic-pot's Avatar menu: weeks left, the player's rank row first, the top 100 from seasonStandings in the target-row look, \"Top players share the season pool (not the ETH pot)\" with the stream balance dollars first, \"Ranks reset when the season ends\", and Leaderboard / Hall of Fame segments reading epic-death-match-raid 15.3's public Hall of Fame route, with empty, loading, error and offline states."
+verify = "A component and route test on a local node shows a player's rank row above the top 100, the season pool amount equal to the EpochDistributor seasonPool view, the \"Ranks reset\" line, Hall of Fame rows for a seeded Death Match from the 15.3 route, each of the empty, loading, error and offline states, and the segmented tabs working by keyboard."
+covers = ["CAP-26"]
+after = [1, "3.4", "3.7", "3.10", "4.7", "15.3"]
+hitl = false
+risk = "low"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
+]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Reward track on Shop › Pass"
+description = "Adds the reward track to epic-store-pass's Shop › Pass card: nodes fill as the season's weeks pass, an open node is claimed through SeasonRewards from entry 4, claimed nodes show done, the final node shows the season skin, and a player without the Pass sees the track locked with the buy button."
+verify = "A component test on a local node shows a Pass holder in week 3 with nodes 1–3 open, claiming node 2 once moves it to done on the next read, and a non-holder sees every node locked."
+covers = ["CAP-23"]
+after = [4,"5.12"]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Season bonus and trophy in Claims"
+description = "Adds the seasonPool and trophies payouts to epic-pot's Avatar menu › Claims list (proof from the public dataset route, claimed on EpochDistributor, the PETV bonus dollars first through the display-rate service) and the indexer handlers that write their claims to the Claim projection."
+verify = "A server and worker test on a local node shows a pet in posted seasonPool and trophies roots listed in Claims, each claimed once through the list, and both claims written once to the Claim projection after a worker restart."
+covers = ["CAP-26"]
+after = [2,3,"3.10","4.7"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Season rollover runs once per boundary and readies the next season"
+description = "Makes the season boundary repeatable: the worker runs entries 2 and 3 once per season and resumes safely after a restart, an admin script proposes through the Safe and timelock the next season's trophy and season-skin item ids and reward-track contents before the boundary, and a runbook says what the operator checks after each rollover."
+verify = "On the Hardhat local node with 1-hour test seasons, two boundaries in a row each post exactly one seasonPool and one trophies root even with a worker restart mid-job, season 2's trophy id differs from season 1's, and the Season card shows season 3 with ranks reset."
+covers = ["CAP-26"]
+after = [2, 3, 4]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Shortened-season drill on 46630"
+description = "Deploys SeasonRewards through a Safe-proposed timelocked deploy on 46630 with Blockscout verification and a regenerated chain module, executes the timelocked grants (SeasonRewards' PetCore and Cosmetics roles, the seasonPool PETV payout hook), runs entries 2, 3 and 8 on the Render worker against a shortened-season test deploy, and checks a full season end in the deployed app."
+verify = "On 46630 with a 1-hour test season, the boundary posts seasonPool and trophies roots that the rebuild script reproduces from the Vercel route, a test player claims the bonus (not from the ETH pot) and a trophy that refuses to transfer, claims a reward-track node, and the Season page shows the new season with ranks reset."
+covers = ["CAP-26", "CAP-23"]
+after = [5, 6, 7, 8, "5.13", "7.13", "15.6"]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Season 1 starts on the live testnet deploy"
+description = "Starts season 1 on the live 46630 deploy once the owner confirms its date (recommended Sunday 2027-01-03 00:00 UTC, or the first Sunday 00:00 UTC after testnet opens if later): if epic-store-pass 5.13's SeasonPass genesis differs, entry 8's admin script proposes the change through the Safe and timelock, aligns the EpochDistributor seasonPool and trophies genesis and 12-week length with it, and registers season 1's trophy, skin and reward-track contents."
+verify = "Public views on 46630 show SeasonPass.seasonOf(genesis) = 1, the seasonPool and trophies streams with the same genesis and a 12-week epoch, season 1's items registered, and the deployed Season card reading \"Week 1 of 12\" after the start."
+covers = ["CAP-26"]
+after = [9]
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+hitl = false
+risk = "low"

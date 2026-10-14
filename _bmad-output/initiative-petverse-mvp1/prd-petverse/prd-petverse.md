@@ -12,7 +12,7 @@ updated: 2026-10-14
 This PRD is for the owner and for the next BMad steps (UX, architecture, spec, tickets). It turns the accepted
 `intent/001-petverse-play-to-earn-pets.md` into requirements for **release 1 on Robinhood Chain testnet**. Every
 answer the owner gave is logged in `.memlog.md` next to this file. Decisions made before this PRD live in
-`docs/DECISIONS.md` (#1–25) and are not repeated in full. Technical choices go in `addendum.md`, not here. Open items are in §9.
+`docs/DECISIONS.md` (#1–57) and are not repeated in full. Technical choices go in `addendum.md`, not here. Open items are in §9.
 
 ## 1. Vision
 
@@ -99,10 +99,10 @@ real money is at risk.
 |---|---|
 | Points | A pet's claim weight on the ETH pot. Not tradeable. |
 | ETH pot | Test ETH held by the game contract, shared by points. |
-| $PETV | Petverse's own token, launched on the Pons bonding curve. |
-| Gold | Vault share coin: stake $PETV, get Gold; the vault grows from game spending. |
+| $PETV | Petverse's own token. Testnet: our Pons-like bonding curve; mainnet: Pons (FR-41, `DECISIONS` #22). |
+| Gold | Vault share coin: stake $PETV, get Gold; in release 1 the vault grows only from the 2% swap-back fee (`DECISIONS` #53). |
 | Co-Pet | One pet owned and raised by two friends. |
-| Cooldown | Wait between attacks: 30 minutes. |
+| Cooldown | Wait between attacks: 30 minutes (10 with Season Pass). |
 
 ## 4. Features and Functional Requirements
 
@@ -169,7 +169,8 @@ real money is at risk.
 
 - **FR-33** **Evolution:** Egg → Baby → Teen → Adult → Elder → Mythic.
 - **FR-34** Play style picks the path: mostly battles → Warrior, mostly care → Guardian, mostly expeditions → Explorer.
-- **FR-35** The pet's element sets its look.
+- **FR-35** The pet's element shows as a badge plus an accent look (aura or emblem); it does not set the coat colour.
+  It gives +10% battle power against the element it beats (`DECISIONS` #37, #55).
 - **FR-36** Elder and Mythic need evolution items; Mythic also needs a season trophy.
 - **FR-37** **Breeding:** two adults make an egg; each pet can breed 5 times; each breed costs more; 1 in 500 eggs is shiny.
 - **FR-38** **Expeditions:** send a pet out for 1, 8 or 24 hours. Safe gives a small sure reward; Bold risks $PETV for a
@@ -188,8 +189,8 @@ real money is at risk.
 - **FR-42** **Store:** items are priced in dollars and paid in $PETV (food \$1, eggs \$2.99–\$9.99, shields, evolution
   items, cosmetics). The token amount follows the token price.
 - **FR-43** **Season Pass** (\$7.99 per season): +25% points, faster attacks, more free gas, a reward track and a season skin.
-- **FR-44** **Gold:** stake $PETV into a vault to get Gold shares; the vault grows from game spending; swapping back
-  costs 2%; Gold is also earned from monsters and living pets, paid from a funded reserve with a daily payout cap, never newly
+- **FR-44** **Gold:** stake $PETV into a vault to get Gold shares; in release 1 the vault grows only from the 2% swap-back
+  fee (`DECISIONS` #53); swapping back costs 2%; Gold is also earned from monsters, living pets, Boss Raid and Guild War, paid from a funded reserve with a daily payout cap, never newly
   minted, so stakers are not diluted (`DECISIONS` #16); a dead pet's Gold returns to the vault.
 - **FR-45** Burns: store spending is burned at 70% / 50% / 30% as market cap passes $1M and $10M (30-minute
   average); 5% of each wager and dice pot; the full stake of a failed Bold expedition; half of the market fee.
@@ -199,7 +200,7 @@ real money is at risk.
 - **FR-46** **Marketplace:** trade rare-and-above cosmetics only. 5% fee, half burned.
 - **FR-47** **Seasons** last 12 weeks, with a leaderboard; top players get a bonus paid from a separate season pool,
   not from the ETH pot; ranks reset each season.
-- **FR-48** **Daily wheel:** one free spin a day. *(UJ-2)*
+- **FR-48** **Daily wheel:** one free spin per rolling 24h from the last spin (`DECISIONS` #51). *(UJ-2)*
 - **FR-49** **Login streak** reward for days in a row. *(UJ-1)*
 - **FR-50** **Monsters (PvE):** pets fight AI monsters to earn Gold and points; automatic like other battles.
 - **FR-51** **Small pot:** 15% of the ETH pot is shared only by awake living pets in the bottom half by points
@@ -233,8 +234,8 @@ value is current.
 |---|---|
 | FR-23 Duel | 5 ranked duels a day; winner +rank and 10% of loser's points; loser −rank. |
 | FR-24 2v2 | Team of 2 pets; winning team splits 10% of the losing team's points evenly; 5 a day. Matchmaking pairs by level ±2. |
-| FR-25 Death Match | Runs Saturday 00:00 – Sunday 23:59 UTC. Each win +1 Survivor streak; reward = 2× ranked duel points × streak (max 5×). Lives refill 1 per 7 days of good care, max 3. |
-| FR-48 Daily wheel | One free spin per 24h. Prizes: 50% small points (20), 25% food, 15% medium points (100), 8% common cosmetic, 2% rare cosmetic. |
+| FR-25 Death Match | Runs Saturday 00:00 – Sunday 23:59 UTC. Each win +1 Survivor streak; reward = 2 × (10% of the opponent's pot points) × min(streak, 5), given as new points, not taken from the opponent (`DECISIONS` #52). Max 20 fights per pet per weekend (`DECISIONS` #57). Lives refill 1 per 7 days of good care, max 3. |
+| FR-48 Daily wheel | One free spin per rolling 24h from the last spin, not at UTC midnight (`DECISIONS` #51). Prizes: 50% small points (20), 25% food, 15% medium points (100), 8% common cosmetic, 2% rare cosmetic. |
 | FR-50 Monsters | 3 monster fights a day; each win gives Gold and 20 points; monsters scale to the pet's level. |
 | FR-49 Login streak | Day 1–6: 10 points each; day 7: a free egg-shard; streak resets after a missed day. |
 
@@ -243,14 +244,14 @@ value is current.
 | Feature | Default rule |
 |---|---|
 | FR-31 Guilds | Up to 10 members; one leader who can invite and remove; a player is in at most one guild. |
-| FR-32 Guild War | Weekly, Sunday. Guilds paired by average level. Best of 5 2v2 matches. Winning guild shares a Gold prize from the season pool. |
+| FR-32 Guild War | Weekly, Sunday. Guilds paired by average level. Best of 5 2v2 matches. Winning guild shares a Gold prize from the Gold reserve via the weekly `guildWar` stream, under the N14 daily cap (`DECISIONS` #49). |
 
 **Growth**
 
 | Feature | Default rule |
 |---|---|
 | FR-34 Evolution path | At Teen, the path is the action the pet did most in its life: battles → Warrior, care → Guardian, expeditions → Explorer. |
-| FR-35 Element | Fixed at hatch, one of 5 (fire, water, leaf, spark, stone); sets the colour and a +10% damage edge against one other element. |
+| FR-35 Element | Fixed at hatch, one of 5 (fire, water, leaf, spark, stone); shows as a badge plus an accent look, not the coat colour (`DECISIONS` #37). +10% battle power against the element it beats: fire beats leaf, leaf beats stone, stone beats spark, spark beats water, water beats fire (`DECISIONS` #55). |
 | FR-36 Elder / Mythic | Elder: level 15 + 1 Elder item. Mythic: level 30 + 1 Mythic item + a season trophy (top 10% finish). |
 | FR-37 Breeding | Cost doubles each breed: 1×, 2×, 4×, 8×, 16× the base egg price. Both parents need good care. |
 | FR-38 Expeditions | Safe: 10 / 40 / 100 points for 1h / 8h / 24h. Bold: 3× the reward, 30% chance to fail and burn the stake. Pet cannot battle while away. |
@@ -266,8 +267,8 @@ value is current.
 | Market fee (FR-46) | 5%: half burned, half to the ETH pot. |
 | FR-42 Store prices | Food $1, shield (8h) $1, egg $2.99 (common) to $9.99 (rare odds), Elder item $3, Mythic item $5, cosmetics $1–$20. |
 | FR-43 Season Pass | 10-minute attack cooldown (vs 30); 20 free gas actions a day (vs 10). |
-| FR-44 Gold | Living pet earns 10 Gold a day; vault swap-back fee 2%. Game-earned Gold is paid from a funded reserve with a daily payout cap; none is minted. |
-| Test funds | New players get test ETH and test $PETV from our faucet, so casual players can keep playing after the 10 free actions: at sign-up 0.01 test ETH + 3,120 PETV ($10); once a day 0.002 test ETH + 624 PETV ($2). |
+| FR-44 Gold | Living pet earns 10 Gold a day; vault swap-back fee 2%. Game-earned Gold is paid from a funded reserve with a daily payout cap; none is minted. In release 1 the vault grows only from the swap-back fee (`DECISIONS` #53). |
+| Test funds | New players get test ETH and test $PETV from our faucet, so casual players can keep playing after the 10 free actions: at sign-up 0.01 test ETH + 3,120 PETV ($10 at the mock rate); once a day 0.002 test ETH + 624 PETV ($2 at the mock rate). The UI shows the live dollar value (`DECISIONS` #47). |
 | Asleep pets | No share of either pot until woken (FR-9). |
 
 **Anti-bot (counter-metric)**
@@ -276,7 +277,7 @@ value is current.
 |---|---|
 | One free starter egg | Per verified login (email or Google) or per wallet with history; not per new empty wallet. |
 | Small pot | Only awake pets older than 7 days count for the small pot. |
-| Flags | Many accounts from one device or funding wallet, or perfectly regular timing, flag an account for review; flagged accounts are excluded from pot payouts until cleared. |
+| Flags | Many accounts from one device or funding wallet, or perfectly regular timing, flag an account for review; flagged accounts are excluded from epoch payouts (small pot, season pool, trophies, Guild War) and gas sponsorship until a reviewer clears them; main-pot claims are only delayed by a 72h payout hold (`DECISIONS` #40). A confirmed bot pet (Safe-confirmed) has its unclaimed pot ETH recycled into the main pot and its points zeroed (`DECISIONS` #56). |
 
 ## 5. Non-Functional Requirements
 
@@ -334,8 +335,8 @@ None of these blocks the testnet build. Each has an owner and the point at which
 | 2 | Multisig: which product, how many signers, how long the rule-change delay. **Resolved:** Safe 2-of-3 on testnet, Protocol Kit / CLI if the web UI lacks 46630 (`DECISIONS` #30); delay N1 | Owner | — |
 | 3 | Randomness signer: key storage and how often commitments are published | Architecture | First contract deploy |
 | 4 | Which countries we launch in; geo-blocking and age checks | Owner + lawyer | Mainnet |
-| 5 | Name for Gold | Owner | UX step |
+| 5 | Name for Gold. **Resolved:** "Gold" (UX OQ1) | Owner | — |
 | 6 | How tests use the one hosted database without touching real data (separate schema) | Architecture | First database unit |
-| 7 | Exact effective-points curve (FR-52) | Architecture | Contract unit for the pot |
-| 8 | Rule for the edge where a pet dies at exactly 7 days asleep vs a wake on day 7 (FR-10) | Architecture | Contract unit for life cycle |
-| 9 | How a Co-Pet's points count in the per-owner curve (FR-52, `DECISIONS` #17): half to each owner? | Architecture | Contract unit for the pot |
+| 7 | Exact effective-points curve (FR-52). **Resolved:** architecture AD-4 | Architecture | — |
+| 8 | Rule for the edge where a pet dies at exactly 7 days asleep vs a wake on day 7 (FR-10). **Resolved:** architecture AD-16 (at the boundary the pet is dead) | Architecture | — |
+| 9 | How a Co-Pet's points count in the per-owner curve (FR-52, `DECISIONS` #17): half to each owner? **Resolved:** architecture AD-4 (a Co-Pet is its own bucket, under neither owner's total) | Architecture | — |

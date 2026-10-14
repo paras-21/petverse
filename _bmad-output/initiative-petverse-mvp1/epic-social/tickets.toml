@@ -1,0 +1,170 @@
+# tickets.toml — epic-social's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md): CAP-14 Co-Pet, CAP-15 Guilds and Guild War.
+# Lanes (never touch the same code): A = PetCore Co-Pet code (1 → 2 → 4); B = CoPetApprovals contract (3);
+# C = Home Co-Pet screens (5); D = guild API (6) → Guild segment (7); E = Battle Guild War mode (8);
+# F = worker War scheduler (9) → prize stream and payer (10) → War segment (11); live testnet step (12); sweep (13).
+# Assumed numbers are marked in epic-social.md Notes (Decision lines, assumption, DECISIONS #31).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a Co-Pet invite link hatches a shared egg on 46630"
+description = "Delivers the thinnest Co-Pet path through every layer: the inviter creates a 7-day single-use invite (CoPetInvite row, writer = API) from the Home \"add\" egg, the friend opens the link and accepts, the voucher signer signs a bounded hatchCoPet input, the friend's call makes PetCore mint a new free egg with `coOwner` set (PetCore lets either owner feed, play and enter battles with it), its own pot bucket (AD-4 bucket id), an `ownershipEpoch` that every later ownership change bumps, and an on-chain max-3 Co-Pets check per player; the indexer projects the co-owner and both pet switchers show the Co-Pet chip with the partner's avatar; it adds every Prisma model this epic needs (CoPetInvite, Guild, GuildMember, GuildInvite, GuildJoinRequest, GuildWar, GuildWarMatch) in one migration with a writer per model."
+verify = "On 46630 player A creates an invite, player B opens the link and accepts, and within a minute both switchers show the Co-Pet with the partner's avatar, PetCore shows B as coOwner in a bucket of its own, both A and B can feed it, a fourth Co-Pet hatch for B reverts, and the used link shows \"This invite has ended\"."
+covers = ["CAP-14"]
+after = ["3.2", "4.6", "3.11", "4.9"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-17-co-pet-ownership-is-on-chain",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-home-copet.html",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Co-Pet claims pay 50/50 and leave pays the leaver's half first"
+description = "Adds the Co-Pet money paths in PetCore: a Co-Pet claim pays ETH owed + pending and accrued Gold half to each owner, and `leaveCoPet(petId)` (\"end\" is the same call, no price, no payment) runs the AD-17 order in one transaction — touch or bury, settle, leaver's half of unclaimed ETH and Gold to the leaver's pull balance (held by a payoutHold), close the Co-Pet bucket, clear coOwner and bump ownershipEpoch, move the pet (and NFT if the leaver held it) into the remaining owner's bucket, mint the leaver's soulbound memory badge, decrement both counts, emit CoPetLeft for the indexer and entry 5 — and extends epic-pot's randomized invariant test with Co-Pet start, claim and leave steps."
+verify = "The chain/ contract tests pass, showing the leaver gets exactly half, the remaining owner's later claim gets the other half, the pet counts in the remaining owner's eff, the memory badge cannot be transferred, no function moves a Co-Pet NFT against payment, and the randomized run with Co-Pet steps keeps the AD-4 balance invariant."
+covers = ["CAP-14"]
+after = [1]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
+  "docs/DECISIONS.md",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Two-owner approvals: used once, expire, voided by any ownership change"
+description = "Adds the CoPetApprovals contract (UUPS behind the timelock): each owner approves (petId, action, nonce, expiry) for a named action (breed, Death Match entry), a GAME_MODULE consumes the pair once, an approval past its 24-hour expiry or recorded under an older PetCore ownershipEpoch (added in entry 1, bumped by entry 2's leave) is void, a decline is recorded, and request / approve / decline events carry what epic-alerts and the Home card (entry 5) read; epic-growth and epic-death-match-raid call `consume` and build nothing of their own."
+verify = "Contract tests show one owner's approval alone cannot be consumed, a pair is consumed once and a replay reverts, an approval after its expiry reverts, and a leave between approval and consume voids it."
+covers = ["CAP-14"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Together bonus and the shared streak"
+description = "Adds to PetCore the per-owner last-fed UTC day for a Co-Pet, the Together bonus (once both owners have fed it on the same UTC day, PetCore adds 10% to the points it earns for the rest of that day, additive with the Pass +25%) and the shared streak (consecutive UTC days both fed; a day one owner misses resets it to 0), exposed in views and events for entry 5; it settles in epic-pot's order and raises lifetime points like any other gain (entry 3.3)."
+verify = "Contract tests show only one owner feeding gives no bonus and keeps the streak, both feeding the same UTC day gives +10% on later points that day and grows the streak by 1, a missed day resets it, and a solo pet never gets the bonus."
+covers = ["CAP-14"]
+after = [2, "3.3"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Home Co-Pet card, invite states, approvals and Leave Co-Pet sheet as in the mocks"
+description = "Builds the Home Co-Pet surfaces from entries 1–4: the Co-Pet card (who fed today, Together bonus, shared streak, 50/50 share, \"Needs both to agree\" with Agree / Decline for a pending request and \"Waiting for <partner> to agree\"), the invite sheet with pending (\"Copy link again\", \"Cancel invite\"), expired and 3-of-3 states, the \"Co-Pet options\" menu with the Leave Co-Pet confirm sheet, and the memory badge (from entry 2's CoPetLeft projection) in the Profile badge list, which this entry adds if no earlier epic shows badges; the 50/50 share reuses epic-pot's Home pot blob (entry 3.8)."
+verify = "Component tests render each state from fixtures, and on a local node two test users see the Together bonus after both feed, one asks for an approval and the other agrees, then one leaves and the pet leaves their switcher while the badge shows in Profile."
+covers = ["CAP-14"]
+after = [3, 4, "3.8"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-home-copet.html",
+]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Guild membership API: create, invite, join request, remove, leave"
+description = "Adds the off-chain guild routes on the models from entry 1 (writer = API): any player not in a guild starts one and leads it, the leader shares a 7-day invite link and accepts or declines join requests, the leader removes members, a member leaves (a leaving leader passes the lead to the longest-standing member, the last member leaving closes the guild), with at most 10 members, one guild per player, unique names of 3–24 characters, a guild's average level from members' highest living pet and its War eligibility (at least 4 members with a living pet), both of which entry 9 reads, and a near-your-level guild list."
+verify = "API tests on a test_ schema show an 11th join refused, a player in a guild refused by a second guild, a non-leader refused on remove, an expired invite refused, a join request accepted only by the leader, the near-level list ordered by average level, and the lead passing on the leader's leave."
+covers = ["CAP-15"]
+after = [1]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Guild tab, Guild segment, as in the mock"
+description = "Builds the Guild tab and its Guild / War segmented shell (entry 11 fills War), then Guild › Guild on entry 6's routes: the guild card (name, n/10 members, leader, average level), Invite a friend with \"Guild is full · 10 of 10\", member rows reusing the Battle target row without Attack, leave and remove confirm sheets, join requests for the leader, and the no-guild state with Start a guild, I have a link, and guilds near your level."
+verify = "Component tests render the full, leader, member and no-guild states from fixtures, and a local run shows a second test user joining by link and the leader removing them."
+covers = ["CAP-15"]
+after = [6, "6.9"]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-guild.html"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Battle runs a Guild War 2v2 match from a signed pairing"
+description = "Adds a Guild War match kind to epic-battle's Battle module: it takes a GUILD_WAR-signer-signed bounded input (warId, match number, two pets per side, expiry), re-checks both pets are alive and owned or co-owned by the named members, fights with the 2v2 engine and the Randomness service, moves no points, does not count toward the 5-a-day 2v2 limit, and emits GuildWarMatchSettled for the indexer and entry 9; the signed struct defined here is the one entry 9 signs."
+verify = "Contract tests show a signed match settles once with its result checked against its commitment, an unsigned, expired or replayed input reverts, no pet's points change, and the 2v2 daily count is untouched."
+covers = ["CAP-15"]
+after = ["6.5"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Worker pairs guilds every Sunday and runs the best-of-5 series"
+description = "Adds the Guild War job to the worker: at Sunday 00:00 UTC it freezes each guild's roster that is War-eligible by entry 6's rule, pairs guilds by entry 6's average level (sorted, adjacent pairs, odd one out gets a bye), opens 5 match slots (12:00, 14:00, 16:00, 18:00, 20:00 UTC) whose lineups members pick through an API route until 10 minutes before (each member at most 2 matches, no lineup = forfeit), signs each match as entry 8's struct, projects GuildWarMatchSettled results and closes a series at 3 wins (writers: GuildWar and GuildWarMatch = worker)."
+verify = "A worker test on a local node and a test_ schema pairs 5 seeded guilds by average level with one bye, plays a series to 3–1 through entry 8, records a forfeit for an empty lineup, and refuses a third match for one member."
+covers = ["CAP-15"]
+after = [6, 8]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Guild War Gold prize: weekly guildWar stream paid from the reserve under the daily cap"
+description = "Adds a weekly `guildWar` stream to EpochDistributor whose cap is a timelocked weekly Gold allowance, a capped GoldVault payer that the stream's payout hook calls (shares moved from the reserve, never minted, counted in the same daily cap, over-cap Gold left claimable for a later day), and the worker step that, after the series close, posts leaves of the winning guild's frozen roster sharing 5,000 Gold equally, with rosters and results in the public dataset and each member's proof served by epic-pot's dataset route for entry 11's Claim."
+verify = "Contract tests show a root above the weekly allowance is rejected and a member's claim moves reserve shares without minting and stops at the daily cap, and a worker test on a local node posts a root that entry 3.6's rebuild script reproduces with rosters and results in the dataset."
+covers = ["CAP-15"]
+after = [9, "3.4", "3.6", "4.5"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
+]
+
+[[entry]]
+id = 11
+type = "story"
+title = "Guild tab, War segment, as in the mock"
+description = "Builds Guild › War on entries 9 and 10: the War card (opponent, score, your next match and partner, the Gold prize dollars first), the lineup picker, the live board of 5 match chips with words (Won, Lost, Next, Only if needed), the bye and not-eligible states, and the prize claim."
+verify = "Component tests render pre-war, live, won, lost, bye and not-eligible states from fixtures, and a local run of entry 9's seeded series shows the board update after each match and the winners' Claim button."
+covers = ["CAP-15"]
+after = [7, 9, 10]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-guild.html"]
+
+[[entry]]
+id = 12
+type = "story"
+title = "Co-Pet and Guild War are live on 46630 and pass a testnet drill"
+description = "Upgrades PetCore, Battle, EpochDistributor and GoldVault and deploys CoPetApprovals on 46630 through the Safe and timelock, grants the GUILD_WAR signer and the payout hook, starts the War job on Render, and runs a drill: two real players share a Co-Pet, claim, approve once and leave; two seeded guilds play a War with shortened slots and the winners claim Gold."
+verify = "On 46630 the drill's transactions show the 50/50 claim, the leaver's half and memory badge, a consumed approval and a voided one, a War settled 3–x and a winner's Gold claim within the daily cap, all on verified contracts."
+covers = ["CAP-14", "CAP-15"]
+after = [5, 10, 11, "3.11", "4.9", "6.12"]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and gate reviews deferred, scope set when it starts; no new behaviour."
+verify = "The gate passes with no behaviour change and every deferred finding is closed or recorded."
+covers = ["CAP-14", "CAP-15"]
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+hitl = false
+risk = "low"

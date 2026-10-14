@@ -8,7 +8,7 @@ sources:
   - .memlog.md
   - ../../../docs/DECISIONS.md
 name: Petverse Candy
-description: 'Candy "Sticker book" UI layer for Petverse release 1: bubblegum polka dots, white-outlined sticker cards with coloured candy shadows, blob stage, glossy pill buttons, heavy rounded type. Light mode only. The glossy 3D jelly pets are fixed and sit inside it.'
+description: 'Candy "Sticker book" UI layer for Petverse release 1: bubblegum polka dots, white-outlined sticker cards with coloured candy shadows, blob stage, glossy pill buttons, heavy rounded type. Light mode only. The glossy 3D jelly pet species are fixed and sit inside it; stage, element and shiny looks are added on top (DECISIONS #37).'
 colors:
   # Base
   background: '#FFEAF3'        # bubblegum blush page
@@ -313,6 +313,12 @@ components:
     shadow: '0 3px 0 {colors.pink}'
     typography: '{typography.label}'
     tilt: -3deg
+  element-badge:             # DECISIONS #37: badge + accent, never coat colour
+    backgroundColor: '{colors.surface}'
+    textColor: '{colors.ink}'
+    iconColor: '{colors.ink}'      # emblem: fire flame, leaf, stone, spark bolt, water drop
+    rounded: '{rounded.full}'
+    typography: '{typography.label}'
   pet-name:
     textColor: '{colors.pink-deep}'   # 3.72:1 on background, AA large; pink fails
     textShadow: '3px 3px 0 {colors.surface}'
@@ -646,7 +652,7 @@ Scale `{spacing.1}`–`{spacing.5}` (4 / 8 / 12 / 16 / 24px). Two layouts, equal
 - **Phone (mocked at 390px wide):** one column, `{spacing.gutter-phone}` side padding, stickers stacked with `{spacing.stack-gap}`. Two-up grids (number blobs, action pairs, Play cards) use a 12px gap. A floating pill tab bar (`{spacing.tabbar-height}` tall, 12px side margin, 22px bottom margin) sits at the bottom. The page sets `scroll-padding-bottom: {spacing.scroll-padding-bottom}` (110px) so a focused item is never hidden under the tab bar or an open sheet.
 - **Desktop (mocked at 1280px wide):** a pill top nav, then a two-column grid: main column + `{spacing.rail-desktop}` right rail, `{spacing.column-gap-desktop}` apart, `{spacing.gutter-desktop}` side padding. Play hub uses a 3-column card grid (`{spacing.grid-gap-desktop}`); Shop uses 6-column item and 5-column cosmetic grids.
 
-Home on phone, top to bottom: header (pet name + pet badge + timer chip) → blob stage → points and pot blobs → alert pill (if any) → action pair (Spin wheel, Attack) → Feed button. Home on desktop: header with Feed inline → wide stage → 3 actions (Spin, Attack, Dress up) in the main column; alert, points blob and pot blob with Claim in the right rail.
+Home on phone, top to bottom: pet switcher → header (pet name + pet badge + timer chip) → blob stage → pet card with Evolve and Breed → Co-Pet card (Co-Pets only) → points and pot blobs → alert pill (if any) → action row (Spin wheel, Attack, Dress up) → Feed button. Home on desktop: pet switcher above the stage → header with Feed inline → wide stage with Evolve and Breed on the pet card, Co-Pet card under it → 3 actions (Spin, Attack, Dress up) in the main column; alert, points blob and pot blob with Claim in the right rail.
 
 Every pressable item is at least `{spacing.target-min}` (44px) tall and wide (padding or an invisible hit area), including `button-sm`, Skip, Revenge and reward-track nodes; row buttons sit at least 8px apart.
 
@@ -694,7 +700,8 @@ Visual specs. Behaviour of each lives in EXPERIENCE.md › Component Patterns un
 | **Number blob** | `number-blob-points` (lime, −1.5°) and `number-blob-pot` (sky, +1.5°); the tilt is on the blob only and the number inside is counter-rotated to 0°: caption in `label`, value in `number-lg`, optional sub-line ("+120 today", "is your share"). Points blob shows **pot points** (reset by a claim); the level in the pet badge comes from lifetime points and never drops. When the pet is asleep or very hungry, the pot blob carries a sub-line "No pot share while asleep" (asleep: value shown as paused, `{colors.cooldown}` fill). |
 | **Money stack** | `money-usd` amount, then `money-token` amount in `ink-soft` on the next line (in `ink` when the stack sits on a candy fill such as a number blob or claim pill). Used in prices, shares, wallet chip. |
 | **Timer chip** | Heart icon + countdown in ink on a lime pill, +2° tilt on the pill, text upright (`timer-chip`). Hungry (`timer-chip-hungry`): orange, empty-heart icon and the word: "Hungry · 3h left" (lime vs orange is only 1.26:1, so the word and icon carry it). |
-| **Pet badge** | White pill, pink shadow, −3°: "Bunny · Lv 12 · Adult". |
+| **Pet badge** | White pill, pink shadow, −3°: "Bunny · Leaf · Lv 12 · Adult" (species · element · level · stage). The element part is the element badge. |
+| **Element badge and accent** | `element-badge` (DECISIONS #37): ink emblem icon (flame, leaf, stone, bolt, drop) + the element word, inside the pet badge and on target rows. Accent: the same emblem as a small aura or emblem on the pet in the blob stage. The element never sets the coat colour (coat stays the random species palette). Word + icon, never colour alone. |
 | **Blob stage** | `blob-stage`: 3D pet scene inside a blob with a 5px white outline and pink shadow (orange when hungry). Pink **name tag** (−4°, ink text) on top; optional white **speech bubble** ("I'm hungry…"). |
 | **Alert pill** | White pill with an orange shadow; message on the left, small trouble button on the right. |
 | **Status pill** | Small pill in a job colour with ink icon + ink text ("Ready", "2 of 3 left today", "Back in 3h 12m"); grey when waiting. |
@@ -705,7 +712,7 @@ Visual specs. Behaviour of each lives in EXPERIENCE.md › Component Patterns un
 | **Segmented tabs** | White pill track, active segment pink with ink text and a 3px ink bar under the label; optional second line in `label` 13px ("1 every 30m"). |
 | **Bottom sheet** | White, 38px top corners, grab handle, shadow upward; over a scrim. |
 | **Step chip** | White pill with lemon shadow: lemon counter ("Step 1 of 4"), task text, grey Skip on the right. Paired with **progress dots** (pink = done/current, white = to do). |
-| **Target row** | White row: round pet avatar (with sky shield or grey zzz badge), name + level chip, points line, "**Win +620** · 54% chance" (reward in ink with a lime underline), Attack button. **Revenge row**: orange-tinted, orange shadow, reward in ink with an orange underline, orange Revenge button labelled "no wait". **Shielded row**: 75% opacity, "Safe for now", cooldown button with shield + time. |
+| **Target row** | White row: round pet avatar (with sky shield or grey zzz badge), name + level chip + element badge, points line, "**Win +620** · 54% chance" (reward in ink with a lime underline), Attack button. When your element beats theirs, a small lime pill "Leaf beats Stone · +10%" sits by the chance; the chance already includes it (DECISIONS #55). **Revenge row**: orange-tinted, orange shadow, reward in ink with an orange underline, orange Revenge button labelled "no wait". **Shielded row**: 75% opacity, "Safe for now", cooldown button with shield + time. |
 | **Nameplate + health bar** | White plate (pink shadow for the opponent, lime for you) with name, level and a pill health bar (lime, orange when low) plus "34 / 100", and the word "Low" when low. |
 | **Hit label** | Tilted pill over the arena, ink text: orange "Bonk! −18", pink "Crit! −32" (bigger), sky "Dodge!". |
 | **Battle text box** | White rounded box, pink shadow: "Mochi used **Carrot Kick!**" then a body line. |
@@ -713,14 +720,15 @@ Visual specs. Behaviour of each lives in EXPERIENCE.md › Component Patterns un
 | **Activity card** (Play) | Sticker card in its job colour: icon tile + status pill on top, title, one line, optional bar/chips, action button on desktop. |
 | **Progress bar** | Pill bar, white outline and job-colour ring: sky for trips, orange for boss health and hunger. |
 | **Lives hearts** | Up to 3 pink filled hearts; a lost life is a pink outline heart. |
+| **Death Match fights pill** | Status pill on the Death Match card and run screen: "14 of 20 fights left this weekend". At the cap: grey pill "20 of 20 fights this weekend · Opens Saturday" and a cooldown button (DECISIONS #57). |
 | **Danger note** | Orange-tinted rounded box with an outline-heart icon in orange and one plain sentence. Paired with a lime check line for the safe option. |
 | **Prize wheel** | 5 slices (lime, lemon, sky, pink, orange) with white dividers and ink labels on every slice, white hub with pink centre, ink pointer, pink-deep drop shadow. **Prize card**: lime, 5px outline, big ink "+100". |
 | **Rarity tag** | White pill with a dot border: 1–4 stars + the word (Common, Rare, Epic, Legendary). Legendary is lemon with ink stars. Never colour alone. |
 | **Item tile** | White tile: icon tile, name, one-line effect, dollar price, token price; optional lemon "Rare odds" tag tilted on the corner. |
 | **Cosmetic tile** | White tile with a pet crop wearing the item, rarity tag, price. Selected: pink ring + pink-deep drop. |
 | **Try-on card** | White card with a blob stage showing your pet wearing the item, "Trying it on Mochi · Hat", item name, rarity, big dollar price, token price, lemon Buy button. Desktop: in the right rail. |
-| **Pass card** | White card: skin preview stage, "Season Pass" in pink-deep, season pill, `$7.99 per season`, benefit rows (icon tile + header + "instead of" line + struck-through old value), reward track, lemon CTA, fine print. |
-| **Reward track** | Grey line with lime progress; nodes are circles (lime with check when got, white with gift when not, larger pink final node). |
+| **Pass card** | White card: skin preview stage ("Season skin is yours when you buy"; DECISIONS #50), "Season Pass" in pink-deep, season pill, `$7.99 per season`, benefit rows (icon tile + header + "instead of" line + struck-through old value), reward track, lemon CTA, fine print. |
+| **Reward track** | Grey line with lime progress; nodes are circles (lime with check when got, white with gift when not, larger pink final node that shows the season skin the Pass granted at purchase; DECISIONS #50). |
 | **Market row** | White row: square item crop, name, rarity tag, "Sold by Biscuit", money stack, small lemon Buy. |
 | **Claim sheet** | Bottom sheet with sky top shadow: coin tile + "Claim Mochi's share of the pot", `number-xl` "Claim $42.08", sky "0.018 ETH" pill, lime-tinted reset box ("Your pot points go back to 0", "12,480 → 0", then "Mochi stays Lv 12": level comes from lifetime points and never drops), sky-tinted pot explainer with an 85/15 split bar, lemon Claim button, text button exit. |
 | **Wallet chip** | White rounded chip, money stack ("$12.40" over "3,869 PETV"; mocks use $1 = 312 PETV). |
@@ -731,12 +739,12 @@ Visual specs. Behaviour of each lives in EXPERIENCE.md › Component Patterns un
 | **Tombstone** | Calm white card that leads with the pet: Tombstone badge, pet name, Lv / wins / days lived in ink; then one-line "share went back to the pot", lemon "Hatch your free egg". No orange. Mock: key-sleep-death. |
 | **Focus ring** | `focus-ring`: 3px `{colors.ink}` outline, 3px offset, follows the item's shape. On every focusable item. Never removed without this ring. |
 | **Free-actions chip** | `free-actions-chip`: small white pill in the top bar next to the balance, bolt icon, "7 free left" in ink, lime shadow; at 0: "0 free · small fee", grey shadow. |
-| **Streak pill** | `streak-pill`: white pill, flame icon, "Day 4 streak" in ink, lime shadow. Desktop top nav; phone placement is an open question (EXPERIENCE). |
+| **Streak pill** | `streak-pill`: white pill, flame icon, "Day 4 streak" in ink, lime shadow. Desktop top nav; phone: flame chip in the top bar next to the free-actions chip (DECISIONS #39). |
 | **Avatar menu** | Bottom sheet (phone) from the avatar: rows for Profile, Wallet, Claims, Season, Calm motion (Follow device / On / Off), Notifications, How it's fair. White rows with pink-shadow, icon tile + label, 44px+ tall. |
-| **Wallet sheet** | Bottom sheet from Avatar menu › Wallet or the wallet chip: money stacks for PETV and ETH balances, lemon "Get today's $2" (cooldown button with countdown once used), Gold vault card (sky shadow, staked money stack, Stake / Swap back, "Swapping back costs 2%"), burn counter at the bottom. |
-| **Shortfall note** | `shortfall-note`: orange-tinted box under a price: "You need **$1.40** more" (ink, dollars first, PETV small under) and a lemon "Get today's $2" button, or a text link "Open Wallet" once today's $2 is used. The Buy button stays visible as a cooldown-style button "Not enough PETV". |
+| **Wallet sheet** | Bottom sheet from Avatar menu › Wallet or the wallet chip: money stacks for PETV and ETH balances, lemon "Get today's PETV · $X" (live dollar value; DECISIONS #47; cooldown button with countdown once used), Gold vault card (sky shadow, staked money stack, Stake / Swap back, "Swapping back costs 2%"), burn counter at the bottom. |
+| **Shortfall note** | `shortfall-note`: orange-tinted box under a price: "You need **$1.40** more" (ink, dollars first, PETV small under) and a lemon "Get today's PETV · $X" button (live dollar value), or a text link "Open Wallet" once today's PETV is used. The Buy button stays visible as a cooldown-style button "Not enough PETV". |
 | **Burn counter** | `burn-counter`: white pill, orange flame icon, "Burned so far" label, money stack (dollars first, PETV under). On a wager, dice or Bold result it ticks up by the amount just burned with a "+$0.40 burned" line. |
-| **Fairness check** | `fairness-check`: a "Check this result" text link (ink, sky underline, shield-check icon) on result cards, the wheel prize card, dice and wager results and the claim sheet. Opens a sheet (sky top shadow): "Locked in before the fight" with time, "Revealed after", a lime "Matches" pill with ink check, and a "See it on the public record" link. Pending: grey pill "Being revealed · nothing for you to do". |
+| **Fairness check** | `fairness-check`: a "Check this result" text link (ink, sky underline, shield-check icon) on every random result (battle, wheel, dice, wager, monster, expedition, egg hatch, breeding, cosmetic drop) and the claim sheet (DECISIONS #44). Opens a sheet (sky top shadow): "Locked in before the fight" with time, "Revealed after", a lime "Matches" pill with ink check, and a "See it on the public record" link. Pending: grey pill "Being revealed · nothing for you to do". |
 | **Evolve and Breed buttons** | On the Home pet card under the stage, side by side: pink **Evolve** and white **Breed**. Locked: cooldown button with lock icon and the reason ("Evolve at Lv 15", "Breed at Adult"). Ready: plain "Evolve"; if the evolution item is missing, the cost shows dollars first ("Evolve · needs Elder item $3"), token amount under it in the sheet. Breed shows its cost the same way ("Breed · $2.99"). Breeds left as a status pill ("3 of 5 breeds left"). |
 | **Evolve sheet / Breed sheet** | Bottom sheets. Evolve: before → after preview on two small blob stages, path badge (Warrior / Guardian / Explorer), item needed with a tick or "Get it in Store", money stack, lemon Evolve, text button. Breed: pick a second adult (pet chips), egg preview, "Breed 2 of 5 · costs double the last one", money stack, lemon Breed, text button. |
 | **Co-Pet card menu** | Three-dot icon button ("Co-Pet options") at the top right of the Co-Pet card; opens a small sheet with "Leave Co-Pet" (ink text, orange icon) and the text button. |

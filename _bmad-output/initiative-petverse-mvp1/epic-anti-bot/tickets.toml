@@ -1,0 +1,165 @@
+# tickets.toml — epic-anti-bot's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement source: CAP-29 in spec-petverse.md (no local ids); each description says which part of CAP-29 it delivers.
+# Lane A (chain/: PetCore hold, EpochDistributor check): 1 → 3 → 12.
+# Lane B (worker risk detector and hold keeper): 1 → 4 → 5 → 6; spike 2 runs beside 1 and feeds 5.
+# Lane C (server refusals: gas webhook, faucet and free-egg voucher routes, player copy): 1 → 7.
+# Lane D (worker epoch-builder exclusion): 3 → 8.
+# Lane E (admin review UI and API): 6 → 9.
+# Lane F (worker metrics job and admin metrics view): 1 → 11.
+# Closing: 10 (seeded-farm suite) → 12 (testnet drill) → 13 (Refactor sweep).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a device-sharing farm on a local node is flagged, its pet's claim is held, and the team sees it"
+description = "Delivers the thinnest path through every layer of CAP-29: the auth path records a hashed first-party device id per Privy DID in LoginSeen, a worker risk job with a rule registry flags every account in a device cluster at or over the threshold in GameConfig (the table epic-store-pass 5.8 first uses) into RiskFlag, the worker job registration that entries 4, 5, 6 and 11 plug into, one shared risk-status port in src/server/risk (isFlagged(did, at?) answering now or as of a past time, and flagStatus open / confirmed / cleared from RiskFlag and RiskReview) that entries 7, 8, 9 and 11 read, the RISK signer sets PetCore.payoutHold on each of the flagged account's pets so claim reverts until it expires, and the reviewer-only /admin layout and DID guard that entries 9 and 11 reuse, with a /admin/risk page that lists the flag with its evidence; it adds every model this epic needs (LoginSeen, RiskFlag, RiskReview, PayoutHold projection, MetricDaily) in one migration with their single writers named."
+verify = "A worker test on a Hardhat local node and a test_ schema logs in 3 fixture DIDs from one device id, sees all 3 flagged, a claim by one of their pets revert with the hold error, a fourth DID on another device stay unflagged and claim, and the /admin/risk route list the 3 flags for a reviewer DID and return 403 for any other DID."
+covers = ["CAP-29"]
+after = ["3.1", "5.8"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-15-anti-bot-uses-off-chain-detection-and-a-narrow-on-chain-hold",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home",
+]
+
+[[entry]]
+id = 2
+type = "spike"
+title = "Can the worker find each account's funding wallet on 46630, and which funders must be ignored?"
+description = "Answers, for the funding-wallet rule of CAP-29, whether the worker can find the first ETH and PETV sender of every player account (7702 embedded wallets and 4337 smart accounts, native transfers that emit no log) on 46630 through RPC tracing or the Blockscout API, how fresh that answer is, and which shared funders (Faucet, team, Safe, curve, pool, bridge) must be on an ignore list so the faucet does not flag every player."
+verify = "A write-up in epic-anti-bot/ shows the funder found for at least 10 known testnet accounts of each wallet mode with the method, lookup latency and the ignore list, recorded as a dated decision in epic-anti-bot.md Notes."
+covers = []
+after = []
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Payout hold rules: 72-hour expiry, no back-to-back renewal by RISK, Safe renew and clear"
+description = "Completes the AD-15 hold on PetCore: a hold set by RISK expires by itself 72 hours later (N9), RISK cannot set a new hold on a pet within 72 hours of its last hold ending, only the Safe can renew or clear a hold early, RISK may lift a hold it set, a hold blocks the whole claim of a Co-Pet (epic-social 8.2's 50/50 claim path) and the pet's EpochDistributor small-pot claim too, the RISK role can call nothing that moves funds, a Safe-only confirmBot(petId) that settles the pet, recycles its owed + pending unclaimed ETH into the main pot through epic-pot 3.2's buried-pet recycle path and zeroes its pot points (DECISIONS #56), and the indexer projects PayoutHoldSet / PayoutHoldLifted into the PayoutHold table that entries 6 (back-to-back window) and 8 read."
+verify = "Contract tests show a claim reverting at 72h minus 1 second and succeeding at 72h, a back-to-back RISK hold reverting and a Safe renewal succeeding, a Safe clear and a RISK lift releasing the claim, a held pet's EpochDistributor claim reverting, every fund-moving function reverting for the RISK key, and the AD-4 balance invariant still holding with holds in the random steps."
+covers = ["CAP-29"]
+after = [1, "3.2", "3.4"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/owner-numbers.md",
+]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Perfectly regular timing flags an account"
+description = "Adds the timing rule to entry 1's registry: over a rolling 24 hours of an account's indexed game actions, at least 30 actions whose gaps have a coefficient of variation under 0.1 flag the account, with the gap statistics stored as the flag's evidence and the thresholds read from GameConfig."
+verify = "Worker tests on a test_ schema flag a fixture account acting every 600 ± 5 seconds, do not flag one acting at human-like irregular gaps or one with only 29 regular actions, and store the computed CV on the flag."
+covers = ["CAP-29"]
+after = [1]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Many accounts funded by one wallet flag every account in the cluster"
+description = "Adds the funding-wallet rule to entry 1's registry behind a funder-lookup port with spike 2's adapter for 46630 and a local-node adapter for tests: at least 3 accounts whose first funding came from the same wallet within 30 days are flagged, funders on the spike's ignore list (Faucet, team, Safe, curve, pool) never form a cluster, and the funder address and cluster size are stored as evidence."
+verify = "Worker tests on a local node fund 3 fresh accounts from one wallet and see all flagged, fund 3 from the Faucet and see none flagged, and fund 2 from one wallet and see none flagged."
+covers = ["CAP-29"]
+after = [2, 4]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Hold keeper: every pet of a flagged account stays held while under review"
+description = "Extends the worker risk job so every pet of an open-flagged account is held, including pets it hatches or co-owns after the flag, never re-holds a pet inside RISK's 72-hour back-to-back window, and stores holds ending within 12 hours on an open flag as renewal requests on the RiskFlag row (writer = risk job) with a prepared Safe transaction (Protocol Kit, DECISIONS #32) that entry 9 shows to reviewers."
+verify = "Worker tests on a local node show a pet hatched by a flagged account held within one job tick, no RISK hold sent inside the back-to-back window, and an expiring hold on an open flag producing one renewal request whose prepared Safe transaction renews the hold when executed by the test Safe."
+covers = ["CAP-29"]
+after = [3, 5]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Flagged accounts get no gas sponsorship, faucet drip or free-egg voucher"
+description = "Makes the gas webhook (fail closed), the faucet voucher route and the free-egg voucher routes (epic-pet-life 2.1, 2.7) refuse any account isFlagged reports, with the standard error shape and a calm player state (\"Free actions are paused while we check your account\", and \"Claims paused for a check · back by <time>\" on a held claim) instead of a game error; paid actions stay open."
+verify = "API tests with recorded Alchemy webhook fixtures refuse sponsorship for a flagged DID and approve it for an unflagged one, the faucet and free-egg voucher routes refuse the flagged DID, the claim sheet shows \"Claims paused for a check · back by <time>\" for a held pet, and the same DID is sponsored and gets vouchers again once its flag is cleared."
+covers = ["CAP-29"]
+after = [1, "3.8", "5.2", "5.4"]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-7-gas-sponsorship-cap-is-enforced-by-our-gas-manager-webhook"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Flagged and held pets are left out of the small-pot snapshot"
+description = "Fills epic-pot's epoch-builder exclusion list (3.5) with every pet whose owner or co-owner was flagged at snapshotTs by entry 1's isFlagged(did, snapshotTs) or that holds a payout hold at the snapshot block, before the bottom-half cut, and publishes the excluded petIds with reason \"held\" (no evidence) in the epoch dataset so the root still rebuilds from the public route; epic-seasons' season-end job reads the same exclusion through entry 1's port."
+verify = "A worker test on a local node and a test_ schema builds an epoch where a flagged pet and a held pet are excluded before the cut and do not move the cut line, and entry 3.6's rebuild script reproduces the posted root from the public dataset."
+covers = ["CAP-29"]
+after = [3, "3.5", "3.6"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Team review: confirm or clear a flag with a recorded reason"
+description = "Completes /admin/risk for reviewer DIDs: each flag shows its rules and evidence, linked accounts and pets, hold expiry and entry 6's renewal requests; a reviewer confirms or clears it with a required reason written to RiskReview, a confirm also preparing the Safe transaction that calls entry 3's confirmBot for each of the account's pets (DECISIONS #56), a clear lifts the account's holds through RISK and makes isFlagged false so sponsorship, vouchers and the next snapshot return, and the flag history is kept."
+verify = "API and page tests on a test_ schema show a reviewer clearing a flagged fixture account (RiskReview row with reviewer DID and reason, holds lifted on a local node, isFlagged false), a clear without a reason refused, and a non-reviewer DID refused with 403."
+covers = ["CAP-29"]
+after = [6]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Seeded-farm suite: every signal flags, every consequence holds, and the existing counters still bite"
+description = "Adds one end-to-end test on a local node that seeds a farm sharing a device, a funding wallet and regular timing beside honest players, and checks the whole of CAP-29 Done when 1 and 4: all farm accounts flagged, no sponsorship, no voucher, out of the next small-pot snapshot, claims held, cleared by review and restored; plus contract pins that a farm gains nothing from same-owner or co-owner battles (epic-battle's ban) or from splitting points across pets (the per-owner curve)."
+verify = "The seeded-farm test passes on a local node and a test_ schema with zero honest accounts flagged, and fails when any one rule, refusal or exclusion is switched off."
+covers = ["CAP-29"]
+after = [7, 8, 9, "6.3"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Daily metrics job stores the four counter-metrics in MetricDaily"
+description = "Adds the AD-23 worker metrics job that after 00:30 UTC writes one MetricDaily row per UTC day from projections: bot share of pot ETH paid (main and small-pot claims to accounts entry 1's port reports open or confirmed), top-5%-of-pets share of pot ETH paid over the trailing 7 days, week-1 churn of new players robbed in their first 7 days, and the share of owners whose pet was buried who hatched again within 7 days; plus a reviewer-only /admin/metrics table with each limit marked."
+verify = "A worker test on a test_ schema with fixture claims, flags, PetRobbed, PetBuried (epic-pet-life 2.6) and hatch projections writes the expected four values for a day, re-running the job for that day changes nothing, and /admin/metrics shows the row with the bot share over 10% marked red."
+covers = ["CAP-29"]
+after = [1, "3.10", "6.1"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-23-testnet-operations"]
+
+[[entry]]
+id = 12
+type = "story"
+title = "Anti-bot live on 46630: hold upgrade, RISK role, worker jobs and a drill"
+description = "Upgrades PetCore and EpochDistributor with the hold through the Safe-proposed timelock, grants RISK through the timelock, verifies both on Blockscout, regenerates the chain module, runs the risk, hold-keeper and metrics jobs on Render against the game schema and the review pages on Vercel, and runs the drill: a seeded farm is flagged, held and refused sponsorship, a back-to-back RISK hold reverts, the Safe renews and clears, the Safe confirms one seeded bot pet and its unclaimed ETH returns to the main pot, a reviewer clears an account, and a MetricDaily row appears."
+verify = "The drill's tx hashes on 46630 show the hold set, the RISK renewal revert, the Safe renew and clear, and the cleared account's next sponsored action, both contracts show verified source on Blockscout, and the game schema holds the drill's RiskReview row and that day's MetricDaily row."
+covers = ["CAP-29"]
+after = [10, 11, "3.11"]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+hitl = false
+risk = "low"

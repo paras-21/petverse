@@ -1,0 +1,112 @@
+# tickets.toml — epic-play-hub's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md); numbers marked "assumption" are in epic-play-hub.md Notes.
+next_id = 15   # ids 8–12 moved to epic-death-match-raid (15.1–15.5) on 2026-10-14 and are never reused here
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a daily wheel spin on a local node lands its prize on the Play hub wheel sheet"
+description = "Delivers the thinnest path through every layer this epic touches: a Wheel GAME_MODULE that takes one free spin per player per rolling 24h through the Randomness service (AD-6) and pays the full prize table (50% 20 points, 25% one meal to PetCore's food balance, 15% 100 points, 8% random common cosmetic, 2% random rare cosmetic) to the selected pet, its own Ignition module file and generated-chain-module entry, a WheelSpun projection and API route, and the Play hub card registry (one file per activity card in epic-battle 6.11's Play tab shell, which also holds the Dice card, with the Wheel card filled and the other four cards as closed slots that entries 5 and 7 and epic-death-match-raid 15.2 and 15.5 fill) plus the wheel sheet (Spin a real button with aria-busy while spinning; under reduce motion or Calm motion the prize shows directly with no spin), prize card, \"Next spin in 23h 59m\" state, Home › Spin entry, with the spin's requestId on the prize card for epic-launch's fairness sheet (CAP-28)."
+verify = "With app and worker running against a Hardhat local node, a test player taps Spin on the Play hub, sees the revealed prize on the prize card and the Wheel card turn to \"Next spin 23h\", a second spin inside 24h reverts, under reduced motion the prize shows with no spin animation, and a contract test with fixed seeds pins each prize band of the table."
+covers = ["CAP-21"]
+after = ["1.16", "2.4", "2.8", "6.11", "7.6"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-play-hub.html",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "PetCore play hooks: lives with care refill, away pets, game Gold and death in Death Match"
+description = "Extends PetCore (upgrade-safe, ERC-7201) with the lives and death part of CAP-13, the away part of CAP-19 and the game-Gold part of CAP-20 that entries 4–7 and epic-death-match-raid 15.1–15.5 rely on: lives stored as lives lost so every pet starts with 3, refilled 1 per 7 consecutive good-care windows up to 3 with a TS port and shared vectors; an inDeathMatchRun flag that only DeathMatch (epic-death-match-raid 15.1) sets and clears and Expedition (entry 6) checks; an awayUntil timestamp in the PetCore eligibility view that Battle's settlement re-check (6.3) and MatchArena (6.5) call, adding that call there if missing, so an away pet is refused as attacker, duelist or 2v2 member; a GAME_MODULE awardGold that adds to the unpaid Gold counter epic-petv pays through creditFromGame; and a GAME_MODULE loseLife whose last life runs the AD-16 bury path (Tombstone, free egg, ETH recycle, Gold counter deleted); the battle and expedition counters already in PetCore (epic-pet-life) are incremented by entries 5 and 6 and epic-death-match-raid 15.1 and 15.4."
+verify = "Contract tests show a fresh and an upgraded pet both at 3 lives, a life restored after exactly 7 good-care windows and not after 6 or past 3, an away pet refused by Battle at settlement, awarded Gold paid only up to the daily cap with the rest kept, and loseLife at 1 life burning the NFT and minting the Tombstone with the AD-4 invariant intact."
+covers = ["CAP-13", "CAP-19", "CAP-20"]
+after = ["2.6", "4.6", "6.3", "6.5", "6.13", "1.14"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Play module interfaces, events and read models"
+description = "Fixes the shared boundary the lanes build against: the I* interfaces and past-tense events of the Streak (on Care), Monster, Expedition, DeathMatch and Raid modules in chain/contracts/interfaces/, their Prisma projection models (including the Death Match leaderboard and Hall of Fame and raid team invites; random raid partners reuse epic-battle 6.4 MatchQueue with a raid mode added by epic-death-match-raid 15.5) with writer named and one migration, empty indexer handlers named after each event, each new contract's generated-chain-module entry built from the interfaces (lanes then only fill addresses through their own Ignition files), and one usePetAvailability hook (away, dead, in a Death Match run, not adult) from entry 2's PetCore views, wired here into the Play card-registry slot and the Home and Battle action buttons (2.8, 6.9, 6.10) as cooldown-style buttons, with entry 7 adding only the expedition copy, so entries 4–7 and epic-death-match-raid 15.1–15.5 add only their own contract, handler body and screens."
+verify = "The gate passes with the interfaces compiling, the migration applying to a fresh test_ schema, a worker test feeding one synthetic log of each new event to its handler without error, and a hook test reading an away pet as unavailable on a local node."
+covers = ["CAP-13", "CAP-19", "CAP-20", "CAP-21"]
+after = [1, 2]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Login streak: 10 points on days 1–6, an egg-shard on day 7, reset after a missed day"
+description = "Adds a once-per-UTC-day check-in to Care that the app sends on the player's first open of the day, paying 10 points to the selected pet on days 1–6 and minting the soulbound egg-shard on day 7 (then a new 7-day cycle), resetting after a missed UTC day, with the StreakChecked handler and the flame streak chip in the phone top bar and the \"Day 4 streak\" pill in the desktop top nav."
+verify = "Contract tests with time travel pin 10 points on days 1–6, one egg-shard on day 7, a reset to day 1 after a skipped UTC day and a second check-in the same day reverting; a UI test on a local node shows the chip read \"Day 2 streak\" after two days."
+covers = ["CAP-21"]
+after = [3, "2.3", "2.4", "7.5"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Monsters: three fights a day scaled to the pet's level, each win pays Gold and 20 points"
+description = "Adds the Monster GAME_MODULE on epic-battle's fight engine and the Randomness service: 3 fights per pet per UTC day against a monster at the pet's level (assumed stats in Notes), a win awarding 20 points and Gold through entry 2's awardGold and counting a battle action, a loss costing nothing, an away or dead pet refused; plus its handler, the Monsters card (\"2 of 3 left today\"), the self-playing fight with Skip to result on epic-battle's fight view, and the prize card carrying the fight's requestId for epic-launch's fairness sheet."
+verify = "Contract tests pin 3 fights a day, a 4th reverting, 20 points and the assumed Gold per win paid under the cap, and an away pet refused; on a local node a test player fights a monster from the Play hub and sees the card count drop and the prize card show Gold and points."
+covers = ["CAP-20"]
+after = [2, 3, "6.1", "6.8", "1.16"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Expedition module: Safe and Bold trips of 1, 8 or 24 hours"
+description = "Adds the Expedition GAME_MODULE: one trip per pet at a time, refused while entry 2's inDeathMatchRun flag is set, setting entry 2's awayUntil and counting an expedition action; Safe pays 10 / 40 / 100 points on return; Bold escrows a PETV stake within the assumed bounds, takes its 30% fail roll from a commitment revealed at send (no recall exists, so the early reveal changes nothing), and on return pays 3× the Safe points and returns the stake, or burns the stake emitting Burned as a registered burn source."
+verify = "Contract tests pin the three durations and Safe rewards, a Bold success returning the stake with 3× points, a Bold fail burning exactly the stake with one Burned event, a fixed-seed run giving a 30% fail band, a reveal timeout refunding the stake, no battle or second trip while away, and a send refused for a pet in a Death Match run."
+covers = ["CAP-19"]
+after = [2, 3, "1.16", "4.1"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Expeditions card, send sheet, Bold danger confirm, away state and return prize card"
+description = "Builds the Expeditions card (Safe / Bold, 1h / 8h / 24h, \"Back in 3h 12m\" progress bar), the Bold stake picker with the danger note and confirm sheet and the Not-enough-PETV shortfall note, the \"Mochi is away · back in 3h 12m\" copy on the buttons entry 3 already turns into cooldown buttons, and the return prize card or \"The expedition failed. Your 500 PETV stake was burned.\" with the burn counter tick, from entry 6's handler."
+verify = "On a local node a test player sends a Safe 1h trip and a Bold trip with time travel, sees battle buttons show the wait while away, and gets the Safe prize card and a Bold success or fail card whose amounts equal the contract's events."
+covers = ["CAP-19"]
+after = [6]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Play hub live on 46630: modules deployed, roles granted, every activity checked"
+description = "After the owner OKs each deploy (CLAUDE.md) and the Safe signers sign, deploys and verifies Wheel, Monster and Expedition and upgrades PetCore (with every play hook entry 2 adds, which epic-death-match-raid 15.6 builds on), Care, and Battle and MatchArena with entry 2's awayUntil check on 46630 through Safe-proposed timelocked actions (GAME_MODULE, Cosmetics minter and burn-source wiring), regenerates the chain module, ships app and worker to Vercel and Render, and runs each activity once live; DeathMatch and Raid go live in epic-death-match-raid 15.6."
+verify = "Tx hashes on 46630 show the timelocked deploys, upgrades and role grants with Blockscout-verified source, and a test player on the Vercel app spins, checks in, fights a monster, returns from a Bold trip, and an away pet is refused by Battle and MatchArena, each result matching its commitment."
+covers = ["CAP-19", "CAP-20", "CAP-21"]
+after = [4, 5, 7, "1.9", "1.10", "1.15", "2.11", "4.9", "6.12", "7.13"]
+hitl = true
+risk = "high"
+unknown = "Does the owner accept the assumed play-hub numbers in epic-play-hub.md Notes (monster stats and Gold, Bold stake bounds; the Death Match and raid numbers moved with epic-death-match-raid) before they go live?"
+
+[[entry]]
+id = 14
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 13]
+hitl = false
+risk = "low"

@@ -1,0 +1,159 @@
+# tickets.toml — epic-battle's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md): CAP-10, CAP-11, CAP-12.
+# Lanes (never touch the same code): A = Battle.sol attacks (1 → 3); B = MatchArena.sol duel and 2v2 (2 → 5);
+# C = Wager.sol wager and dice (6 → 7); D = matchmaking server and match indexing (4); E = app screens (8 → 9 → 10 → 11);
+# live testnet step (12); closing sweep (13). BattleMath.sol and its TS port are written by 1 only; later entries read them.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: one attack from the Battle tab to a result on 46630"
+description = "Delivers the thinnest attack path through every layer: the pure BattleMath library (power from level, asleep / hungry state and the element edge, +10% power when the pet's element beats the opponent's (fire > leaf > stone > spark > water > fire, DECISIONS #55), win chance in bps, 5% steal) with a TS port in src/lib/battle pinned by shared vectors, an upgradeable Battle module whose attack(myPet, target, commitment, sig) checks only level ±2 and same owner, registers with the Randomness service and on settle moves 5% of the target's points through PetCore.transferPoints and emits PetRobbed, a previewAttack view, the worker indexing PetRobbed into a BattleRecord projection, the Ignition module and generated chain module entry, and a bare Battle › Attack list showing each target's \"Win +N · X% chance\" from the view with a tap that ends on a plain result line; entries 2, 3, 6 and 8 build on BattleMath, the view and the projection."
+verify = "On 46630 a test player taps Attack on a second test pet within ±2 levels, the result line shows won or lost after the reveal, a win moves exactly 5% of the target's points (PetCore views before and after), the BattleRecord row has the tx hash, and the chain/ tests recompute the winner from the revealed seed with BattleMath and match the TS port's vectors."
+covers = ["CAP-10"]
+after = ["1.1", "1.6", "1.9", "1.13", "1.16", "3.2", "3.11", "2.2"]
+hitl = true
+risk = "high"
+unknown = "Does the owner accept the assumed stats and win-odds formula in this epic's Notes (power = 100 + 10 × level, ×0.85 hungry, ×0.5 asleep, ×1.10 when the pet's element beats the opponent's per DECISIONS #55; chance = A ÷ (A + D) clamped 10–90%; steal 500 bps of the target's points)?"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-battle.html",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Match tickets and ranked duels in MatchArena"
+description = "Adds the MatchArena module and the multi-seat match protocol other modes reuse: a MATCHMAKER-signed EIP-712 MatchTicket (matchId, mode, pets, stake tier, expiry) that each seat joins on-chain with its own Randomness commitment, the match registering its request when the last seat joins, anyone cancelling an unfilled match after expiry, eligibility re-checked at settlement (level ±2, protection, same owner or co-owner, asleep), and the ranked duel on it: 5 per pet per UTC day, the winner takes 10% of the loser's points through PetCore.transferPoints, rank moves Elo-style from 1,000 (±16 at even odds) keyed by SeasonPass.seasonOf so a new season starts at 1,000, and each settled duel increments both pets' PetCore battle counter; the EIP-712 ticket check is a MatchTicket library this entry owns and entries 5 and 6 only call, and the entry adds MatchArena's own Ignition module and its generated chain module entry so local-node tests in entries 4 and 10 deploy it."
+verify = "The chain/ contract tests show a duel joined by both seats settles from the revealed seed with the BattleMath winner taking exactly 10% of the loser's points and ranks moving 1,000 → 1,016 / 984 at even odds, a sixth duel in one UTC day reverts, a forged or expired ticket reverts, an unfilled match cancels after expiry, a pet that levels out of range before settlement gets the no-op, a reveal timeout moves no points and gives the day's duel back, and after a season boundary both pets read rank 1,000 again."
+covers = ["CAP-11"]
+after = [1, "1.16", "3.2", "5.10"]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-1-points-affecting-actions-are-on-chain-the-server-only-signs-bounded-inputs"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Attack rules: shields, cooldown, protection, revenge"
+description = "Completes Battle's attack rules on the tracer: eligibility checked at commit and again at settlement (level ±2, new-pet protection, shield, cooldown, same owner or co-owner, one pending fight per target, an asleep attacker refused, asleep targets allowed), a 30-minute per-pet cooldown that is 10 minutes when SeasonPass.isActive(owner), a 30-minute shield written to PetCore after a robbery through epic-store-pass 5.6's shield setter (the only shield setter), one revenge right per robbery on the attacker that skips the cooldown and the target's shield and expires after 24 hours, attacking ending the attacker's own new-pet protection, the PetCore battle counter incremented per fight, the timeout no-op giving the cooldown back, and views (previewAttack reasons, cooldownEnds, revengeOf) entry 9 reads."
+verify = "The chain/ contract tests pin every attack default (5%, ±2, 30 / 10 minutes, 30-minute shield, 24-hour revenge) and show each eligibility rule reverting at commit and turning into a no-op when it changes before settlement, a revenge skipping cooldown and shield once and then reverting, and a Pass holder attacking again after 10 minutes."
+covers = ["CAP-10"]
+after = [1, "5.6", "5.10", "2.2"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Matchmaking queue, ticket signer and match indexing"
+description = "Adds the server side of entry 2's protocol: a MatchQueue table written only by the API, authenticated routes to join, leave and poll a queue per mode (duel, 2v2 with an invite-link team or a random partner, wager per stake tier) that pair the oldest waiting entries within level ±2 and different owners and sign a MatchTicket with the MATCHMAKER key, re-queueing seats whose ticket expires unfilled, plus the worker indexing MatchArena and Wager join, settle and cancel events into BattleRecord so the queue and screens see each match's state; entries 10 and 11 call these routes."
+verify = "Server tests on a test_ schema and a Hardhat local node show two players queued for a duel get one signed ticket both can join on-chain, a third player at level +3 is never paired, a 2v2 invite link puts both friends on one team, \"Stop looking\" removes the entry with nothing spent, an expired unfilled ticket re-queues the joined seat, and the indexed BattleRecord shows the settled match."
+covers = ["CAP-11", "CAP-12"]
+after = [2, 5, 6, "1.9", "1.11", "1.7", "1.8"]
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "2v2 matches split 10% of the losing team's points"
+description = "Adds the 2v2 mode to MatchArena on entry 2's four-seat ticket: team power is the sum of both pets' BattleMath power, 5 per pet per UTC day, every seat re-checked at settlement, each settled match incrementing all four pets' PetCore battle counter, each losing pet loses 10% of its points and the total is split evenly between the two winners through PetCore.transferPoints, rank unchanged, and a settle event naming both teams that epic-social's Guild War series reuses; it calls entry 2's MatchTicket library without changing it."
+verify = "The chain/ contract tests show a filled 2v2 settles from the revealed seed with each loser down exactly 10% and each winner up half the total (dust to the first winner), two pets of one owner on opposite teams or level +3 revert, a sixth 2v2 in one UTC day reverts, and a timeout moves no points."
+covers = ["CAP-11"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Wager duels: PETV stakes, 5% burn, refund on timeout"
+description = "Adds the Wager module (tokens only, never points, AD-2) on entry 2's ticket protocol: each seat escrows the same PETV stake tier when it joins (approve and join in one batched call), the pets are checked for level ±2 and different owners or co-owners at join and again at settlement (reading PetCore, never writing it), the BattleMath winner from the revealed seed takes the pot minus 5% which is burned through PETV.burn emitting Burned, both stakes are refunded on a reveal timeout or an unfilled ticket's cancel, stake tiers are timelocked parameters, a stakeTiers view the wager screen reads, Wager's own Ignition module and chain module entry, and Wager registered as a burn source in the local-node worker config so entry 11's burn counter moves; it calls entry 2's MatchTicket library without changing it."
+verify = "The chain/ contract tests show a settled wager pays the winner exactly 95% of the pot and emits one Burned for 5%, a stake outside the tiers reverts, pets at level +3 or of one owner revert at join and no-op at settlement, both stakes return in full on a reveal timeout and on an expired unfilled ticket, Wager never writes to PetCore (no transferPoints), and a tier change reverts unless executed through the timelock."
+covers = ["CAP-12"]
+after = [2, "4.1"]
+hitl = false
+risk = "high"
+unknown = "Does the owner accept the assumed wager and dice stake tiers in this epic's Notes (312 / 624 / 1,560 / 3,120 PETV, about $1 / $2 / $5 / $10) and 5% burn as the only fee?"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Dice tables: two players, one roll, 5% burned"
+description = "Adds dice to the Wager module: a player opens a table by escrowing a stake tier, a second player joins with the same stake and a Randomness commitment, the revealed seed picks the winner 50/50, the winner takes the pot minus 5% burned through PETV.burn, the opener can cancel an unjoined table for a full refund, a reveal timeout refunds both, and an openTables view the Dice card reads."
+verify = "The chain/ contract tests show a joined table pays the seed's winner exactly 95% of the pot with one Burned event, the winner recomputes from the revealed seed, a cancel before join refunds the opener, a reveal timeout refunds both stakes, and a mismatched stake reverts."
+covers = ["CAP-12"]
+after = [6]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Fight playback and result screens"
+description = "Builds the shared fight and result components entries 9–11, epic-play-hub and epic-death-match-raid reuse: a deterministic fight script in src/lib/battle from the revealed seed, both powers and the on-chain winner (3–5 rounds, health from 100, the winner never reaching 0), the fight view with nameplates, health bars, hit labels and the role=log battle text box, \"Skip to result\", the \"Being revealed · nothing for you to do\" pill while waiting, reduce-motion behaviour (prefers-reduced-motion; the in-app Calm motion switch has no owning entry yet and is added where it is built), and the won and lost result cards per the mock (points won, new total, share in dollars, cooldown button, gentle loss copy), wired into the tracer's attack in place of its result line."
+verify = "Component tests show the same seed always gives the same script ending in the on-chain winner, the log reads each round with both health values, focus moves to the result heading, and under reduce motion no hit labels render; in the running app an attack plays the fight and ends on the mock's won or lost card."
+covers = ["CAP-10", "CAP-11", "CAP-12"]
+after = [1, "3.7"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-battle.html", "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md"]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Battle tab: Attack segment as in the mock"
+description = "Completes Battle › Attack from entry 3's views: segmented tabs (Attack / Duel / 2v2 with their limit lines), the revenge row (\"Win +N · X%\", \"Revenge, no wait\"), target rows within ±2 levels with reward and chance before the tap, asleep and shielded states, the live cooldown button (\"Attack in 12m\", 10m with a Pass), the Empty state, desktop sort by best chance, keyboard and screen-reader behaviour, one-tap attack and revenge through the GameWallet port into entry 8's fight."
+verify = "In the running app against a local node a robbed test player sees the revenge row, revenge plays without waiting, the next attack shows \"Attack in 30m\" counting down in the button, a shielded target shows \"Safe for now\" with its time, and every row and button is reachable and named by keyboard alone with the cooldown button announced as \"Attack, available in N minutes\"."
+covers = ["CAP-10"]
+after = [3, 8]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-battle.html", "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
+
+[[entry]]
+id = 10
+type = "story"
+title = "Duel (Ranked) and 2v2 screens with matching"
+description = "Builds Battle › Duel › Ranked and Battle › 2v2 from the spine: \"Win: +rank and 10% of their points\" shown before \"Find a match\", rank and \"5 left today\" from MatchArena views, \"Team up with a friend\" by invite link or \"Random partner\", the \"Finding a match…\" state with \"Stop looking\", joining the signed ticket through the GameWallet port, entry 8's fight, and results with the rank change or \"Your team won. +N points each.\""
+verify = "In the running app against a local node two test players find a ranked duel, both join, the fight plays and the winner's result shows +16 rank and 10% of the loser's points; two friends joined by an invite link beat a random pair and each sees half the team's winnings; \"Stop looking\" spends nothing."
+covers = ["CAP-11"]
+after = [4, 5, 9]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Wager flow, Play tab shell and Dice card"
+description = "Builds Battle › Duel › Wager (stake chips in dollars with PETV under, the danger note \"You can lose your stake. 5% of the pot is burned.\" before commit, confirm sheet, matching, fight, win and loss results with the burn counter ticking \"+$N burned\" from entry 6's registered burn source, the not-enough-PETV shortfall note with epic-store-pass's faucet \"Get today's $2\") and the Play tab shell (card grid epic-play-hub and epic-death-match-raid add their cards to) with the Dice card: open or join a table at a stake, the danger note, the roll result and the burn counter."
+verify = "In the running app against a local node a test player stakes the $5 tier, sees the danger note and confirm sheet before any PETV moves, wins and sees 95% of the pot and the burn counter rise by 5%; a player short of PETV sees the shortfall note; on the Play tab two players play one dice table to a result."
+covers = ["CAP-12"]
+after = [4, 7, 10, "4.7", "4.8", "5.7"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 12
+type = "story"
+title = "Battles live on 46630"
+description = "Upgrades Battle and deploys MatchArena and Wager to 46630 through the Safe-proposed timelock, verifies them on Blockscout, grants GAME_MODULE, the Randomness consumer and MATCHMAKER roles and registers Wager as a burn source with the worker, regenerates the chain module, puts the MATCHMAKER key in Vercel's secrets, and checks the epic's Done when with test players in the deployed app."
+verify = "On the Vercel app against 46630 test players complete a robbery with revenge and the 30-minute shield, a ranked duel, a 2v2, a wager and a dice table, each result checks against its revealed commitment on the explorer, and the burn counter rises by the two 5% burns."
+covers = ["CAP-10", "CAP-11", "CAP-12"]
+after = [3, 5, 7, 9, 10, 11, "4.9", "3.11"]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+hitl = false
+risk = "low"

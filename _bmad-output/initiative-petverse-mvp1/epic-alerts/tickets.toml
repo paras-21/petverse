@@ -1,0 +1,185 @@
+# tickets.toml — epic-alerts' agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement id is the spec's CAP-27 (spec-petverse.md); each description says which part of it the entry delivers.
+# Lanes (never touch the same code): A = worker notifier (1 → 5 → 6 → 8 → 10); B = Telegram transport (2 → 11);
+# C = PWA and push permission in the app (3 → 4); D = notification settings (7); E = alert pill on Home and Battle (9);
+# live testnet step (12); closing sweep (13). Stories that edit prisma/schema.prisma run in one chain: 1 → 2 → 7 → 8 → 10.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a robbery reaches the Home alert pill and a desktop web push"
+description = "Delivers CAP-27's thinnest path through every layer: a notifier job in the worker loop turns each PetRobbed row the indexer writes to BattleRecord (6.1) into one Notification row (Prisma models Notification with a string kind, not an enum, so later kinds need no migration, and a unique dedupeKey, writer = notifier, and PushSubscription, writer = API), a message-template module (kind → title, body, action label and app link) and a Channel port with the web-push adapter (`web-push`, approved in DECISIONS #24, VAPID subject an https URL, no email) that later entries reuse, the one deep-link format `/<screen>?alert=<id>` that push, Telegram (entry 2) and the pill (entry 9) all use, a service worker in the app that shows the push and opens the action link, a subscribe/unsubscribe API route, a GET alerts route, and a bare alert pill on Home showing \"Biscuit took 624 points from Mochi. Revenge?\" (EXPERIENCE copy; push and Telegram use the mock's \"Biscuit robbed Mochi: −624 points\")."
+verify = "With the app, worker and a Hardhat local node running, an attack that robs the test player's pet produces, within a minute, exactly one Notification row, the alert pill on Home naming the attacker and points lost, and one desktop Chrome push with the same text whose tap opens Battle; replaying the same log adds no second row."
+covers = ["CAP-27"]
+after = ["1.9", "1.11", "6.1"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-19-notifications-come-from-projections-and-never-block-play",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-sleep-death.html",
+]
+notes = [
+  "hitl steps: the owner generates the VAPID key pair and enters it in the local env (and later Render and Vercel, entry 12); secrets are never printed (CLAUDE.md).",
+  "High risk: outside check = the owner sees the push arrive on their own desktop browser from a staged robbery.",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Telegram bot links by one-time token and sends the robbery alert with a button"
+description = "Adds the Telegram channel with plain HTTPS Bot API calls (fetch, no bot library): an API route that mints a single-use link token (base64url, at most 64 [A-Za-z0-9_-] characters, short expiry, stored hashed) and returns `t.me/<bot>?start=<token>`, a worker long-polling job on getUpdates that resolves `/start <token>` into a TelegramLink row (chat id, writer = notifier) and confirms, `/stop` to unlink, and a Telegram adapter on entry 1's Channel port that sends the template text with an inline URL button (\"Open Petverse\" / \"Revenge\") using entry 1's `/<screen>?alert=<id>` deep link, registered in its own file without editing the template module; the Settings screen (entry 7) mounts the link button."
+verify = "Tests against a recorded-fixture Bot API pass for link, reuse of a spent token (refused), expired token (refused), /stop and send; then, with the worker running against the owner's test bot, the owner opens the link URL from the route on their phone, taps Start, and a staged robbery arrives in Telegram with a button that opens the app on Battle."
+covers = ["CAP-27"]
+after = [1]
+hitl = true
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-sleep-death.html"]
+notes = [
+  "hitl steps: the owner creates the bot with BotFather (name, username, description) and enters the bot token and username in the local env (later Render and Vercel, entry 12); agents never touch the live bot account (CLAUDE.md).",
+  "High risk: outside check = the owner links their own Telegram account and receives the staged robbery.",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "The app installs as a PWA so web push works on iPhone from the Home Screen"
+description = "Makes web push reach iOS: a web app manifest (standalone display, name, theme colours from DESIGN.md, 180/192/512 px icons rendered from an existing 3D pet), apple-touch-icon and meta tags, service worker registration that survives install, a check that on iPhone Safari outside the installed app shows \"Add Petverse to your Home Screen to get alerts\" (assumed copy) instead of a permission request, and a subscribe call made only from a user tap inside the installed app."
+verify = "On a Vercel preview, the owner adds Petverse to an iPhone Home Screen, opens it, taps the test subscribe button, and receives a staged robbery push; in iPhone Safari (not installed) the add-to-Home-Screen hint shows and no permission prompt appears; Lighthouse marks the app installable."
+covers = ["CAP-27"]
+after = [1, "1.10"]
+hitl = true
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#responsive--platform"]
+notes = [
+  "hitl steps: the owner OKs the Vercel preview deploy with the VAPID public key set, installs the PWA on their own iPhone (iOS 16.4 or later) and confirms the push; an Android phone check is welcome too.",
+  "High risk: outside check = the owner's iPhone receives the push from the installed app.",
+]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Push permission is asked once, after the first feed"
+description = "Adds the permission ask to the feed flow: after the player's first successful feed a bottom sheet explains alerts in one line (assumed copy: \"We'll tell you when Mochi is hungry or robbed\") with Turn on / Not now, Turn on runs the browser prompt and saves the subscription through entry 1's route, a denied or dismissed prompt is remembered so no prompt repeats, and on iPhone outside the installed app it shows entry 3's hint instead."
+verify = "Component tests show the sheet appears after the first feed and never after the second, Turn on saves one PushSubscription, and a denied browser prompt leaves no subscription and no later sheet."
+covers = ["CAP-27"]
+after = [3, "2.4", "2.8"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#open-questions"]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Hungry, asleep, close-to-death and passed-away alerts fire at the right moments"
+description = "Adds the time-based and death kinds to the notifier: hungry at the start of the last 24h before sleep, asleep at sleepAt, close to passing away 24h before deathAt (assumption), all computed from projected sleepAt with the AD-16 TS status port and deduped by (petId, kind, sleepAt) in entry 1's dedupeKey, plus passed away from the indexed PetBuried event, with Voice and Tone copy and app links (\"Feed Mochi\", \"Feed to wake\") in the template module; a feed that moves sleepAt makes the next window's alerts fire again."
+verify = "Worker tests on a test_ schema with a fake clock pin each kind firing once at its boundary (hungry at sleepAt − 24h, asleep at sleepAt, close to death at deathAt − 24h, passed away on PetBuried), none for a pet fed in time, and a fresh set after a feed moves sleepAt."
+covers = ["CAP-27"]
+after = [1, "2.2", "2.4", "2.6"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#uj-3-neglect-sleep-and-death-ana-busy-week",
+]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Co-Pet, claim, wheel and streak events become in-app alerts"
+description = "Adds the remaining kinds to the notifier and template module: Co-Pet partner needs to agree (breed, Death Match) and partner left a Co-Pet from indexed events, small-pot payout ready to claim from the indexed epoch post, and daily wheel ready and login streak at risk from projections, each in-app only by default with push and Telegram off until the owner decides (EXPERIENCE Notifications \"not decided\")."
+verify = "Worker tests on a test_ schema emit each event or state once and show exactly one in-app Notification per kind for the right player (the other owner for \"needs to agree\", the remaining owner for \"partner left\", the pet's owners for claim ready) and no push or Telegram send for these kinds."
+covers = ["CAP-27"]
+after = [5, "8.2", "8.3", "3.5", "9.1", "9.4"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#uj-4-two-friends-and-their-guild-sam-and-priya"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Notification settings: per-type opt-outs, push status and Telegram link"
+description = "Builds Avatar menu › Notifications: a NotificationSettings model (writer = API) with one toggle per alert kind applied to push and Telegram, the player's IANA time zone saved from the browser on each app open, the push on/off state with the denied-state copy \"Alerts are off in your browser. You can still link Telegram.\" and steps to turn them on, and entry 2's Link / Unlink Telegram button; no email field exists."
+verify = "API and component tests show toggling a kind persists per player, the time zone saves from a stubbed browser zone, the denied state shows its copy with no re-prompt, and Link Telegram opens the URL from entry 2's route while Unlink removes the TelegramLink."
+covers = ["CAP-27"]
+after = [2, 4]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#state-patterns"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Delivery policy: most urgent only, 3 a day, quiet hours and opt-outs"
+description = "Adds one policy step before every push and Telegram send: of the alerts due in a tick only the most urgent goes out (the others stay in-app), at most 3 outside alerts per player per local day counted once across push and Telegram, none from 22:00 to 08:00 in the player's saved time zone except close to death, and opted-out kinds never sent, recording each outside send on the Notification (`sentOutsideAt`, which entry 10's delivery log builds on) so the cap can count it; the cap and quiet hours are read from GameConfig rows written by the admin script (AD-18)."
+verify = "Worker tests with a fake clock show a robbery plus hungry plus asleep in one tick sends only the top-ranked one, a fourth alert in a local day is held in-app, a 23:00 hungry alert is not sent while a 23:00 close-to-death alert is, and an opted-out kind is never sent."
+covers = ["CAP-27"]
+after = [6, 7]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/spec-petverse/game-rules.md#alerts",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Alert pill on Home and Battle: one at a time, acted on, deep links land right"
+description = "Grows entry 1's bare pill into the EXPERIENCE component on Home and the top of Battle: one alert at a time newest first, per-kind copy and action (Revenge, Feed, Open Co-Pet, Claim) from the template module, dismissed when acted on through a mark-read route, and push and Telegram deep links opening the same place with the alert marked read."
+verify = "Component tests show only the newest unread alert, its action button per kind, the pill clearing after the action, and a deep link with an alert id opening the right screen with that alert marked read."
+covers = ["CAP-27"]
+after = [2, 4, 6, "6.9"]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#component-patterns"]
+
+[[entry]]
+id = 10
+type = "story"
+title = "Failed deliveries are retried, logged and never shown as game errors"
+description = "Adds a NotificationDelivery log (writer = notifier) per attempt, building on entry 8's `sentOutsideAt`, and retry with backoff for push and Telegram failures, removes a push subscription on 404/410, unlinks a Telegram chat that blocked the bot (403), honours Telegram's 429 retry_after, and keeps every failure out of the player's screens and out of game API responses (AD-19)."
+verify = "Worker tests with fake channels show a 500 is retried then logged as failed, a 410 deletes the subscription, a 403 removes the TelegramLink, a 429 waits its retry_after, and no app route returns an error when a channel fails."
+covers = ["CAP-27"]
+after = [8]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Send-to-team-chat on the same Telegram bot for epic-launch's ops alarms"
+description = "Exports a sendToTeamChat(text) function from the Telegram transport that posts to one team group chat id from env, through entry 10's retry and log, which epic-launch's ops alarms call."
+verify = "A test against the recorded-fixture Bot API posts to the team chat id with retry on failure, and the owner sees a test message from the worker in the team group."
+covers = ["CAP-27"]
+after = [10]
+hitl = true
+risk = "low"
+notes = ["hitl steps: the owner creates the team Telegram group, adds the bot, and enters the group's chat id in the local env and Render secrets."]
+
+[[entry]]
+id = 12
+type = "story"
+title = "Alerts run live on testnet across all three channels"
+description = "Deploys the notifier, Telegram polling and team-chat function to the Render worker on the game schema and the service worker, settings and pill to Vercel production with VAPID and bot secrets, and runs epic-alerts' Done when on 46630, the timed alerts on epic-pet-life's drill instance (2.11) whose sleep and death timers are shortened."
+verify = "On 46630 a staged robbery produces one alert naming the attacker and points lost in app, by push on the owner's iPhone and Android or desktop, and on Telegram; a pet on the drill instance (2.11) gets hungry, asleep and close-to-death alerts on the same channels; a 23:00 local hungry alert is held; a fourth alert in a day is held; and a repo search finds no email-sending code."
+covers = ["CAP-27"]
+after = [3, 9, 11, "2.11"]
+hitl = true
+risk = "high"
+notes = [
+  "hitl steps: the owner OKs the Render and Vercel production deploys (CLAUDE.md), enters VAPID keys, bot token and team chat id in Render and Vercel secrets, and checks the alerts on their own phones.",
+  "High risk: outside check = the owner and one teammate each receive the robbery alert on push and Telegram.",
+]
+
+[[entry]]
+id = 13
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+hitl = false
+risk = "low"

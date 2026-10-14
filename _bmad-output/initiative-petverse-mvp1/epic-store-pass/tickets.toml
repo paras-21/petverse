@@ -1,0 +1,200 @@
+# tickets.toml — epic-store-pass's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse/spec-petverse.md); numbers are in spec-petverse/game-rules.md, Money and Seasons.
+# Lanes: A price source, Store and PotConverter contracts (1 → 6, 1 → 9); B quote service (1 → 8); C gas webhook and paid fallback (2 → 3);
+# D Faucet (4 → 5); E SeasonPass and PetCore (10 → 11, after 6); F Shop screens (1 → 7 → 12); then deploy (13) and sweep (14).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: buy food for $1 in PETV at a signed rate on a local node"
+description = "Delivers the thinnest path through contract, signer, deploy and screen: the IPriceSource port (petvPerUsd, weiPerUsd, burnStageBps) with the upgradeable SignedRateSource accepting an EIP-712 QUOTE_SIGNER quote (expiry, nonce, at most 5% move per hour from the last accepted rate, burn stage only 7000/5000/3000), an upgradeable Store whose registry holds Food at 100 USD cents that converts at the accepted quote, burns the burn-stage share emitting `Burned` (registered as a burn source), sends half the rest to a receive-only PotConverter and half to the team address and credits one meal to PetCore's food balance, a quote route signing at 70% from the PETV/USD display rate, each contract's own Ignition module and generated-chain-module entry, and a Shop tab with Shop › Store showing Food dollars first and buying it through the GameWallet port; entries 6, 8 and 9 build on these contracts and route."
+verify = "With app and worker on a Hardhat local node, a logged-in player opens Shop › Store, sees Food at $1 over its PETV amount, buys it and the food count rises by one, and contract tests show 70% of the PETV burned with `Burned`, 15% held by PotConverter, 15% at the team address, and an expired, replayed or 6%-moved quote reverting."
+covers = ["CAP-23"]
+after = ["1.6", "1.7", "1.11", "1.12", "1.13", "2.3", "2.4", "2.6", "3.3", "4.6", "4.7"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-10-dollar-pricing-through-one-price-source-port-with-bounded-signers",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-11-revenue-in-petv-reaches-the-eth-pot-only-through-potconverter",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html",
+]
+notes = [
+  "hitl steps: the owner puts a dev QUOTE_SIGNER key in the local env (never printed or committed).",
+  "High risk: outside check = the adversarial review in the gate (DECISIONS #2) on quote replay, the rate-move bound and the burn-stage source.",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Gas webhook: 10 sponsored actions a day per player, 20 with the Pass, fail closed"
+description = "Adds `/api/gas/approve` as the Gas Manager custom-rules webhook: it verifies Alchemy's signature, maps `userOperation.sender` to a Privy DID through the User row, approves only a single call to an allow-listed game contract, counts approvals per DID per UTC day in a SponsorshipCount model (single writer: this route) against a cap of 10, or 20 while `ISeasonPass.isActive` is true (the interface and a test double defined here; entry 10 implements it), sponsors calls to an uncounted list (the Faucet, from entry 4) without counting, refuses on any error, and serves the player's remaining count from `/api/gas/remaining` for entry 3."
+verify = "Route tests with recorded Gas Manager fixtures approve a DID's first 10 single-call operations of a UTC day and refuse the 11th, a batch, a non-allow-listed target, a bad signature, an unknown sender and a database error, approve up to 20 when the SeasonPass double is active, and on a Vercel preview against 46630 the 11th tracer action of the day is refused by the live policy."
+covers = ["CAP-2"]
+after = [1, "1.2", "1.8", "1.10", "1.11"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-7-gas-sponsorship-cap-is-enforced-by-our-gas-manager-webhook",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-8-wallet-and-identity",
+]
+notes = [
+  "hitl steps: the owner sets the custom-rules webhook URL on the Gas Manager policy with approveOnFailure off, and enters the webhook signing key in Vercel's preview env (never printed or committed).",
+  "High risk: outside check = the security review in the gate on signature verification and fail-closed paths.",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Past the cap: the paid fallback, the free-actions chip and the no-test-ETH state"
+description = "When entry 2's remaining count is 0, sends the same call unsponsored through the GameWallet port after a fee confirm that shows the fee in dollars first (gas estimate × fee × epic-pot's ETH/USD rate), adds the top-bar free-actions chip (\"7 free left\", \"0 free · small fee\", polite announcement on change) and the no-test-ETH fee confirm with \"Get test ETH\" opening the Wallet sheet and the reset time, spending nothing."
+verify = "On a local node with the webhook fixture at the cap, the 11th action shows its fee in dollars, goes through paid from test ETH and the chip reads \"0 free · small fee\", the chip shows \"10 free left\" again after the UTC day turns, and with no test ETH the fee confirm offers \"Get test ETH\" and the reset time and sends nothing."
+covers = ["CAP-2"]
+after = [2, 5, "1.12", "2.3", "3.7"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Faucet: sign-up and daily drips against a voucher per Privy DID"
+description = "Adds the upgradeable testnet Faucet behind the timelock paying 0.01 test ETH + 3,120 PETV once per DID hash at sign-up and 0.002 test ETH + 624 PETV once per DID hash per UTC day (amounts timelocked parameters), only against a VOUCHER_SIGNER voucher (kind, DID hash, recipient, UTC day, expiry, nonce) from a faucet route next to epic-pet-life's voucher route, receiving team test-ETH top-ups and refusing with a plain reason when empty, with its own Ignition module; entry 5 calls it and entry 2 lists it as uncounted."
+verify = "Contract and route tests show a sign-up voucher pays 0.01 test ETH + 3,120 PETV once per DID, a daily voucher pays 0.002 test ETH + 624 PETV once per DID per UTC day, a reused, expired, wrong-recipient or unsigned voucher and a logged-out request are refused, an empty faucet refuses, and only the timelock changes the amounts."
+covers = ["CAP-2"]
+after = ["1.11", "1.13", "2.7", "4.1"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-9-petv-on-testnet-fixed-supply-token-our-pons-like-curve-one-tax-splitter",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-15-anti-bot-uses-off-chain-detection-and-a-narrow-on-chain-hold",
+]
+notes = ["High risk: outside check = the adversarial review in the gate on voucher replay and per-DID caps."]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Wallet sheet faucet: the sign-up drip and \"Get today's $2\" with its countdown"
+description = "Adds the faucet to epic-petv's Wallet sheet: the sign-up drip is claimed automatically after the first login (with a retry button if it fails), the daily button shows the live dollar value of the drip and becomes a cooldown button counting down to 00:00 UTC once used, with pending, error and empty-faucet copy, and exposes the faucet section as the target that entries 3, 7 and 12 open."
+verify = "On a local node a new login receives the sign-up drip without tapping, and on the next UTC day the Wallet sheet button pays the daily drip and turns into a cooldown button counting down to 00:00 UTC, at 390px and 1280px."
+covers = ["CAP-2"]
+after = [4, "4.8"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md"]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Store registry: eggs and the 8-hour shield, open to later items"
+description = "Grows entry 1's Store into the full registry: Egg (299 cents) and Lucky egg (999 cents) mint a paid egg through a new PetCore entry point with its tier, whose hatch reveal uses that tier's coat weights (the Lucky egg triples the rarest palettes' weight, a timelocked parameter), Shield (8h, 100 cents) sets the pet's shield-until (epic-pet-life 2.2's field) through a GAME_MODULE extend-only shield setter this entry adds to PetCore, the one setter epic-battle 6.3 also calls (this entry is the only one that builds paid eggs and the Shield), every price is a timelocked USD-cents parameter, and later epics register items (evolution items, cosmetics) through the timelock with a target contract and call, so epic-growth and epic-cosmetics-market add items without editing Store."
+verify = "Contract tests buy each item at a signed rate (a meal credited, an Egg and a Lucky egg minted with their tier and a seeded run of Lucky-egg reveals showing the rarest palettes at three times the Egg rate, a pet's shield set to now + 8 hours), show only the timelock can change a price or register an item, and the AD-4 invariant and upgrade-safety validator stay clean after the PetCore change."
+covers = ["CAP-23"]
+after = [1]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Shop › Store and the not-enough-PETV shortfall note as in the mock"
+description = "Builds Shop › Store from key-shop-claim.html on entry 6's registry: item tiles dollars first with PETV underneath, the detail and Buy area, the wallet chip opening the Wallet sheet, pending and error states, and the shared shortfall note (Buy becomes a focusable \"Not enough PETV\"; \"You need $1.40 more\" over the PETV gap; \"Get today's $2\" or \"Open Wallet\" with the next-drip time, opening entry 5's faucet section and returning to the same item) that entry 12 and later epics reuse."
+verify = "At 390px and 1280px against a local node, Shop › Store lists Food, Egg, Lucky egg and Shield dollars first, a buy succeeds, and with too little PETV the note states the gap in dollars and its button opens the Wallet sheet faucet and returns to the same item, all reachable by keyboard."
+covers = ["CAP-23"]
+after = [1, 3, 5, 6]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+]
+
+[[entry]]
+id = 8
+type = "story"
+title = "The quote service sets the burn stage from the 30-minute market cap and stays inside the bound"
+description = "Hardens entry 1's quote route: burnStageBps comes from the 30-minute average market cap (PETV/USD × 1B supply: 7000 below $1M, 5000 from $1M, 3000 from $10M, thresholds in GameConfig), quotes expire after 5 minutes with an on-chain nonce, a market move past 5% in an hour is signed at the bound so buys keep working, the route is rate-limited per DID, and the QUOTE_SIGNER key is loaded only through the env loader and never logged."
+verify = "Route tests sign 7000 below a $1M average, 5000 above it and 3000 above $10M, sign a rate at exactly the 5%-per-hour bound when the market moved further, and a log-capture test finds no key material."
+covers = ["CAP-23"]
+after = [1]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home"]
+
+[[entry]]
+id = 9
+type = "story"
+title = "PotConverter swaps queued PETV to ETH for PotFunder"
+description = "Turns entry 1's receive-only PotConverter into the AD-11 converter: a KEEPER-only batch swap of queued PETV to ETH through the curve before graduation and the pool after, with a minimum-out from IPriceSource's weiPerUsd and petvPerUsd less the 5% trade tax and a timelocked slippage allowance, the ETH sent to epic-pot's PotFunder, plus the keeper job in the worker that runs it on a schedule and when the queue passes a threshold."
+verify = "Worker tests on a local node show the job swapping queued PETV through the curve and, after graduation, the pool, PotFunder's balance rising by the ETH received, a swap below the minimum-out reverting, and a non-KEEPER call reverting."
+covers = ["CAP-23"]
+after = [1, "1.9", "3.1", "4.3"]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-11-revenue-in-petv-reaches-the-eth-pot-only-through-potconverter"]
+notes = ["High risk: outside check = the adversarial review in the gate on minimum-out and sandwich exposure."]
+
+[[entry]]
+id = 10
+type = "story"
+title = "SeasonPass: on-chain seasons and a $7.99 pass with no auto-renew"
+description = "Adds the upgradeable SeasonPass implementing entry 2's ISeasonPass: season genesis and 12-week length as timelocked parameters behind `seasonOf(ts)` and `isActive(addr, ts)`, a buy of the current season at 799 cents through entry 1's price source that lasts to that season's end with no renewal and one pass per address per season, income split 30% to PotConverter, 20% to epic-pot's seasonPool stream and 50% to team in the same transaction, and a grant of the current season's skin on buy through the Cosmetics base's granter interface (epic-pet-life 2.5), the skin id a timelocked per-season SeasonPass parameter left unset (no skin) until epic-cosmetics-market 7.5 defines the soulbound skin id and its granter role and epic-seasons sets the id each season (10.8, 10.10), with its own Ignition module."
+verify = "Contract tests show seasonOf and isActive following genesis and the 12-week length at the exact boundaries, a $7.99 buy making isActive true until the season's end and false after, a second buy in the same season reverting, the 30/20/50 split, and the season skin minted and refusing transfer."
+covers = ["CAP-23"]
+after = [1, 2, "2.5", "3.4"]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
+notes = ["High risk: outside check = the adversarial review in the gate on season boundaries and the income split."]
+
+[[entry]]
+id = 11
+type = "story"
+title = "PetCore gives +25% points to Pass holders"
+description = "Makes PetCore, which alone applies multipliers (AD-2), raise every point award by 25% (rounded down) while the pet's owner has `SeasonPass.isActive`, through a timelocked SeasonPass address and multiplier, with storage changes passing the upgrade-safety validator."
+verify = "Contract tests show a point award to an active holder's pet is 25% higher and back to normal after the season ends, a steal or burn is not multiplied, and the AD-4 invariant test and upgrade-safety validator stay clean."
+covers = ["CAP-23"]
+after = [6, 10]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes"]
+
+[[entry]]
+id = 12
+type = "story"
+title = "Shop › Pass: the pass card, buying and the owned state"
+description = "Builds Shop › Pass from key-shop-claim.html on entry 10: the pass card with the skin preview, $7.99 dollars first, the instead-of benefit rows (+25% points, attack every 10 minutes instead of 30, 20 free actions instead of 10, season skin), \"No auto-renew\", the buy step, the owned state \"You have the Season Pass · Week N of 12\" with room for epic-seasons' reward track, and entry 7's shortfall note when PETV is short."
+verify = "At 390px and 1280px against a local node, Shop › Pass shows the mock's card, buying turns it into the owned state with the right week and the free-actions chip reads \"20 free left\", and too little PETV shows the shortfall note, all reachable by keyboard."
+covers = ["CAP-23"]
+after = [3, 7, 10]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html"]
+
+[[entry]]
+id = 13
+type = "story"
+title = "Store, Pass and faucet live on 46630 and the Done when checked"
+description = "Deploys SignedRateSource, Store, PotConverter, Faucet and SeasonPass through Ignition to 46630 and upgrades PetCore through the Safe-proposed timelock, verifies each on Blockscout, grants QUOTE_SIGNER, KEEPER and the Store's PetCore role through the timelock (SeasonPass's season-skin granter role comes with epic-cosmetics-market 7.13), moves the faucet PETV allocation to the Faucet, sets season 1's genesis, regenerates the chain module, points the gas webhook at the live SeasonPass and lists the live Faucet as uncounted, runs the quote route on Vercel and the keeper on Render, and checks every Done when item live."
+verify = "On the Vercel production app against 46630 a fresh login gets the sign-up drip, has its 11th action of the day refused for sponsorship and paid with the fee in dollars, buys food and the Pass at the signed rate, takes 20 sponsored actions and then a paid one with the fee in dollars, claims the next day's drip, a keeper run raises PotFunder's balance, and every new contract shows verified source on Blockscout."
+covers = ["CAP-2", "CAP-23"]
+after = [3, 5, 7, 8, 9, 11, 12, "1.15", "2.11", "3.11", "4.9"]
+hitl = true
+risk = "high"
+unknown = "Season 1 genesis date (initiative open question); assumed: the Sunday 00:00 UTC on which testnet opens."
+notes = [
+  "hitl steps: the owner OKs every deploy and upgrade to 46630 (CLAUDE.md); two Safe signers sign the timelocked role grants, the PetCore upgrade, the faucet PETV transfer and season 1's genesis; the owner funds the Faucet with test ETH and the QUOTE_SIGNER and KEEPER keys with gas; the owner enters the QUOTE_SIGNER key in Vercel and the KEEPER key in Render (never printed); the owner adds Store, Faucet and SeasonPass to the Gas Manager policy allow-list and points the production webhook at the Vercel route.",
+  "High risk: outside check = the owner confirms the live drips, purchases and the 11th/21st action on the explorer.",
+]
+
+[[entry]]
+id = 14
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+hitl = false
+risk = "low"

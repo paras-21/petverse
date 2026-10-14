@@ -69,7 +69,7 @@ found before real money is at risk. Numbers and rules live in [game-rules.md](ga
   - **success:** The winner takes the pot minus 5%, which is burned; a stake is refunded when a reveal times out; the risk is stated before commit. (FR-26)
 - **CAP-13** Death Match
   - **intent:** A weekend mode with bigger rewards where the pet can die.
-  - **success:** Open Saturday 00:00 – Sunday 23:59 UTC to any adult pet with 3 lives; a loss costs a life; the player can leave safely any time and keeps streak rewards and a Hall of Fame spot; 0 lives = death (CAP-6); lives refill 1 per 7 days of good care; a Co-Pet enters only if both owners agree. (FR-25)
+  - **success:** Open Saturday 00:00 – Sunday 23:59 UTC to any adult pet with 3 lives; a loss costs a life; the player can leave safely any time and keeps streak rewards and a Hall of Fame spot; each win awards new points (2 × 10% of the opponent's pot points × streak, max 5×), not taken from the opponent; 0 lives = death (CAP-6); lives refill 1 per 7 days of good care; at most 20 fights per pet per weekend; a Co-Pet enters only if both owners agree. (FR-25; DECISIONS #52, #57)
 - **CAP-14** Co-Pet
   - **intent:** Two friends own and raise one pet together.
   - **success:** Both can care and play; caring the same day gives the Together bonus; the shared streak grows only if both show up; rewards split 50/50; breeding and Death Match need both approvals; max 3 Co-Pets per player; either owner can leave or end it: the leaver's half of the pet's unclaimed pot is paid to the leaver first, then the pet becomes the other owner's normal pet with the other half still claimable; the leaver gets a memory badge; no sale, buy-out or money between players. (FR-28, FR-29, FR-30; DECISIONS #29)
@@ -78,13 +78,13 @@ found before real money is at risk. Numbers and rules live in [game-rules.md](ga
   - **success:** Guilds of up to 10 with one leader who invites and removes; one guild per player; every Sunday guilds paired by average level play a best-of-5 series of 2v2 matches; the winning guild shares a Gold prize. (FR-31, FR-32)
 - **CAP-16** Evolution
   - **intent:** The pet grows through stages shaped by how it is played.
-  - **success:** Egg → Baby → Teen (Lv 3) → Adult (Lv 6) → Elder → Mythic; the path is set at Teen by the most-done action (battles → Warrior, care → Guardian, expeditions → Explorer); element sets the look; Elder and Mythic need their item, Mythic also a season trophy. (FR-33, FR-34, FR-35, FR-36)
+  - **success:** Egg → Baby → Teen (Lv 3) → Adult (Lv 6) → Elder → Mythic; the path is set at Teen by the most-done action (battles → Warrior, care → Guardian, expeditions → Explorer); element shows as a badge and an accent look over the random coat, and stage and shiny looks keep each species' shape; the element gives +10% battle power against the element it beats (fire > leaf > stone > spark > water > fire); Elder and Mythic need their item, Mythic also a season trophy. (FR-33, FR-34, FR-35, FR-36; DECISIONS #37, #55)
 - **CAP-17** Breeding
   - **intent:** Two adults make a new egg.
   - **success:** Own pets or Co-Pets only; each pet breeds at most 5 times, each breed costs double the last; both parents need good care; 1 in 500 eggs is shiny. (FR-37)
 - **CAP-18** Cosmetics
   - **intent:** A player dresses the pet and shows it off.
-  - **success:** 5 slots (hat, face, neck, back, hand); every item fits all 10 species; 35 items; rarity common/rare/epic/legendary at 60/25/12/3%; rare and above are tradeable NFTs, commons are soulbound; try-on before buy. (FR-39, FR-40)
+  - **success:** 5 slots (hat, face, neck, back, hand); every item fits all 10 species at every stage (babies and armless species use a hand anchor); 35 items; rarity common/rare/epic/legendary at 60/25/12/3%; rare and above are tradeable NFTs, commons are soulbound; try-on before buy. (FR-39, FR-40; DECISIONS #38)
 - **CAP-19** Expeditions
   - **intent:** A player sends the pet away for a sure or risky reward.
   - **success:** 1, 8 or 24 hours; Safe pays a small sure reward; Bold stakes PETV for 3× the reward with a 30% chance to fail and burn the stake; the pet cannot battle while away. (FR-38)
@@ -93,31 +93,31 @@ found before real money is at risk. Numbers and rules live in [game-rules.md](ga
   - **success:** 3 automatic monster fights a day, scaled to the pet's level, each win gives Gold and points; Boss Raid teams of up to 2 fight the season boss whose health is shared across all raids; damage earns points and Gold; top raid teams get a cosmetic. (FR-50, FR-53)
 - **CAP-21** Daily wheel and login streak
   - **intent:** Small daily rewards bring the player back.
-  - **success:** One free wheel spin per 24h with the set prize odds; login streak pays points on days 1–6 and an egg-shard on day 7, and resets after a missed day. (FR-48, FR-49)
+  - **success:** One free wheel spin per rolling 24h from the last spin, with the set prize odds; login streak pays points on days 1–6 and an egg-shard on day 7, and resets after a missed day. (FR-48, FR-49; DECISIONS #51)
 - **CAP-22** PETV token and burns
   - **intent:** The game has its own token whose burns anyone can see.
   - **success:** 1B fixed supply, no mint after deploy; testnet launch on our Pons-like curve that graduates into our own v2-style pool; 5% trade tax split pot/burn/liquidity/team; store, wager, dice, failed Bold and market burns happen as set; a public burn counter shows the total. (FR-41, FR-45)
 - **CAP-23** Store and Season Pass
   - **intent:** A player buys items and a season pass priced in dollars.
-  - **success:** Every price is set in USD and paid in PETV at the live rate (food $1, eggs $2.99–$9.99, shields, evolution items, cosmetics); a shortfall shows the gap in dollars and a way to top up; Season Pass $7.99 gives +25% points, 10-minute attack cooldown, 20 free actions a day, a reward track and a season skin, no auto-renew. (FR-42, FR-43)
+  - **success:** Every price is set in USD and paid in PETV at the live rate (food $1, eggs $2.99–$9.99, shields, evolution items, cosmetics); a shortfall shows the gap in dollars and a way to top up; Season Pass $7.99 gives +25% points, 10-minute attack cooldown, 20 free actions a day, a reward track and a season skin granted at purchase, no auto-renew. (FR-42, FR-43; DECISIONS #50)
 - **CAP-24** Gold vault
-  - **intent:** A player stakes PETV to share in game spending.
-  - **success:** Staking PETV gives Gold shares; the vault grows from game spending; swapping back costs 2%; game Gold (living pets, monsters, raids, Guild War) is paid from a funded reserve under a daily cap and never minted. (FR-44)
+  - **intent:** A player stakes PETV for Gold shares that grow with the vault.
+  - **success:** Staking PETV gives Gold shares; swapping back costs 2%, which stays in the vault; in release 1 that fee is the vault's only growth (no store, pass, market or tax share); game Gold (living pets, monsters, raids, Guild War) is paid from a funded reserve under a daily cap and never minted. (FR-44; DECISIONS #53)
 - **CAP-25** Market
   - **intent:** Players trade rare and better cosmetics.
   - **success:** Only rare-and-above cosmetics list; never pets, eggs, Co-Pets or commons; 5% fee, half burned, half to the ETH pot; buy goes through a review sheet. (FR-46)
 - **CAP-26** Seasons and leaderboard
   - **intent:** Players compete in 12-week seasons.
-  - **success:** A season leaderboard ranks players; ranks reset each season; top players get a bonus from the season pool, not the ETH pot; top 10% get a season trophy. (FR-47)
+  - **success:** A season leaderboard ranks players; ranks reset each season; top players get a PETV bonus from the season pool (20% of Pass income), not the ETH pot; top 10% get a season trophy. (FR-47; DECISIONS #48)
 - **CAP-27** Alerts
   - **intent:** A player learns about robbery and danger in time to act.
-  - **success:** A robbery alert names the attacker and points lost in app, by web push and on Telegram; hungry, asleep and near-death alerts fire on the same channels; one alert at a time; no email. (FR-20)
+  - **success:** A robbery alert names the attacker and points lost in app, by web push and on Telegram; hungry, asleep, close-to-passing-away (24h before death) and passed-away alerts fire on the same channels; claim ready, wheel ready, streak at risk and Co-Pet alerts are in app only; one alert at a time (the in-app pill shows the newest, push and Telegram the most urgent); no email. (FR-20; DECISIONS #42, #43)
 - **CAP-28** Fairness checks
   - **intent:** Anyone can check every random result and every money number.
   - **success:** Every random result (battle, wheel, dice, wager, monster, expedition, egg, breeding, cosmetic drop) matches a commitment published before it, shown by "Check this result"; points, pot shares and claims are readable on-chain; every contract is verified and public. (FR-27, NFR-1, NFR-2)
 - **CAP-29** Anti-bot
   - **intent:** Bots and account farms cannot take the pot.
-  - **success:** Free eggs and faucet need a voucher per verified login or wallet with history; many accounts per device or funding wallet, or perfectly regular timing, flag an account; flagged accounts are excluded from pot payouts and gas sponsorship until cleared; a payout hold expires on its own; the four counter-metrics are measured daily. (§4.10 anti-bot, §6)
+  - **success:** Free eggs and faucet need a voucher per verified login or wallet with history; many accounts per device or funding wallet, or perfectly regular timing, flag an account; flagged accounts are left out of epoch payouts and gas sponsorship until a reviewer clears them; their main-pot claims are delayed by a payout hold that expires after 72h unless the Safe renews it; once the Safe confirms a bot, its pet's unclaimed pot ETH goes back to the main pot and its points are zeroed; the four counter-metrics are measured daily. (§4.10 anti-bot, §6; DECISIONS #40, #41, #56)
 - **CAP-30** Governed admin
   - **intent:** No single key can change the rules or take funds.
   - **success:** Every parameter change and upgrade is proposed by a Safe multisig and waits out a timelock; the Safe can pause or cancel but not change rules or move funds instantly; each server key holds one narrow role. (NFR-1, DECISIONS #11)
@@ -180,3 +180,4 @@ None block release 1.
 - Signer key storage (which KMS). Deferred to mainnet.
 - Pons `maxCreatorTaxBps` (highest allowed trade tax). Deferred to mainnet.
 - Legal: launch countries, geo-blocking and age checks. Deferred to mainnet.
+- Owner economy calls carried as testnet assumptions in the epics (do not block planning): battle odds, breeding, expedition, Guild War prize and season-pool split numbers.

@@ -25,7 +25,7 @@ title = "Points, pot share and claim"
 covers = ["CAP-7", "CAP-8", "CAP-9"]
 after = [
   { epic = 2, needs = "PetCore with per-pet points, sleep/wake/bury hooks and the AD-16 status port" },
-  { epic = 1, needs = "spike answer: per-owner two-level pot accumulator invariant" },
+  { epic = 1, needs = "spike answer: per-owner two-level pot accumulator invariant (1.4), and the live governance base and worker (1.9, 1.15)" },
 ]
 
 [[epic]]
@@ -36,6 +36,7 @@ covers = ["CAP-22", "CAP-24"]
 after = [
   { epic = 3, needs = "PotFunder to receive the trade-tax pot share" },
   { epic = 2, needs = "PetCore accrued-Gold counter to pay through GoldVault.creditFromGame" },
+  { epic = 1, needs = "tracer path, gate and local-node fixture, indexer worker and Vercel app, governance base, upgrade-safety validator and the live governance deploy (1.1, 1.6, 1.9, 1.10, 1.13, 1.14, 1.15)" },
 ]
 
 [[epic]]
@@ -46,8 +47,8 @@ covers = ["CAP-2", "CAP-23"]
 after = [
   { epic = 4, needs = "PETV, its faucet allocation and the burn path" },
   { epic = 3, needs = "PotFunder for PotConverter output" },
-  { epic = 2, needs = "voucher signer and the items the store sells first (food, eggs, shield on PetCore)" },
-  { epic = 1, needs = "spike 2 answer: Gas Manager custom-rules webhook on 46630" },
+  { epic = 2, needs = "voucher signer, PetCore's food balance (2.4), the shield-until field (2.2) and the hatch reveal paid eggs reuse (2.1); paid eggs and the Shield item themselves are built here (5.6)" },
+  { epic = 1, needs = "spike 2 answer: Gas Manager custom-rules webhook on 46630, plus gate, env loader, schema, worker, Vercel, Privy auth, GameWallet, governance base and live deploy (1.2, 1.6–1.13, 1.15)" },
 ]
 
 [[epic]]
@@ -59,6 +60,8 @@ after = [
   { epic = 3, needs = "settle-before-change on point transfers between buckets" },
   { epic = 4, needs = "PETV stakes and burns for wager and dice" },
   { epic = 5, needs = "SeasonPass.isActive for the 10-minute cooldown and bought shields" },
+  { epic = 1, needs = "tracer, gate and fixture, env loader, schema setup, worker indexer, Privy auth, governance base and the Randomness service (1.1, 1.6–1.9, 1.11, 1.13, 1.16)" },
+  { epic = 2, needs = "PetCore status, new-pet protection, shield-until field and battle counter (2.2)" },
 ]
 
 [[epic]]
@@ -85,12 +88,28 @@ after = [
 [[epic]]
 id = 9
 slug = "epic-play-hub"
-title = "Play hub: wheel, streak, monsters, expeditions, Death Match, Boss Raid"
-covers = ["CAP-13", "CAP-19", "CAP-20", "CAP-21"]
+title = "Play hub: wheel, streak, monsters and expeditions"
+covers = ["CAP-19", "CAP-20", "CAP-21"]
 after = [
-  { epic = 6, needs = "battle engine and the Play tab shell" },
-  { epic = 7, needs = "cosmetic prizes (wheel, raid) and the soulbound egg-shard" },
-  { epic = 8, needs = "Co-Pet two-owner approvals for Death Match entry" },
+  { epic = 6, needs = "battle engine, fight view and the Play tab shell with the Dice card (6.1, 6.3, 6.5, 6.8, 6.11, 6.12)" },
+  { epic = 7, needs = "the random cosmetic drop for wheel prizes and the soulbound egg-shard (7.5, 7.6, 7.13)" },
+  { epic = 1, needs = "worker, Vercel app, upgrade-safety validator, live governance base and the Randomness service (1.9, 1.10, 1.14, 1.15, 1.16)" },
+  { epic = 2, needs = "UI kit, Care and food balance, burial path, Home screen and the live pet-life deploy (2.3, 2.4, 2.6, 2.8, 2.11)" },
+  { epic = 4, needs = "PETV for Bold stakes and burns, PetCore Gold counter payment and the live token layer (4.1, 4.6, 4.9)" },
+]
+
+[[epic]]
+id = 15
+slug = "epic-death-match-raid"
+title = "Weekend events: Death Match and Boss Raid"
+covers = ["CAP-13"]
+after = [
+  { epic = 9, needs = "PetCore play hooks (lives, inDeathMatchRun, awardGold, loseLife), the play module interfaces and read models, and the live PetCore upgrade (9.2, 9.3, 9.13)" },
+  { epic = 6, needs = "battle engine, MatchQueue and the fight view (6.1, 6.4, 6.8)" },
+  { epic = 8, needs = "Co-Pet two-owner approvals for Death Match entry, live on 46630 (8.3, 8.12)" },
+  { epic = 5, needs = "SeasonPass.seasonOf for the season boss (5.10)" },
+  { epic = 7, needs = "the raid prize item from the cosmetics catalogue (7.3)" },
+  { epic = 1, needs = "the Randomness service (1.16)" },
 ]
 
 [[epic]]
@@ -101,7 +120,11 @@ covers = ["CAP-26"]
 after = [
   { epic = 5, needs = "on-chain season boundaries in SeasonPass" },
   { epic = 7, needs = "the soulbound season trophy item" },
-  { epic = 9, needs = "Death Match Hall of Fame data and raid results for the trophies stream" },
+  { epic = 15, needs = "Death Match Hall of Fame route, top raid team leaves for the trophies stream, and both modules live (15.3, 15.5, 15.6)" },
+  { epic = 6, needs = "the ranked-duel event carrying season and new rank (6.2)" },
+  { epic = 1, needs = "local-node fixture and the worker loop (1.6, 1.9)" },
+  { epic = 3, needs = "EpochDistributor streams, epoch builder, dataset route, display rate and the Claims list (3.4–3.7, 3.10)" },
+  { epic = 4, needs = "PETV/USD on the display-rate service (4.7)" },
 ]
 
 [[epic]]
@@ -112,7 +135,7 @@ covers = ["CAP-16", "CAP-17"]
 after = [
   { epic = 10, needs = "season trophies for Mythic" },
   { epic = 8, needs = "Co-Pet two-owner approvals for breeding" },
-  { epic = 9, needs = "expedition counts for the Explorer path" },
+  { epic = 9, needs = "expedition counter increments and the live PetCore play upgrade for the Explorer path (9.13)" },
 ]
 
 [[epic]]
@@ -123,6 +146,10 @@ covers = ["CAP-27"]
 after = [
   { epic = 6, needs = "PetRobbed events" },
   { epic = 8, needs = "Co-Pet request events" },
+  { epic = 1, needs = "worker loop, Vercel app and Privy auth (1.9, 1.10, 1.11)" },
+  { epic = 2, needs = "status port, feed, burial, Home screen and the shortened-timer drill instance (2.2, 2.4, 2.6, 2.8, 2.11)" },
+  { epic = 3, needs = "the small-pot epoch post for claim-ready alerts (3.5)" },
+  { epic = 9, needs = "wheel and streak projections for wheel-ready and streak-at-risk alerts (9.1, 9.4)" },
 ]
 
 [[epic]]
@@ -145,4 +172,5 @@ after = [
   { epic = 11, needs = "every game module deployed, so every random result and money number can be checked" },
   { epic = 12, needs = "alert delivery for the ops alarms" },
   { epic = 13, needs = "counter-metrics in MetricDaily" },
+  { epic = 6, needs = "battle results live on 46630 for the fairness-check tracer (6.12)" },
 ]

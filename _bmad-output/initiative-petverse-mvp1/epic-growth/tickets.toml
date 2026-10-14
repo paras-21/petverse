@@ -1,0 +1,144 @@
+# tickets.toml — epic-growth's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP-16 (Evolution) and CAP-17 (Breeding); numbers are in game-rules.md, Growth.
+# Assumed numbers and choices are dated Decision lines in epic-growth.md Notes (DECISIONS #31).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a pet's Teen path and stage from chain to the Home badge and 3D stage"
+description = "Delivers the thinnest path through every layer the epic touches: a PetCore upgrade that fixes the path (Warrior, Guardian or Explorer from the battle, care and expedition counters, ties to Guardian then Warrior) in the same call that first takes the pet to level 3, with pets already past level 3 getting theirs on their next touch; a new upgradeable Evolution module whose stageOf view returns Baby, Teen (level 3) or Adult (level 6) from level, with the stage levels as timelocked parameters (AD-18) that a drill may lower and restore; the Ignition module, Blockscout verification and generated chain module for both; the indexer projecting PathSet and the stage into the Pet table; and Home showing \"Bunny · Lv 6 · Adult\" with the Warrior / Guardian / Explorer path and the existing baby or adult 3D form chosen by stage, a mapping entry 4 replaces with a stage prop."
+verify = "On 46630, with the Teen and Adult levels lowered for the drill through the Safe and timelock and restored after, a test pet fed and fought past each level shows on the Vercel Home badge as Teen with its path and then Adult in the adult 3D form within a minute of each level-up, and the PathSet event and stageOf view on Blockscout agree with it."
+covers = ["CAP-16"]
+after = ["9.13"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-21-contract-addresses-and-abis-reach-src-through-one-generated-module",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Breeding module: eligibility, doubling cost, commit-reveal egg with inherited traits and 1 in 500 shiny"
+description = "Delivers CAP-17's on-chain rules as an upgradeable Breeding module tested on Hardhat's in-process network: two awake parents at level 6+ with good care in the current 24-hour window, each the caller's own pet or a Co-Pet the caller co-owns with its partner's one-use on-chain approval (AD-17), at most 5 breeds per parent and a 24-hour cooldown per parent, cost $2.99 × 2^(the higher parent's breed count) in PETV through the price source and the Store's egg payment split, then a Randomness request whose settle mints an egg to the caller with species and element 45% parent A / 45% parent B / 10% any, a random coat of that species and shiny when seed mod 500 = 0, a timeout no-op that refunds the PETV, leaves counts and cooldowns unchanged and emits BreedRefunded, and a pure TS breedOutcome(seed, parents) port the contract matches by shared vectors, which entry 10 and epic-launch's \"Check this result\" also use; any PetCore hook it needs (egg mint with given traits, care-window view) builds on entry 1's PetCore upgrade."
+verify = "The chain/ contract tests show a valid breed mints the predicted egg from the revealed seed (matching breedOutcome), refusals for a non-adult, a pet without good care, a 6th breed, a parent in cooldown, a stranger's pet and a Co-Pet without its partner's approval, costs of 1×, 2×, 4×, 8×, 16× $2.99, a timed-out request refunding in full, and between 150 and 250 shiny eggs in a seeded breedOutcome run of 100,000 seeds."
+covers = ["CAP-17"]
+after = [1, "8.3"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-10-dollar-pricing-through-one-price-source-port-with-bounded-signers",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-17-co-pet-ownership-is-on-chain",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Evolution to Elder and Mythic with their items and the trophy check"
+description = "Extends entry 1's Evolution module with evolve(petId) for an awake pet: Elder needs level 15 and burns one soulbound Elder item from the caller, Mythic needs Elder, level 30, burns one Mythic item and needs the caller (either owner of a Co-Pet) to hold a season trophy of any season, named by its token id and checked against the per-season trophy ids (top-10% finish, not raid cosmetics) that epic-cosmetics-market defines and epic-seasons 10.8 registers each season, minted by 10.3, which is not used up; the Elder and Mythic items are new soulbound ids in the Cosmetics ERC-1155 that the Store mints on purchase ($3 and $5), and stageOf now returns Elder and Mythic; the Elder and Mythic levels are timelocked parameters like entry 1's."
+verify = "The chain/ contract tests show Elder and Mythic succeed only for an awake pet with level, item and (Mythic) a season trophy in place, a raid cosmetic does not count as a trophy, each burns exactly one item, a failed evolve keeps the item, the items cannot be transferred, and stageOf returns the new stage."
+covers = ["CAP-16"]
+after = [1]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
+]
+
+[[entry]]
+id = 4
+type = "story"
+title = "3D looks for Teen, Elder, Mythic, the five elements and shiny"
+description = "Gives PetModel a stage prop in place of entry 1's baby-or-adult mapping and adds, without changing any species' geometry, a Teen form between baby and adult proportions, Elder and Mythic accents on the adult form, an element accent for fire, water, leaf, spark and stone on top of the random coat, and a shiny finish, with every combination shown on the existing Gallery page."
+verify = "A render test mounts every species at every stage with every element, shiny and not, with no error, and the owner approves the looks on the Gallery page."
+covers = ["CAP-16", "CAP-17"]
+after = [1]
+hitl = true
+risk = "medium"
+notes = []
+
+[[entry]]
+id = 5
+type = "story"
+title = "Breeding, Evolution v2 and any PetCore hooks deployed and verified on 46630 with the items on sale"
+description = "Adds Breeding, the Evolution upgrade and any PetCore upgrade entry 2 needed to the Ignition module, deploys them to 46630 through the Safe and 1-hour timelock (Breeding granted GAME_MODULE and its Randomness consumer role, Evolution granted the burner role for the Elder and Mythic ids on Cosmetics, the Store granted the minter role for those two ids, the Elder and Mythic items registered in the Store at $3 and $5, the egg payment split reused for breeding), verifies both on Blockscout and regenerates the chain module."
+verify = "On 46630, every deployed or upgraded contract shows verified source on Blockscout, the timelock's executed operations show the role grants and Store items, and a script buys an Elder item through the Store and reads a breed quote of $2.99 in PETV."
+covers = ["CAP-16", "CAP-17"]
+after = [2, 3]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
+]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Indexer projections and the pet growth read for evolution and breeding"
+description = "Extends the indexer with Evolved, BreedRequested, BreedSettled and BreedRefunded into the Pet table (stage, path, element, shiny, parent ids, breeds used, cooldown end) and adds the read that the Evolve and Breed sheets use: next stage and what it needs, owned item counts, eligible partners among the player's own pets and Co-Pets, breeds left and the next breed's dollar cost read from contract views (AD-18)."
+verify = "Worker and API tests on the Hardhat local-node fixture evolve one pet, breed two and let one breed time out, then show the projected rows and the read's next stage, breeds left, eligible partners and next cost matching the contract views, with a restart mid-sync leaving no duplicate rows."
+covers = ["CAP-16", "CAP-17"]
+after = [5]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-14-indexer-is-one-in-repo-worker-with-a-cursor-and-idempotent-writes",
+]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Evolve button and Evolve sheet on the Home pet card"
+description = "Adds the Evolve and Breed button pair to the Home pet card (Breed shown locked with its reason until entry 8) and the Evolve sheet per the spine: locked reasons (\"Evolve at Lv 15\", \"Evolve at Lv 30 + season trophy\"), \"Evolve · needs Elder item $3\" opening the Store on that item, before → after 3D preview, path line, item ticked, dollars-first cost, the shortfall note, a confirm, the new look and badge after success, and \"Couldn't evolve Mochi. Try again. Your item is safe.\" on failure; it also wires the Home blob stage's PetModel to the read's stage, element and shiny so every pet shows entry 4's look."
+verify = "Component tests on the read's fixtures show each locked, needs-item, ready and failure state with its exact copy and focusable locked buttons, and on the Vercel preview, with the Elder level lowered for the drill, a test pet buys an Elder item from the Store sheet, evolves, its badge reads \"· Elder\" and the stage shows its element and Elder look."
+covers = ["CAP-16"]
+after = [4, 6]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
+]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Breed sheet on the Home pet card"
+description = "Opens the Breed button from entry 7 and adds the Breed sheet per the spine: locked reasons (\"Breed at Adult\", \"No breeds left · 5 of 5 used\", \"Mochi needs good care to breed\", cooldown time left), a partner picker of eligible adults among own pets and Co-Pets, egg preview, \"Breed 1 of 5 · each breed costs double the last\", dollars-first cost, \"1 in 500 eggs is shiny\", the shortfall note, a confirm, the Co-Pet \"Waiting for Priya to agree\" state through epic-social's approval request, and the new egg in the pet switcher once the breed settles."
+verify = "Component tests on the read's fixtures show each locked, waiting-for-partner, shortfall and ready state with its exact copy, and on the Vercel preview breeding two adult test pets puts a new egg in the pet switcher within a minute."
+covers = ["CAP-17"]
+after = [6, 7, "8.5"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Live Done-when pass for evolution and breeding on 46630"
+description = "Runs the epic's Done when end to end on the final 46630 deployment and the Vercel app as a scripted checklist, with stage levels lowered through the Safe and timelock for the drill and restored to 3, 6, 15 and 30 after: a pet grows Baby → Teen with its path → Adult and its element look shows on the Home stage; one reaches Elder with a bought item and one reaches Mythic with a Mythic item and a season trophy won in a shortened test season; an own-pets breed and a Co-Pet breed with both approvals at the doubling cost; each breed's egg, shiny flag included, is recomputed from its revealed seed with entry 2's breedOutcome; the Evolve and Breed sheets show every state in EXPERIENCE.md's spine."
+verify = "The checklist's tx hashes on 46630 and Vercel screenshots show every Done when item passing, the restored stage levels read 3, 6, 15 and 30 from the contract views, and the owner signs it off."
+covers = ["CAP-16", "CAP-17"]
+after = [9, "10.9"]
+hitl = true
+risk = "medium"

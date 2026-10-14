@@ -1,0 +1,87 @@
+# tickets.toml — epic-death-match-raid's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md); numbers marked "assumption" are in epic-death-match-raid.md Notes.
+# Entries 1–5 were epic-play-hub 8–12 before the 2026-10-14 split (content kept; ids renumbered from 1).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Death Match module: weekend window, 3 lives, survivor streak, safe leave"
+description = "Adds the DeathMatch GAME_MODULE on epic-battle's fight engine: entry only Saturday 00:00 – Sunday 23:59:59 UTC for an awake, not-away pet of level 6+ with lives left, one run per pet per weekend and at most 20 fights per pet per weekend (DECISIONS #57, a timelocked parameter), with epic-play-hub 9.2's inDeathMatchRun set on entry and cleared on leave, death or close, a Co-Pet only with both owners' epic-social approvals (used once); each win against another entered pet within ±2 levels adds 1 to the streak and awards 2× the ranked duel points × the streak (max 5×), each loss calls epic-play-hub 9.2's loseLife (0 lives = death); leave is allowed between fights at any time and keeps the points, and the keeper closes open runs as safe exits after the window."
+verify = "Contract tests pin the window edges (Friday 23:59:59 refused, Saturday 00:00 open, Monday 00:00 refused), adult-only entry, the reward ladder 2×/4×/6×/8×/10× capped at 5×, a loss at 1 life burying the pet, a safe leave keeping points, a Co-Pet refused with one approval and accepted with two, a 21st fight in one weekend refused, and a reveal timeout leaving lives and streak unchanged."
+covers = ["CAP-13"]
+after = ["9.2", "9.3", "6.1", "8.3", "1.16"]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-17-co-pet-ownership-is-on-chain"]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Death Match card, entry warning with type-the-name confirm, run and \"Leave safely?\""
+description = "Builds the Death Match card (3 lives, \"Your pet can pass away at 0 lives.\", \"Leave safely any time.\", \"Opens in 2d 6h\" closed state, adults-only and \"Waiting for Ria\" Co-Pet states), the entry warning sheet that enables Enter only after the pet's name is typed, the run screen (hearts, streak, next multiplier, fight log, always-visible \"Leave now and keep rewards\"), the last-life \"Leave safely?\" sheet that never times out, and \"Mochi passed away.\" leading to the Tombstone, from entry 1's handler."
+verify = "On a local node with the clock at Saturday a test player enters only after typing the pet's name, wins, loses to 1 life and is stopped by the \"Leave safely?\" sheet, leaves and sees the kept points; an accessibility test shows focus on each sheet title and that the sheet never closes on a timer."
+covers = ["CAP-13"]
+after = [1, "6.8"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-death-match.html"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Death Match weekend leaderboard, Hall of Fame data and the desktop lobby"
+description = "Adds the weekend leaderboard and per-season Hall of Fame (best streaks of pets that left safely) as projections and one public API route that epic-seasons' Season page reuses, plus the desktop lobby (choose a pet, reward ladder, time left, leaderboard, Hall of Fame) and the phone leaderboard / Hall of Fame view."
+verify = "A worker and API test on a local node with three scripted runs returns the leaderboard by points and a Hall of Fame holding only the safe exit, and the lobby renders them at 1280px with the reward ladder computed from the contract's parameters."
+covers = ["CAP-13"]
+after = [2]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Boss Raid module: a season boss whose health is shared by every raid"
+description = "Adds the Raid GAME_MODULE on epic-battle's fight engine: one boss per season (from SeasonPass.seasonOf) with the assumed health, teams of 1 or 2 formed on-chain when the invited partner joins, one raid per pet per UTC day, damage from the fight lowering the shared health and awarding points and Gold per pet through epic-play-hub 9.2's awardGold, raids closed once health reaches 0 until the next season, and per-season team damage totals readable for the trophies stream."
+verify = "Contract tests show two teams' raids lowering one shared health total, points and Gold per damage at the assumed rates, a second raid the same day reverting, a raid after health 0 refused, and team totals reset at a new season."
+covers = ["CAP-20"]
+after = ["9.2", "9.3", "6.1", "5.10", "1.16"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Boss Raid card, partner finding, raid fight and top-team results for the trophies stream"
+description = "Builds the Boss Raid card (\"Team of 2\", \"Season boss 62%\" progress bar, \"you dealt 1,240 damage\"), invite-a-friend and \"Finding a match…\" random-partner pairing (a raid mode on epic-battle 6.4 MatchQueue, on-chain join) with \"Stop looking\" and the Empty state when no partner comes (card stays on \"Find a partner\", nothing spent) and the Error state when a raid fails to start, the self-playing raid fight and reward card, and a tested worker function that ranks the season's top raid teams into trophies-stream leaves naming the raid prize item (a Raid parameter, assumed in Notes), which epic-seasons' trophies epoch builder includes."
+verify = "On a local node two test players pair, raid and both see the shared boss bar drop and their reward card, a lone searcher who stops looking sees the Empty state with nothing spent, a failed raid shows the Error state, and a worker test turns a scripted season's raids into top-team leaves whose order and item id match the contract's team totals."
+covers = ["CAP-20"]
+after = [4, "6.4", "6.8", "7.3"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Death Match and Boss Raid live on 46630: modules deployed, roles granted, both events checked"
+description = "After the owner OKs each deploy (CLAUDE.md) and the Safe signers sign, deploys and verifies DeathMatch and Raid on 46630 on top of epic-play-hub 9.13's live PetCore play upgrade through Safe-proposed timelocked actions (GAME_MODULE, the Randomness consumer role and the CoPetApprovals consumer role for DeathMatch), regenerates the chain module, ships the app and worker to Vercel and Render, and runs a Death Match on a shortened-window test parameter and one Boss Raid live."
+verify = "On the Vercel production app against 46630 a test pet enters a Death Match in the shortened window, wins, loses a life and leaves safely onto the leaderboard and Hall of Fame route, a Co-Pet is refused with one approval and enters with two, two test players raid the season boss and see the shared health drop, and DeathMatch and Raid show verified source on Blockscout."
+covers = ["CAP-13", "CAP-20"]
+after = [3, 5, "9.13", "8.12"]
+hitl = true
+risk = "high"
+unknown = "Does the owner accept the assumed Death Match and Boss Raid numbers in epic-death-match-raid.md Notes (window, boss health, damage reward rates, raid prize item) before they go live?"
+notes = [
+  "hitl steps: the owner OKs every deploy to 46630 (CLAUDE.md); two Safe signers sign the role grants; the owner sets and later restores the shortened Death Match window; two test players run the raid.",
+]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6]
+hitl = false
+risk = "low"

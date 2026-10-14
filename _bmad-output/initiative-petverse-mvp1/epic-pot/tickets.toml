@@ -1,0 +1,162 @@
+# tickets.toml — epic-pot's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md): CAP-7, CAP-8, CAP-9, and the parts of CAP-1 and CAP-6 this epic owns.
+# Lanes (never touch the same code): A = PetCore pot code (1 → 2 → 3), then EpochDistributor (4, after 3: both edit the Ignition module and generated chain module);
+# C = worker epoch builder and dataset route (5 → 6); D = app screens (7 → 8 → 9, 10); live testnet steps (11 → 12).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: test ETH flows PotFunder → PetCore → Home share → claim on 46630"
+description = "Delivers the thinnest path through every layer of the pot: newly deployed PotFunder buffers ETH and its flush (KEEPER, or anyone after 1 day) sends 85% to a two-level per-owner accumulator in PetCore (AD-4, with the eff library and K = 10,000) and 15% to a receiving-only EpochDistributor smallPot stream through the IEpochDistributor.fund interface that entry 4 builds on, PetCore claim pays the pet's owed + pending ETH and sets its pot points to 0, public views expose pot size and a pet's pending ETH, the keeper tick calls flush after sleep and bury, and the Ignition module deploys and verifies PotFunder and EpochDistributor and upgrades the live PetCore through a Safe-proposed timelocked UUPS upgrade (ERC-7201 storage appended, KEEPER granted for flush through the timelock, AD-3), and a usePot read hook (views only, AD-14) feeds a bare pot amount and Claim button on Home."
+verify = "On 46630 the owner sends 0.1 test ETH to PotFunder, the keeper flushes it, PetCore's pot view shows 0.085 ETH and the smallPot stream 0.015 ETH, Home shows the pet's pending ETH from the views, and pressing Claim pays it to the player and the pet's pot points read 0."
+covers = ["CAP-8"]
+after = ["2.11", "1.4", "1.15"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Every settle path keeps the AD-4 balance invariant"
+description = "Adds settle-before-change to every place a pet's counted points move (awardPoints, transferPoints for steals between buckets, burnPoints, sleep, wake with the AD-16 cut, bury), recycles a buried pet's owed + pending ETH 100% into the main accumulator after its points leave the bucket (CAP-6 part), turns a failed claim push into a pull balance, and ports spike 1.4's randomized invariant test into chain/test with the eff library pinned to a TS port by shared vectors; its transferPoints settle is what epic-battle waits on."
+verify = "The chain/ contract tests pass, including a randomized run of award, steal, burn, sleep, wake, bury, claim and flush with zero breaks of PetCore balance = Σ owed + Σ pet pending + Σ bucket pending + undistributed + pull balances, a flush after sleep adding nothing to that pet, one owner's points split across pets earning no more than on one pet, claim gas within a fixed 5% bound between 2 and 200 owners, and wake leaving ethOwed unchanged."
+covers = ["CAP-8", "CAP-6"]
+after = [1, "1.4", "2.6"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-20-test-strategy",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Lifetime points and a level that never drops"
+description = "Adds PetCore's per-pet lifetime points (raised by every point gain, never lowered by a claim, wake cut, loss or burn) and a levelOf view = 1 + floor(sqrt(lifetime ÷ 100)), plus the TS level port in src/lib that entry 8 shows, pinned to the contract by shared vectors."
+verify = "Contract and TS tests pass the same vectors (0 → Lv 1, 100 → Lv 2, 12,480 → Lv 12) and show a claim, a wake cut and a lost steal leave lifetime points and level unchanged."
+covers = ["CAP-7"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "EpochDistributor: named streams, capped roots, delayed Merkle claims"
+description = "Grows the tracer's receiving-only EpochDistributor into the AD-5 contract: smallPot, seasonPool and trophies streams with on-chain epoch length and genesis, post(stream, epoch, root, datasetHash, total) by EPOCH_POSTER rejecting total above received + rollover, a 1-hour claim delay the Safe can cancel inside, Merkle-proof claims of ETH for smallPot, rollover of unclaimed amounts after 4 epochs, and a payout hook per stream that epic-social (Guild War Gold from the AD-24 reserve) and epic-cosmetics-market (trophies) set through the timelock."
+verify = "The chain/ contract tests show a root over the stream's funds is rejected, a valid proof claims only after the 1-hour delay and only once, a Safe cancel inside the delay voids the root, and unclaimed ETH rolls into the epoch 4 epochs later."
+covers = ["CAP-9"]
+after = [3]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Worker builds and posts the weekly small-pot epoch"
+description = "Adds the epoch-builder job to the worker: after Sunday 00:00 UTC plus confirmations and once the indexer has passed the snapshot block, it takes pets awake at snapshotTs by the AD-16 status port (sleepAt as of that block), alive, older than 7 days and not on an exclusion list that epic-anti-bot fills, replays indexed point events up to the snapshot block, cuts the bottom half by raw points, gives equal shares, builds the tree with @openzeppelin/merkle-tree (DECISIONS #32), stores Epoch and EpochLeaf rows (writer = epoch builder) and posts the root with the EPOCH_POSTER key."
+verify = "A worker test on a local node and a test_ schema builds an epoch whose posted root matches the leaves, includes only the bottom half of eligible pets in equal shares, and excludes a pet with sleepAt == snapshotTs, a dead pet and a 6-day-old pet."
+covers = ["CAP-9"]
+after = [4, "1.9", "2.2"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Public dataset route rebuilds every epoch root"
+description = "Serves each posted epoch's full dataset (stream, epoch, snapshot block number and hash, leaves, total) and a pet's proof from a public, unauthenticated API route, and ships a standalone rebuild script that recomputes the root and datasetHash from that route alone."
+verify = "On a local node and a test_ schema, running the rebuild script against the route for an epoch posted by entry 5 prints the same root and datasetHash as the EpochDistributor's on-chain record."
+covers = ["CAP-9"]
+after = [5]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Read-only ETH/USD display rate for dollars-first money"
+description = "Adds one read-only ETH/USD display-rate port with a short server cache and a dollars-first formatter (dollars large, ETH small underneath) that every screen uses; epic-petv adds PETV/USD to the same port, and the signed payment quote stays in epic-store-pass (AD-10)."
+verify = "A unit test formats 0.018 ETH at a fixed 2,338 rate as \"$42.08\" over \"0.018 ETH\", and a server test with the source down returns the last cached rate with its age, or ETH only when none is cached."
+covers = ["CAP-8"]
+after = ["1.7"]
+hitl = true
+risk = "medium"
+unknown = "Which ETH/USD source feeds the testnet dollar display (initiative open question; DECISIONS #8 names Chainlink for mainnet only)?"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Home pot blob and claim sheet as in the mocks"
+description = "Builds the pot number blob (pot size and live share, dollars first, \"No pot share while asleep\" when asleep) and the claim sheet from key-shop-claim.html (Claim $X over ETH, pot points from → to 0, \"stays Lv N\" from entry 3, 85/15 explainer bar, Not now, disabled zero-share state, pending and failure copy, Check this result link to PetCore's public views, the EXPERIENCE focus order), and the \"Bunny · Lv N\" level badge on the Home pet card from entry 3, with a shared dollars-first PotAmount component entry 9 reuses; Check this result links to the public share views until epic-launch's fairness sheet takes the link."
+verify = "Component and server tests on a local node with a funded pot show the blob and sheet amounts equal PetCore's views at the fixed test rate, claiming leaves the points blob at 0 with the level unchanged, an asleep pet's blob reads \"No pot share while asleep\", the Home pet badge shows the level from levelOf, and initial focus lands on the sheet title."
+covers = ["CAP-8", "CAP-7"]
+after = [1, 3, 7]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Landing pot teaser and onboarding step 4 \"see the pot\""
+description = "Adds the live pot teaser to the logged-out landing page and onboarding step 4 (\"Prize pot $X · Your points = $Y now\", skippable, advances when seen) on epic-pet-life's onboarding shell, both reading usePot and PotAmount."
+verify = "With a funded pot on a local node, the logged-out landing page shows the pot in dollars over ETH, and a new player's onboarding step 4 shows the pot and their pet's share in dollars and completes or skips onboarding."
+covers = ["CAP-1"]
+after = [8, "2.10"]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Claims list with small-pot payouts and claim history"
+description = "Adds Avatar menu › Claims, listing the player's open small-pot payouts (proof from entry 6's route, claimed on EpochDistributor) and past claims (adding the Claims item to the Avatar menu, creating the menu if epic-pet-life has not), and indexer handlers that write the Claim projection from PotClaimed and the small-pot claim event so the top-5% payout share is measurable."
+verify = "A server and worker test on a local node shows a pet in a posted epoch listed with its dollar amount, claimed once through the list, and both its main-pot and small-pot claims written once each to the Claim projection after a worker restart."
+covers = ["CAP-9", "CAP-8"]
+after = [6, 8]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Pot contracts upgraded on 46630 and a testnet bury recycles ETH"
+description = "Upgrades PetCore (settle paths and level) and EpochDistributor on 46630 through a Safe-proposed timelocked upgrade, verifies them on Blockscout, regenerates the chain module, grants EPOCH_POSTER through the timelock, and runs one testnet bury of a pet holding pot ETH on epic-pet-life's shortened-timer test deploy."
+verify = "Tx hashes on 46630 show the timelocked upgrade and role grant, the Blockscout source is verified, after the bury the pet's owed + pending ETH appears in PetCore's main accumulator with the AD-4 balance view still equal, and a claim on 46630 sets pot points to 0 while levelOf and lifetime points stay unchanged."
+covers = ["CAP-8", "CAP-6"]
+after = [2, 3, 4]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 12
+type = "story"
+title = "First weekly small-pot epoch closes and pays on testnet"
+description = "Runs the epoch builder on the Render worker against 46630 and the game schema with the EPOCH_POSTER key, so the first real Sunday 00:00 UTC epoch posts a root, the public route on Vercel serves its dataset, an eligible player claims the share in the deployed app, and the deployed landing teaser and onboarding step 4 read the live pot."
+verify = "With a test pet hatched more than 7 days before the epoch and kept fed, after the first Sunday epoch on 46630 the rebuild script run against the Vercel route reproduces the posted root, and a test player claims their small-pot share in the app and sees it on the explorer, and on the Vercel app the landing teaser and a new player's onboarding step 4 show the live 46630 pot in dollars."
+covers = ["CAP-9"]
+after = [11, 9, 10, "1.10"]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+hitl = false
+risk = "low"

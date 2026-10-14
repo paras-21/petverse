@@ -1,0 +1,163 @@
+# tickets.toml — epic-cosmetics-market's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse.md): CAP-18 (cosmetics) and CAP-25 (market).
+# Lanes (never touch the same code): A = contracts, Ignition module and generated chain module (1 → 3 → 4 → 5 → 6);
+# B = 3D pets in src/components/three (2 → 11); C = Shop and Home screens (7 → 8, then 10); D = worker indexer and
+# market read API (9). Closing: Refactor sweep (12), then the live check on 46630 (13).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: buy one rare hat in the Store on 46630 and see the pet wear it"
+description = "Delivers the thinnest path through every layer: the live Cosmetics ERC-1155 from epic-pet-life (2.5, live in 2.11) is upgraded through the Safe-proposed timelock with one rare, tradeable hat (Propeller cap, $4) that the Store item registry sells, the generated chain module carries it into src/, epic-pet-life's holdings projection records the purchase, epic-pet-life's off-chain equip route (2.10, CosmeticEquip written by the API, AD-1, AD-12) accepts it after checking the holding, and Home renders the pet wearing it through PetModel's existing loadout prop without editing src/components/three; this timelocked upgrade path is the one entries 3–6 and 13 reuse."
+verify = "On the Vercel app against 46630 a test player buys the Propeller cap for $4 in PETV, a CosmeticHolding row appears within a minute, Equip puts it on the pet on Home and it is still worn after a reload, and equipping an item the player does not hold is refused."
+covers = ["CAP-18"]
+after = ["2.5", "2.10", "2.11", "5.6", "5.13"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-1-points-affecting-actions-are-on-chain-the-server-only-signs-bounded-inputs",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-21-contract-addresses-and-abis-reach-src-through-one-generated-module",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Every item fits all 10 species, babies and armless pets included"
+description = "Settles the CAP-18 hand conflict by giving babies and armless (winged) species a hand anchor for held items and adding a fit table in src/components/three so all 35 items render on all 10 species in baby and adult form without clipping; it edits only src/components/three (src/lib/cosmetics.ts and its stale hand comment are entry 3's), and entry 11 reuses its fit test."
+verify = "A node:test fit test passes for every item × species × stage (35 × 10 × 2) resolving an anchor, and the owner approves the Gallery contact sheet showing each slot's items on every species, baby and adult."
+covers = ["CAP-18"]
+after = []
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "The 35-item catalogue with rarities, prices and transfer rules"
+description = "Registers all 35 items from one catalogue file (token id, visual key from src/lib/cosmetics.ts, slot, rarity split 21 common / 9 rare / 4 epic / 1 legendary and USD prices, both assumptions the owner confirms) on Cosmetics and in the Store and carries it into the generated chain module, setting each item's soulbound flag through 2.5's per-id flag (commons soulbound, rare-and-better transferable) without adding a second transfer rule; epic-pet-life's starter item keeps its token id as one of the 21 commons, Tombstone and badges are untouched, and entries 7 and 10 read item data only from this module."
+verify = "chain/ contract tests pass: 35 items over the five slots with counts 21/9/4/1 and the 35 store prices; transferring a common, a Tombstone or a badge reverts and transferring a rare succeeds; a node:test confirms the generated module and src/lib/cosmetics.ts name the same 35 visual keys."
+covers = ["CAP-18"]
+after = [1]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Market contract: list, cancel and buy rare-and-better cosmetics with a 5% fee"
+description = "Builds the upgradeable Market (entry 1's upgrade path) that escrows a listed rare-or-better Cosmetics item at a seller-set PETV price (assumption), so the holding ends and entry 8 drops it from the pet, refuses commons, soulbound items and every other token (PetNFT, eggs, Co-Pets), and on buy pays the seller 95%, burns 2.5% through the PETV burn the public burn counter reads and sends 2.5% to PotConverter in the same transaction (AD-11), the 500 bps fee being a timelocked parameter (AD-18), emitting the Listed, Cancelled and Sold events entry 9 indexes."
+verify = "chain/ contract tests pass: listing a common, a Tombstone or a PetNFT reverts; a 10,000 PETV sale pays the seller 9,500, burns 250 and sends 250 to PotConverter; cancel returns the item; a sold or cancelled listing cannot be bought."
+covers = ["CAP-25"]
+after = [3]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-11-revenue-in-petv-reaches-the-eth-pot-only-through-potconverter",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
+]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Granted items: season trophy, egg-shard and season skin"
+description = "Defines the soulbound (assumption for the skin) season trophy (one id per season), the soulbound egg-shard and the season skin on Cosmetics, each mintable only by a narrow granter role that the timelock gives to the granting contract (EpochDistributor trophies stream, Care streak, SeasonPass), so epic-seasons, epic-play-hub, epic-death-match-raid and epic-store-pass only wire the call (SeasonPass's grant-on-buy hook is epic-store-pass 5.10, whose per-season skin id epic-seasons 10.8 and 10.10 set); it extends epic-pet-life 2.5's per-id soulbound flag and minting roles rather than adding a second mechanism; entry 11 renders the skin id defined here."
+verify = "chain/ contract tests pass: only the role holder can mint each of the three items, a mint by any other address reverts, and every transfer of them reverts."
+covers = ["CAP-18"]
+after = [4, "5.10"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Random cosmetic drop at 60/25/12/3 through Randomness"
+description = "Adds a commit–reveal drop on the Randomness service (1.16) to Cosmetics that granters (wheel, raid) call: the seed picks a rarity at 6000/2500/1200/300 bps, or the granter's fixed rarity, then an item uniformly within that rarity, with the AD-6 timeout no-op; epic-play-hub wires its prizes to this call."
+verify = "chain/ contract tests pass: the four weights read 6000/2500/1200/300, fixed seeds map to the expected items, 10,000 seeded draws land within ±1.5 points of each share, and a request not revealed in 10 minutes closes as a no-op."
+covers = ["CAP-18"]
+after = [5]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Shop › Store cosmetics with try-on on the 3D pet"
+description = "Builds, from entry 3's item data in the generated chain module, the Store cosmetics grid (cosmetic tile, rarity tag as stars + word, dollar price over PETV) and the try-on card that puts the selected item on the player's own pet on the blob stage over its current loadout, with a separate Buy, the not-enough-PETV shortfall note and the try-on aria-label; the cosmetic tile and rarity tag are the shared components entries 8 and 10 reuse."
+verify = "On the dev app against a local node, tapping any item puts it on the try-on pet with no purchase and no chain call, Buy charges the item's dollar price in PETV and the item then shows as owned, and a player short of PETV sees the gap in dollars instead of a dead button."
+covers = ["CAP-18"]
+after = [3]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Dress up: equip and unequip in all five slots"
+description = "Extends epic-pet-life's equip route (2.10) to all five slots and every pet the player owns (Co-Pet equip comes with epic-social), adds the dress-up sheet on Home using entry 7's cosmetic tile, and, without a schema change, drops an equipped item from the rendered loadout once the holding projection shows the player no longer holds it (sold, listed into entry 4's escrow or transferred)."
+verify = "A node:test on the test schema equips one item per slot and reads the five back, equipping an unheld item or another player's pet is refused, and after the item leaves the wallet the pet's loadout no longer includes it."
+covers = ["CAP-18"]
+after = [7]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Market listings projection and read API"
+description = "Indexes Market's Listed, Cancelled and Sold events into a MarketListing projection (writer = indexer) and serves open listings by slot with item, rarity, seller name, PETV price and fee, the response shape entry 10 renders."
+verify = "A worker node:test on the test schema against a local node lists, sells and cancels items and the read API returns exactly the open listings, filtered by slot, with the right seller and price."
+covers = ["CAP-25"]
+after = [4, 8]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Shop › Market with sell flow and buy review sheet"
+description = "Builds Shop › Market from entry 9's API with entry 7's cosmetic tile and rarity tag, PETV prices shown in dollars at the display rate (assumption): rows of rare-and-better items with the slot filter and fee stated up front, a sell flow with a confirm sheet, the buy review sheet (item, seller, dollar price at the display rate, PETV amount, 5% fee, Buy, Not now) with no one-tap buy, and the empty and not-enough-PETV states."
+verify = "On the dev app against a local node one player lists a rare hat, a second player opens it, sees item, seller, dollar price, PETV amount and fee on the review sheet, buys it, and the hat moves to the buyer and leaves the list; tapping a row never buys without the sheet, the slot filter shows only that slot, an empty slot shows the empty state, a player short of PETV sees the gap in dollars, and the sell flow offers no common item."
+covers = ["CAP-25"]
+after = [9, 7]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html"]
+
+[[entry]]
+id = 11
+type = "story"
+title = "Season skin renders on all 10 species"
+description = "Using entry 2's fit test, renders entry 5's season skin on every species in baby and adult form on every stage that shows a pet, as a visual layer that leaves the five slots free."
+verify = "The fit test from entry 2 passes with the skin on every species and stage, and the owner approves the Gallery contact sheet with the skin on."
+covers = ["CAP-18"]
+after = [2, 5, 8]
+hitl = true
+risk = "medium"
+unknown = "What a season skin is visually (a coat palette, a full-body overlay, or a sixth slot) is not in the spec; recommended: a soulbound per-season coat palette applied over the species' own colours."
+
+[[entry]]
+id = 12
+type = "story"
+title = "Refactor sweep"
+description = "Takes the cleanup deferred during the epic, set when it starts from the plans and review findings; scope pushed out of another story is a new story."
+verify = "floor gate passes with no behaviour change: every test from entries 1–11 still passes unchanged."
+covers = ["CAP-18", "CAP-25"]
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Live on 46630: catalogue, granted items, drop and Market"
+description = "Upgrades Cosmetics and deploys Market on 46630, grants entry 5's season-skin granter role to the live SeasonPass (5.13), through the Safe-proposed timelock on the governance base (1.15) with Blockscout verification, ships the app to Vercel and the worker to Render, and checks every Done when item on the live contracts."
+verify = "On 46630 a read-only check script confirms 35 items at 21/9/4/1 over five slots and the three granted items with their roles, a common, trophy, egg-shard or skin transfer reverts and a rare transfer succeeds, the drop weights read 6000/2500/1200/300 and one live drop settles, and a test sale shows 2.5% burned and 2.5% at PotConverter; the owner walks Shop › Store try-on and Shop › Market against the mocks."
+covers = ["CAP-18", "CAP-25"]
+after = [12]
+hitl = true
+risk = "high"

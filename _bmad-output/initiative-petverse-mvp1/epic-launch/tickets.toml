@@ -1,0 +1,191 @@
+# tickets.toml — epic-launch's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement source: spec CAP-28 (spec-petverse.md) plus the epic's Done when (ops alarms, runbooks, launch), which
+# have no CAP id; those entries carry covers = [] and name the Done when item and AD section they deliver.
+# Lanes (never touch the same code):
+#   A = fairness check route + sheet in src/ (1 → 2 → 3 → 6)
+#   B = launch check scripts in scripts/launch/ (4 → 5)
+#   C = worker ops alarms + team dashboard (7 → 8 → 9)
+#   D = runbooks in docs/runbooks/ and their Safe helper scripts in chain/scripts/ (10 → 11)
+#   closing: 12 Refactor sweep → 13 end-to-end suite → 14 final deploy + smoke → 15 launch checklist and opening.
+# hitl steps per entry are listed in epic-launch.md Notes.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: \"Check this result\" for one battle result, from Randomness events to the sheet on Vercel"
+description = "Delivers the thinnest path through every layer the fairness check touches: a public, unauthenticated route that, for one requestId, reads epic-platform's Randomness service (1.16) register and reveal events (commitment, registering tx and time, secret, reveal tx and time) and the module's settle event, recomputes keccak(secret) = commitment and seed = keccak(secret, requestId), and returns match / pending / timed-out; and the DESIGN fairness-check sheet (\"Locked in before the fight\", \"Revealed after\", lime \"Matches\", \"Being revealed · nothing for you to do\", \"See it on the public record\" Blockscout link) opened from the battle result card's \"Check this result\" link, for battle results only."
+verify = "On the Vercel production app on 46630, after one attack the result card's \"Check this result\" opens a sheet with lock-in and reveal times and \"Matches\" with a Blockscout link, and a local-node route test with a tampered reveal returns no match."
+covers = ["CAP-28"]
+after = ["6.12"]
+hitl = true
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+]
+
+[[entry]]
+id = 2
+type = "spike"
+title = "Can every random result type be recomputed from its published commitment and reveal alone?"
+description = "Answers, for entry 3, which of the nine result types (battle, wheel, dice, wager, monster, expedition, egg, breeding, cosmetic drop) can be recomputed from the revealed seed plus public on-chain inputs — through a pure contract view, the settle event, or only a TS port — and which need a module change, by reading each module's contract and events on 46630."
+verify = "A write-up in epic-launch/ lists each of the nine result types with its recompute path, the inputs it needs and one recomputed 46630 result that matches the settled outcome, recorded as a dated decision in epic-launch.md Notes."
+covers = ["CAP-28"]
+after = ["11.10"]
+hitl = false
+risk = "high"
+unknown = "If a module emits neither the outcome inputs nor a pure outcome view, does the fix go back to that module's epic as a new entry or into this epic (recommended: back to the owning epic)?"
+
+[[entry]]
+id = 3
+type = "story"
+title = "\"Check this result\" works for all nine result types and the claim sheet"
+description = "Extends entry 1's route and sheet to recompute the outcome itself (not only the commitment) for every result type by spike 2's paths, places the link on every result surface the spine names plus monster, expedition, egg-hatch, breeding and cosmetic-drop results, takes over epic-pot's claim-sheet link (3.8, which links to the public share views until then) with a PetCore public-view check, and covers the sheet's Loading, Error, Offline and timed-out states (timed-out copy is an assumption, see Notes)."
+verify = "Route tests on a Hardhat local node with the full Ignition module recompute and match one settled result of each of the nine types, report a mismatch for a tampered seed and a no-op for a timed-out request, and on 46630 the sheet shows \"Matches\" for one real result of each type."
+covers = ["CAP-28"]
+after = [1, 2]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Launch check: every release-1 contract is verified and governed as AD-3 says"
+description = "Adds the launch-check script harness (node, read-only, any chainId) and its first check, which walks every address in the generated chain module and confirms Blockscout shows verified source, every proxy's upgrade admin and parameter setter is the TimelockController with the Safe as sole proposer and canceller, the Safe holds PAUSER, each server key holds exactly one role, and PETV has no minter, writing a pass/fail report other checks (5, 14) reuse."
+verify = "Run against a Hardhat local node with the full Ignition module, the check passes, and it fails naming the contract when a planted extra role grant, a non-timelock admin or an unverified address is introduced; run against 46630 it prints a report."
+covers = ["CAP-28"]
+after = ["11.10"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock"]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Launch check: money numbers in the app match public views, and every epoch root rebuilds"
+description = "Adds to entry 4's harness a reconciliation check that, for a sample of pets and players, compares the app's API values (points, pot size, pending share, claims from 3.10, burn total and Gold figures from 4.7's route) with the contract views they come from, and runs epic-pot's rebuild script (3.6) over every posted epoch of every stream to recompute root and datasetHash from the public dataset route alone."
+verify = "On a Hardhat local node seeded by its own fixture (pets, a pot flush, a claim, a burn and one posted epoch) the check passes, fails on a planted off-by-one in one API value and on a tampered dataset leaf, and against 46630 it prints a report with every posted root rebuilt."
+covers = ["CAP-28"]
+after = [4]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
+
+[[entry]]
+id = 6
+type = "story"
+title = "How it's fair page"
+description = "Builds the Avatar menu › How it's fair page per the spine: commit–reveal explained in plain words with a link to check any recent result, the list of every contract with its Blockscout verified-source link from entry 4's report format, the Safe 2-of-3 and 1-hour timelock with its pending operations (this entry adds the indexer handlers for the timelock CallScheduled, CallExecuted and Cancelled events that list them), the live pot and burn total read from public views dollars first, and how to rebuild an epoch root from the public dataset route, with Empty, Loading, Error and Offline states and no crypto jargon."
+verify = "On the Vercel app on 46630 the page lists every contract in the chain module with a working verified link, shows the Safe threshold and timelock delay read live, and its pot and burn figures equal the contract views."
+covers = ["CAP-28"]
+after = [3, 4]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Ops alarms reach the team chat"
+description = "Adds an alarms job to the worker that evaluates the AD-23 signals, extending epic-platform's health route (1.9) — indexer lag per contract, reveal backlog and late reveals, keeper backlog, each role key's ETH balance, and the Gas Manager policy balance; the late-reveal alert epic-platform 1.16 raises is routed here to team chat, not built twice — against thresholds kept in config, dedupes and re-arms each alarm, and sends it through epic-alerts' send-to-team-chat function, with the worker health route reporting every signal."
+verify = "Worker tests on a local node and test_ schema with a faked team-chat sender fire exactly one alarm each for a stalled cursor, a request unrevealed past 10 minutes, an overdue keeper tick and a signer below threshold, and one recovery message when each clears."
+covers = []
+after = ["12.11", "11.10"]
+hitl = false
+risk = "medium"
+unknown = "How the worker reads the Alchemy Gas Manager policy balance (API, dashboard only, or a proxy such as sponsored-ops spend from our webhook); recommended: an API read if one exists, else spend tracked from the gas webhook against an owner-entered budget."
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-23-testnet-operations"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Team ops dashboard linking the counter-metrics page"
+description = "Adds a team-only ops page behind the same reviewer gate epic-anti-bot uses for its /admin/metrics page (one admin gate, same refusal), showing every health signal, open and recent alarms and role-key and Gas Manager balances, linking that metrics page rather than rebuilding it, and adds a daily alarm through entry 7 when a counter-metric crosses its limit."
+verify = "Route tests show a non-reviewer login is refused as /admin/metrics refuses it and a reviewer gets the signals; with seeded MetricDaily rows above a limit the alarms job sends one counter-metric alarm through the faked sender."
+covers = []
+after = [7, "13.11"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/spec-petverse/spec-petverse.md"]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Staged alarm drill on 46630 reaches the team"
+description = "Deploys the alarms job to the Render worker on the game schema and stages, on 46630, an indexer stall (worker indexer paused), a request left unrevealed (revealer paused for one request) and a low signer balance (threshold raised above a test key's balance), recording that each alarm and its recovery reach the team chat and the dashboard."
+verify = "A drill record in epic-launch/ lists each staged fault with its time, the team-chat message received, the dashboard view and the recovery message, and the revealer catches up with no lost reveal."
+covers = []
+after = [8]
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Runbooks: timelock change, upgrade, pause, cancel, key rotation, deploy and alarm response"
+description = "Writes the operator runbooks in docs/runbooks/ — Safe-proposed timelocked parameter change and upgrade, pause and unpause, cancel a queued operation or an epoch root, role-key rotation (grant new, revoke old through the timelock, update the host secret), the full Ignition deploy with Blockscout verification and chain-module regeneration, signer and faucet top-ups, and the response to each alarm from entry 7 — each with Safe web UI and Protocol Kit / CLI paths, plus the Protocol Kit helper scripts they call in chain/scripts/, building on epic-platform's Safe path (1.3) and governance deploy (1.15)."
+verify = "A local-node test drives the helper scripts through propose → wait → execute, propose → cancel, pause → unpause and a role rotation against the Ignition-deployed timelock and a test Safe, and every runbook step names the exact command or UI action it uses."
+covers = []
+after = [7, "11.10"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock"]
+
+[[entry]]
+id = 11
+type = "story"
+title = "Runbook drill on 46630 by someone other than the author"
+description = "Has a team member who did not write the runbooks follow them on 46630: a Safe-proposed parameter change executed after the 1-hour delay, a cancelled operation, a pause and unpause of one module, and a rotation of one role key with its host secret, fixing every runbook step that did not match."
+verify = "A drill record in epic-launch/ lists each runbook step followed with its tx hash on 46630, who ran it, and each runbook correction made, and the launch check from entry 4 passes after the rotation."
+covers = []
+after = [10, 4]
+hitl = true
+risk = "high"
+
+[[entry]]
+id = 12
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Closing end-to-end suite across every epic"
+description = "Delivers the scripted part of CAP-28's \"every capability works\" proof: one suite that deploys the full release-1 Ignition module on a Hardhat local node with the worker on a test_ schema and drives, through the API and the GameWallet test adapter, each epic's Done when that a script can check (login and hatch, care, pot and claim, PETV trade and burn, store and Pass, battles and wagers, cosmetics and market, Co-Pet and guilds, play hub, seasons, growth, alerts, anti-bot holds, fairness check), with a read-only smoke mode that runs the same checks' read paths and entries 4 and 5 against a live chainId."
+verify = "The suite passes in the gate on a clean checkout, fails when one planted rule break is introduced in any one module, and its smoke mode runs read-only against 46630 without sending a transaction."
+covers = ["CAP-28"]
+after = [12, "12.12", "13.12"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 14
+type = "story"
+title = "Full release-1 deploy on 46630 with smoke"
+description = "Delivers CAP-28's \"every contract is verified and public\" on the final deployment: follows the deploy runbook to put the final release-1 contracts on 46630 through Ignition, verify every one on Blockscout, wire the timelock, Safe and one role per key, regenerate the chain module, point the Vercel production app and Render worker at it, fund the role keys, faucet and Gas Manager policy, and run entry 13's smoke mode and the entry 4 and 5 checks against it."
+verify = "The entry 4 and 5 launch checks and the entry 13 smoke mode all pass against the final 46630 deployment, and a fresh email login on the Vercel production URL hatches a pet and sees it indexed."
+covers = ["CAP-28"]
+after = [13]
+hitl = true
+risk = "high"
+unknown = "Is the final deployment a fresh deploy of every contract (recommended: clean state, proves the deploy runbook) or the epics' incrementally upgraded deployment, and if fresh, which live schema does the worker index into, given no destructive SQL on game without the owner?"
+
+[[entry]]
+id = 15
+type = "story"
+title = "Launch checklist passes and the owner opens testnet to players"
+description = "Delivers CAP-28 and the \"ships all at once\" constraint at opening: writes the launch checklist in epic-launch/ with every epic's Done when item checked on the final deployment with its evidence (tx hash, screen, report), runs the manual phone and desktop pass for what the suite cannot see (3D pets, onboarding, Empty/Loading/Error/Offline states, push and Telegram), and records the owner's OK to open, after which the success-signal and counter-metric counting starts."
+verify = "The launch checklist shows every epic's Done when item ticked with evidence on the final deployment and the owner's dated OK, and the ops dashboard shows MetricDaily rows starting from the opening day."
+covers = ["CAP-28"]
+after = [14]
+hitl = true
+risk = "high"

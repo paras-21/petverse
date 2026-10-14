@@ -34,7 +34,7 @@ Example figures used throughout: Mochi the bunny, **level 12**, Adult, 12,480 po
 | Login sheet | Play / Log in | Email, Google, "I already have a wallet" (FR-2) |
 | Egg | First login | Tap to hatch the free egg (FR-6) |
 | Onboarding steps | After hatch | 4 do-it steps with Skip (see Onboarding) |
-| Faucet | Sign-up, then daily | Test PETV worth **$10 at sign-up** and **$2 a day** (#25). Collected in the **Wallet sheet** (avatar → Wallet): a "Get today’s $2" button, a cooldown button with a countdown once used (owner, 2026-10-14). Also linked from every "not enough PETV" note |
+| Faucet | Sign-up, then daily | Fixed test PETV amounts: **3,120 at sign-up** and **624 a day** (#25), shown at their live dollar value (about $10 and $2 at the mock rate; DECISIONS #47). Collected in the **Wallet sheet** (avatar → Wallet): a "Get today’s PETV · $X" button (live dollar value), a cooldown button with a countdown once used (owner, 2026-10-14). Also linked from every "not enough PETV" note |
 | **Home** | Tab 1, app open | Blob stage with the pet, timer chip, points, pot and share, alerts, Feed, Spin, Attack, Dress up, and **Evolve** and **Breed** buttons on the pet card (owner, 2026-10-14). **Pet switcher** lists own pets and Co-Pets; a Co-Pet shows the partner's avatar on the pet card. **Co-Pet lives here**: the Co-Pet card (care, shared share, partner agreement) and the "add" egg to invite a friend to a new Co-Pet (max 3 Co-Pets, FR-29). The Co-Pet card menu holds **Leave Co-Pet** (FR-30); no selling, no buy-out (#14) |
 | Evolve sheet | Home › Evolve | Before → after preview, path, item needed, cost dollars first (FR-33, FR-34, FR-36) |
 | Breed sheet | Home › Breed | Pick a second adult, egg preview, breeds left, cost dollars first (FR-37) |
@@ -46,7 +46,7 @@ Example figures used throughout: Mochi the bunny, **level 12**, Adult, 12,480 po
 | **Shop** | Tab 4 | Segmented: **Store** (items + cosmetics with try-on) · **Pass** · **Market** |
 | **Guild** | Tab 5 | Segmented **Guild / War**: your guild (up to 10, invite a friend, members) and the Sunday Guild War. Co-Pet is **not** here (it lives on Home) |
 | Avatar menu | Top-right avatar on every page | Profile, Wallet, Claims, Season, Calm motion, Notifications, How it's fair |
-| Wallet sheet | Avatar menu › Wallet, wallet chip, "not enough PETV" links | PETV and ETH balances (dollars first), faucet "Get today’s $2", Gold vault (stake, swap back), burn counter |
+| Wallet sheet | Avatar menu › Wallet, wallet chip, "not enough PETV" links | PETV and ETH balances (dollars first), faucet "Get today’s PETV", Gold vault (stake, swap back), burn counter |
 | How it's fair | Avatar menu, every "Check this result" link | Fairness check sheet for one result; rules page: commit–reveal, public contracts, multisig and time delay, pot readable by anyone (NFR-1, NFR-2, FR-27, #11, #12) |
 | Market buy sheet | Shop › Market › Buy | Review before paying: item, seller, dollar price, token amount, 5% fee |
 | Claim sheet | Pot blob on Home, or Avatar menu › Claims | Claim your share (FR-16) |
@@ -104,9 +104,9 @@ Microcopy. Brand posture lives in DESIGN.md › Brand & Style.
 | "Bold: 3x reward, 30% chance to fail and lose your stake." | "High-risk yield strategy" |
 | "5% of each pot is burned." | "Deflationary tokenomics" |
 | "Players sell rare and better items here. 5% fee on each sale." | "Delta", "Supply", "Approve", "Processing tx…" |
-| "85% main pot by points, 15% small pot for the bottom half of pets" | "15% small pot for newer players" (wrong: it is the bottom half of living pets by points, older than 7 days) |
+| "85% main pot by points, 15% small pot for the bottom half of pets" | "15% small pot for newer players" (wrong: it is living pets in the bottom half by points, older than 7 days, awake at the snapshot, not flagged; #28, #40) |
 
-Word list: **points**, **pot points** (what a claim resets), **level** (from lifetime points, never drops), **pot**, **your share**, **claim**, **PETV** (written without a "$" so it never reads as dollars), **Gold** (working name, PRD §9 #5), **shield**, **asleep**, **wake**, **passed away**, **Tombstone**. Avoid: wallet address, gas, mint, tx, approve, LP, swap, NFT (except where a legal or rules page requires it), TOD, bonk-as-jargon.
+Word list: **points**, **pot points** (what a claim resets), **level** (from lifetime points, never drops), **pot**, **your share**, **claim**, **PETV** (written without a "$" so it never reads as dollars), **Gold** (final name), **shield**, **asleep**, **wake**, **passed away**, **Tombstone**. Avoid: wallet address, gas, mint, tx, approve, LP, swap, NFT (except where a legal or rules page requires it), TOD, bonk-as-jargon.
 
 ## Component Patterns
 
@@ -121,10 +121,10 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Number blob | Points (`{colors.lime}`) and pot (`{colors.sky}`) on Home | Tapping the pot blob opens the Claim sheet. Points blob shows pot points and today's change ("+120 today"). Values update live after any action. While the pet is asleep the pot blob says "No pot share while asleep" (#15); while very hungry it warns "Asleep pets get no pot share". |
 | Money stack | Every price, share, balance | Dollars first, token or ETH amount underneath. Dollar value recomputes from the live token / ETH price; the token amount is what is actually paid. |
 | Timer chip | Home header, every pet surface | Live countdown to sleep ("2d 14h"). In the hungry window it turns orange (`{colors.orange}`), swaps to the empty-heart icon and reads "Hungry · 3h left" (word + icon, not colour alone; no "!"). Same chip everywhere so it is learned once. Screen readers get words: "2 days 14 hours until Mochi sleeps". |
-| Pet badge | Under pet name | Species · Lv · stage ("Bunny · Lv 12 · Adult"). Updates on level-up. |
+| Pet badge | Under pet name | Species · element · Lv · stage ("Bunny · Leaf · Lv 12 · Adult"). Element shows as a badge with its emblem, plus an accent on the pet; it never changes the coat colour (#37). Updates on level-up. |
 | Blob stage | Home, hero, egg, try-on, fight | Hosts the 3D pet. Shows the pet's state (awake, hungry bubble, asleep). Shadow turns orange when hungry. Try-on shows the selected cosmetic live. |
 | Pet switcher | Home (and the pet context on every tab) | Lists own pets and Co-Pets; switching changes the pet every tab acts on. Co-Pet entries show the partner's avatar. The "add" egg starts a Co-Pet invite link (Co-Pet is created from Home, not Guild). |
-| Alert pill | Home, top of Battle | One alert at a time, newest first. Robbery alert carries a Revenge button. Dismisses when acted on. |
+| Alert pill | Home, top of Battle | One alert at a time: the newest unread (push and Telegram send the most urgent instead; DECISIONS #43). Robbery alert carries a Revenge button. Dismisses when acted on. |
 | Status pill | Play cards, rows | Live status: "Ready", "2 of 3 left today", "Back in 3h 12m", "This weekend", "Next spin 23h". `{colors.cooldown}` when waiting. |
 | Icon tile | Cards, items, benefits | Decorative; label always present next to it. |
 | Avatar | Top-right on every page | Labelled "Account menu". Opens the Avatar menu (Profile, Wallet, Claims, Season, Calm motion, Notifications, How it's fair). |
@@ -133,7 +133,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Segmented tabs | Battle (Attack / Duel / 2v2; Duel has Ranked / Wager), Shop (Store / Pass / Market), Guild (Guild / War), Season (Leaderboard / Hall of Fame) | Switches view in place; second line shows the limit ("5 left today"). `role="tablist"` with `aria-selected`; arrow keys move between segments. |
 | Bottom sheet | Login, claim, wheel, wallet, confirmations | Opens from the bottom over a scrim; closes on grab-handle swipe down, scrim tap, `Esc`, or its text button (mandatory in every sheet). One at a time. `role="dialog" aria-modal="true"`, focus trapped inside; initial focus on the sheet title; focus returns to the trigger on close. Never closes on a timer. |
 | Step chip | Onboarding | "Step n of 4" (as text; progress dots are `aria-hidden`) + task + Skip. Skip is first in focus order. Advances when the task is done, not on a Next button. |
-| Target row | Battle › Attack | Shows **reward and chance before you tap** ("Win +620 · 54% chance"). Only pets within ±2 levels. Asleep targets show a zzz badge and stay attackable; shielded targets show "Safe for now" and a cooldown button with the shield time. Desktop sorts by best chance. |
+| Target row | Battle › Attack | Shows **reward and chance before you tap** ("Win +620 · 54% chance"). Shows the target's element badge; when your element beats theirs, "Leaf beats Stone · +10%" sits by the chance, and the chance already includes it (fire > leaf > stone > spark > water > fire; #55). Only pets within ±2 levels. Asleep targets show a zzz badge and stay attackable; shielded targets show "Safe for now" and a cooldown button with the shield time. Desktop sorts by best chance. |
 | Revenge row | Top of Battle › Attack | Appears after a robbery; "Revenge, no wait" skips the 30-minute cooldown, once per robbery. Disappears after use. |
 | Nameplate + health bar | Fight | Health counts down per hit; bar turns orange and adds the word "Low" when low. Opponent top, you bottom. `role="meter"` with `aria-valuetext` ("34 of 100, low"). |
 | Hit label | Fight | Short labels per hit ("Bonk! −18", "Crit! −32", "Dodge!"). `aria-hidden` (the battle text box carries the same facts). Hidden under reduce motion or Calm motion. |
@@ -142,26 +142,27 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Activity card | Play hub | One per activity with live status pill; phone card opens the activity; desktop card has its own action button. |
 | Progress bar | Expeditions, Boss Raid, hunger | Fills live; label next to it always says the time or percent in words ("62% boss health"). `role="progressbar"` with `aria-valuetext`. |
 | Lives hearts | Death Match | 3 hearts; a lost life empties one. Lives refill 1 per 7 days of good care. |
+| Death Match fights pill | Death Match card, run | Status pill "14 of 20 fights left this weekend" (max 20 fights per pet per weekend, #57). |
 | Danger note | Death Match, Bold expedition, wagers | One plain sentence about the risk, paired with the safe option ("Leave safely any time."). Shown **before** the player commits. |
-| Prize wheel | Wheel sheet | One free spin a day. Spins, lands, shows the prize card, then the button becomes "Next spin in 23h 59m". Under reduce motion or Calm motion, shows the prize directly. Keyboard: Spin is a real button; while spinning focus stays on it with `aria-busy`; the prize is announced ("You won plus 100 points") and focus moves to the prize card's button. |
+| Prize wheel | Wheel sheet | One free spin every 24h from your last spin (#51). Spins, lands, shows the prize card, then the button becomes "Next spin in 23h 59m". Under reduce motion or Calm motion, shows the prize directly. Keyboard: Spin is a real button; while spinning focus stays on it with `aria-busy`; the prize is announced ("You won plus 100 points") and focus moves to the prize card's button. |
 | Rarity tag | Cosmetic and market items | Stars + word, never colour alone. |
 | Item tile | Store | Tap selects and shows details; Buy happens in the detail / try-on area. |
 | Cosmetic tile | Store, dress up | Tap tries the item on your pet in the try-on card; Buy is separate. Selected tile ringed pink with an ink check badge and `aria-pressed="true"`. |
 | Try-on card | Store (phone top, desktop right rail) | Shows your current pet wearing the selected item; "Buy for $4" confirms the price in dollars. |
-| Pass card | Shop › Pass | One dollar price, benefit rows that say "instead of" with the old value in words ("was 30 minutes"; struck-through text is not read aloud), one CTA, "No auto-renew". |
-| Reward track | Pass | Nodes fill as the season progresses; final node is the season skin. |
+| Pass card | Shop › Pass | One dollar price, "Season skin is yours when you buy" (#50), benefit rows that say "instead of" with the old value in words ("was 30 minutes"; struck-through text is not read aloud), one CTA, "No auto-renew". |
+| Reward track | Pass | Nodes fill as the season progresses; the final node shows the season skin, which the Pass grants at purchase (DECISIONS #50). |
 | Market row | Shop › Market | Rare and better items only; never pets or Co-Pets (#14); fee stated up front; filter by slot (All, Hat, Face, Neck, Back, Hand). "Sell an item · 5% fee" at the bottom. **Buy opens the market buy sheet** (item, seller, dollar price, token amount, 5% fee, lemon Buy, "Not now"); never a one-tap buy from the list. |
 | Claim sheet | From pot blob or Avatar menu › Claims | Dollar amount first, ETH second; states "pot points go back to 0" with from → to and "Mochi stays Lv 12" (level never drops); one-line pot explainer with 85/15 bar; lemon Claim; "Not now, keep growing" closes with no change; "Check this result" link to the on-chain share. Keyboard: initial focus on the sheet title (not Claim, so a stray Enter resets nothing); Tab order amount → reset box → explainer → Claim → "Not now, keep growing"; `Esc` = the text button. After claiming, focus returns to the pot blob and the confirmation stays on screen until dismissed. |
 | Wallet chip | Shop header, desktop nav | Shows your PETV balance as dollars first. Opens the Wallet sheet. |
 | Input field | Login | Email entry with a visible `<label>`; inline error under the field in words + icon, linked with `aria-describedby`. |
 | Focus ring | Every focusable item | Ink ring on `:focus-visible` (DESIGN `focus-ring`). Focus is never hidden under the tab bar or a sheet (`scroll-padding-bottom` 110px). |
 | Free-actions chip | Top bar, every page | "7 free left"; at 0 "0 free · small fee". Updates after each sponsored action. Announced only when it changes (polite). |
-| Streak pill | Desktop top nav | "Day 4 streak"; opens the Season page. Phone placement open (Open questions). |
+| Streak pill | Desktop top nav; phone top bar | "Day 4 streak"; opens the Season page. Phone: flame chip in the top bar next to the free-actions chip (#39). |
 | Avatar menu | Avatar | Sheet of rows; each row opens its sheet or page. Calm motion is a three-choice row (Follow device / On / Off, `role="radiogroup"`), default Follow device, stored per player. |
-| Wallet sheet | Avatar menu › Wallet, wallet chip, shortfall links | Balances dollars first; "Get today's $2" (then a cooldown button with the countdown); Gold vault stake / swap back (stake is a confirm step; "Swapping back costs 2%" shown before); burn counter. |
-| Shortfall note | Any price the player cannot pay (Store, Pass, Market, wager stake, Bold expedition, evolve item, breed) | Replaces a dead button: Buy shows as a cooldown-style "Not enough PETV" and the note says the gap in dollars ("You need $1.40 more", PETV under) with "Get today's $2" (or "Open Wallet" once used). After topping up, the player returns to the same item. |
+| Wallet sheet | Avatar menu › Wallet, wallet chip, shortfall links | Balances dollars first; "Get today's PETV · $X" at its live dollar value (#47; then a cooldown button with the countdown); Gold vault stake / swap back (stake is a confirm step; "Swapping back costs 2%" shown before); burn counter. |
+| Shortfall note | Any price the player cannot pay (Store, Pass, Market, wager stake, Bold expedition, evolve item, breed) | Replaces a dead button: Buy shows as a cooldown-style "Not enough PETV" and the note says the gap in dollars ("You need $1.40 more", PETV under) with "Get today's PETV" (or "Open Wallet" once used). After topping up, the player returns to the same item. |
 | Burn counter | Wallet sheet, Dice card, wager and Bold expedition results | Shows total burned, dollars first. On a result it ticks up by the amount just burned ("+$0.40 burned"); no animation under Calm motion. Not a live region. |
-| Fairness check | Result card, wheel prize card, dice and wager results, claim sheet; How it's fair page | "Check this result" opens a sheet: when the result was locked in, when it was revealed, and "Matches" if they agree, with a link to the public record. While waiting for the reveal: "Being revealed · nothing for you to do". Never blocks the player. |
+| Fairness check | Every random result (battle, wheel, dice, wager, monster, expedition, egg hatch, breeding, cosmetic drop), claim sheet; How it's fair page (DECISIONS #44) | "Check this result" opens a sheet: when the result was locked in, when it was revealed, and "Matches" if they agree, with a link to the public record. While waiting for the reveal: "Being revealed · nothing for you to do". Never blocks the player. |
 | Evolve / Breed buttons | Home pet card | Locked buttons stay visible and focusable with the reason ("Evolve at Lv 15", "Breed at Adult", "No breeds left"). Ready buttons open their sheet; cost is shown dollars first before the confirm. |
 | Co-Pet card | Home, under the stage for a Co-Pet | Who fed today, Together bonus, 50/50 share, "Needs both to agree: Breed · Death Match". Menu ("Co-Pet options") holds Leave Co-Pet. No sell or buy-out action (#14). |
 | Asleep stage | Home, asleep pet | Dimmed stage, "Asleep · day 3 of 7", lime "Feed Mochi to wake · free" with the points cost stated before the tap; day track. |
@@ -178,7 +179,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 |---|---|---|
 | Fed | Home | Lime timer chip "♥ 2d 14h" (heart icon); Feed button lime. |
 | **Hungry** | Home, push, Telegram | Timer chip reads "Hungry · 3h left" with the empty-heart icon; chip and stage shadow turn `{colors.orange}`; speech bubble "I'm hungry…"; feed card: "Mochi falls asleep in 3h", orange hunger bar, one sentence ("Asleep pets earn no points, get no pot share and can be robbed. One meal keeps Mochi awake for 3 more days."), "Feed now · +20 points", "You have 2 free meals". |
-| **Asleep** | Home, target rows | zzz on the pet and avatar; "Mochi is asleep. Asleep pets earn no points, get no pot share and can be robbed." Pot blob: "No pot share while asleep" (#15). Waking is free: **feeding wakes the pet** (#18); one lime "Feed Mochi to wake · free" button, no separate paid revive, with the cost stated before tapping: "Mochi slept 2 days, so Mochi loses 20% of points (2,496)." (FR-10: 10% per day asleep.) As a target: grey zzz badge, still attackable. |
+| **Asleep** | Home, target rows | zzz on the pet and avatar; "Mochi is asleep. Asleep pets earn no points, get no pot share and can be robbed." Pot blob: "No pot share while asleep" (#15). Waking is free: **feeding wakes the pet** (#18); one lime "Feed Mochi to wake · free" button, no separate paid revive, with the cost stated before tapping: "Mochi slept 2 days, so Mochi loses 30% of points (3,744)." (FR-10: 10% per asleep day; day = full days asleep + 1, so 2 full days = day 3; #27.) As a target: grey zzz badge, still attackable. |
 | **Shielded** | Home, target rows | Sky shield badge on the avatar; as a target: row at reduced opacity, "Safe for now", cooldown button with shield + time ("22m"). Own pet: "Safe from attacks for 3 days" (new pet) or the shield time. |
 | **Cooldown** | Any timed action | Cooldown button in place of the action, live wait inside ("Attack in 12m", "Next spin in 23h 59m", "Try again in 30m"). Season Pass holders see 10m instead of 30m. |
 | Away (expedition) | Home, Play, Battle | "Mochi is away · back in 3h 12m"; Mochi cannot battle; battle buttons become cooldown buttons with that wait. |
@@ -192,21 +193,22 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | **Loading** | Any surface | Sticker-shaped placeholders tinted `{colors.dot}` on `{colors.background}`, matching the final layout; the blob stage shows the empty scene until the pet loads. Never a blank frame where the pet should be. |
 | Pending action | Any on-chain action | Button shows a plain verb ("Hatching…", "Claiming $42.08…"); never "Processing tx…". |
 | **Error** | Any action | Says what failed and what to do, keeps the player's place: "Couldn't feed Mochi. Try again." with a retry button. Money actions say nothing was spent when that is true. |
-| Offline | Global | Read-only last-known values with "You're offline." *Offline action queueing not decided (Open question 7).* Whatever is decided, an action that fails to send says "Couldn't send. Nothing was spent." |
+| Offline | Global | Read-only last-known values with "You're offline." No action queueing (Open question 7); an action that fails to send says "Couldn't send. Nothing was spent." |
 | Out of free actions | Any sponsored action | 10 free actions a day, 20 with the Season Pass (#19); then the player pays from test ETH. Shown as a small chip in the top bar next to the balance ("7 free left"), always visible. At 0 the chip reads "0 free · small fee" and actions show the fee in dollars before confirming; never say "gas" (owner, 2026-10-14). |
-| **Not enough PETV** | Store, Pass, Market, wager stake, Bold expedition, evolve item, breed | Never a dead button. Buy becomes a cooldown-style "Not enough PETV" (focusable, with the reason) and a shortfall note says the gap in dollars first: "You need **$1.40** more" over "437 PETV", with lemon "Get today's $2" (opens the Wallet sheet faucet) or "Open Wallet" if today's $2 is used: "Next free $2 in 9h". |
+| **Not enough PETV** | Store, Pass, Market, wager stake, Bold expedition, evolve item, breed | Never a dead button. Buy becomes a cooldown-style "Not enough PETV" (focusable, with the reason) and a shortfall note says the gap in dollars first: "You need **$1.40** more" over "437 PETV", with lemon "Get today's PETV" (opens the Wallet sheet faucet) or "Open Wallet" if today's drip is used: "Next free PETV in 9h". |
 | **No test ETH** | Any action at "0 free · small fee" when the player has no test ETH for the fee | The fee confirm says "This needs a small fee (shown in dollars) and you have no test ETH." with "Get test ETH" (Wallet sheet) and the free-actions reset time ("10 free actions again in 6h"). Nothing is spent. |
 | Evolve locked | Home pet card | Cooldown-style button with lock: "Evolve at Lv 15" (Elder), "Evolve at Lv 30 + season trophy" (Mythic). At level but no item: "Evolve · needs Elder item $3" opens Store on that item. Teen and Adult come by level on their own (no button). |
 | Breed locked | Home pet card | "Breed at Adult" before Adult; "No breeds left · 5 of 5 used" after 5; "Mochi needs good care to breed" when care is low. Co-Pet: "Waiting for Priya to agree". |
 | Co-Pet limit | Home pet switcher "add" egg | At 3 Co-Pets the add egg shows "3 of 3 Co-Pets" and, when pressed, "Leave a Co-Pet to start a new one". Stays focusable. |
 | Co-Pet invite pending / expired | Home pet switcher, invite link | Pending: dashed egg chip "Waiting for Priya" with "Copy link again" and "Cancel invite". Expired or used link: "This invite has ended. Ask your friend for a new one." |
-| Co-Pet left | Home, both owners | Confirm sheet first: "Leave Co-Pet Pudding? Pudding goes back to Sam, who hatched it. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." After: the pet leaves your switcher; a memory badge appears in Profile; the other owner gets an in-app alert "Priya left Co-Pet Pudding". If the creator leaves, the pet stays with the other owner (FR-30). |
+| Co-Pet left | Home, both owners | Confirm sheet first: "Leave Co-Pet Pudding? Pudding stays with Sam. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." After: the pet leaves your switcher; a memory badge appears in Profile; the other owner gets an in-app alert "Priya left Co-Pet Pudding". If the creator leaves, the pet stays with the other owner (FR-30). |
 | Matchmaking | Duel, 2v2 random partner, wager, Boss Raid partner | "Finding a match…" with a plain "Stop looking" text button; nothing is spent while searching; if no match comes, the Empty-state line "No one near your level right now. Try again soon." |
 | Result being revealed | Any battle, dice or wager result (FR-27) | Grey pill "Being revealed · nothing for you to do"; the fight plays once the reveal lands; no countdown for the player because the server reveals. |
 | Push permission denied | Notification settings, after the browser prompt | "Alerts are off in your browser. You can still link Telegram." with steps to turn them on; no repeated prompts. |
 | Guild full / leave guild | Guild tab | Invite button becomes "Guild is full · 10 of 10"; Guild card menu holds "Leave guild" with a confirm sheet ("You stop sharing this week's War prize."). Leader removing a member uses the same confirm. |
 | Pass owned | Shop › Pass | Card shows "You have the Season Pass · Week 4 of 12" with the reward track; no buy button. |
 | Death Match closed | Play › Death Match card | Outside the weekend: status pill "Opens Saturday" and a cooldown-style button "Opens in 2d 6h"; card still explains the rules. |
+| Death Match cap reached | Play › Death Match card, run | After 20 fights this weekend (#57): grey status pill "20 of 20 fights this weekend · Opens Saturday", cooldown-style button "Opens in 4d 2h"; the card still explains the rules. |
 
 ## Interaction Primitives
 
@@ -217,7 +219,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 - **Live countdowns** in place; buttons re-enable themselves at 0.
 - **Nothing closes on a timer.** No sheet, prize card, confirmation, "Leave safely?" sheet or wager acceptance auto-dismisses or auto-advances. The Death Match "Leave safely?" sheet never times out into "continue". If a match ever needs the player to act by a deadline, it shows a visible countdown in words and warns at least 1 minute before.
 - **Can't afford it:** show the gap in dollars and a way to fix it (shortfall note), never a dead button.
-- **Fairness is checkable:** every random result (battle, wheel, dice, wager) and every claim has a "Check this result" link (NFR-1, NFR-2, FR-27).
+- **Fairness is checkable:** every random result (battle, wheel, dice, wager, monster, expedition, egg hatch, breeding, cosmetic drop) and every claim has a "Check this result" link (NFR-1, NFR-2, FR-27).
 - **Overlays:** bottom sheets on phone, one at a time; close by swipe down, scrim tap, `Esc` or the text button.
 - **Try before buy:** selecting a cosmetic previews it on your pet; buying is a separate press.
 - **Banned:** centered modals with an (i) icon, carousels for onboarding text, hidden reasons for disabled buttons, wallet addresses on main screens, emoji as icons.
@@ -232,7 +234,7 @@ Behavioural. Visual contrast lives in DESIGN.md › Colors (ink text on every ca
 - **Calm motion** (Avatar menu): "Follow device" (default), "On" or "Off", stored per player; On applies every reduce-motion rule above.
 - **Pet idle stops:** the 3D pet's jelly idle runs for at most 5 seconds after load or after any action, then holds a still pose (WCAG 2.2.2). Calm motion Off keeps the idle running.
 - **No flashing:** nothing flashes more than 3 times a second (crit hits, confetti, hatch burst, wheel lights).
-- **Full keyboard play on desktop:** every action reachable by `Tab` in reading order; `Enter` / `Space` activate; `Esc` closes the top sheet. Top nav and tab bar are plain links in Tab order; arrow keys work only inside segmented tabs (`role="tablist"`) and the pet switcher (`role="radiogroup"`). Disabled-with-reason buttons stay in Tab order (`aria-disabled`). Focus moves into a sheet when it opens (to its title) and back to the trigger when it closes. "Skip to result" and onboarding Skip are first in focus order of their view; "Skip to result" gets focus when a fight starts. Game-specific shortcut keys are not decided.
+- **Full keyboard play on desktop:** every action reachable by `Tab` in reading order; `Enter` / `Space` activate; `Esc` closes the top sheet. Top nav and tab bar are plain links in Tab order; arrow keys work only inside segmented tabs (`role="tablist"`) and the pet switcher (`role="radiogroup"`). Disabled-with-reason buttons stay in Tab order (`aria-disabled`). Focus moves into a sheet when it opens (to its title) and back to the trigger when it closes. "Skip to result" and onboarding Skip are first in focus order of their view; "Skip to result" gets focus when a fight starts. No game-specific shortcut keys (Open question 8).
 - **Focus ring:** always visible, 3px `{colors.ink}` outline with 3px offset on `:focus-visible` (DESIGN.md `focus-ring`); `scroll-padding-bottom: 110px` so focus is never under the floating tab bar or a sheet.
 - **Targets:** every pressable item at least 44 × 44px; row buttons at least 8px apart.
 - **Screen readers:**
@@ -254,7 +256,7 @@ Journey IDs and names mirror PRD §2.3.
 1. Landing: "Raise a cute pet. Battle friends. Share a real prize pot.", lemon **Play**, "Free pet. No crypto needed to start.", pot teaser "$9,843" over "4.21 ETH".
 2. Lena taps Play → login sheet "Let's get your egg!": email, Google, "I already have a wallet". She picks Google; her account and smart wallet are made silently.
 3. Egg screen: "Your egg is here! Every new player gets one free egg." She taps the egg.
-4. It hatches: "Meet Mochi!" (Bunny · Leaf · Baby), "Mochi is yours forever.", lime pill "Safe from attacks for 3 days". Step chip: "Step 1 of 4 · Feed Mochi · Skip".
+4. It hatches: "Meet Mochi!" (Bunny · Leaf · Lv 1 · Baby), "Mochi is yours forever.", lime pill "Safe from attacks for 3 days". Step chip: "Step 1 of 4 · Feed Mochi · Skip".
 5. She feeds Mochi (free) → points tick up → Step 2: dresses Mochi in a free cosmetic in the try-on card.
 6. Step 3: a tutorial bot battle she cannot lose (FR-5); the fight plays by itself; "You won!".
 7. **Climax:** Step 4 shows the pot: "Prize pot $9,843 · Your points = $0.12 now" (dollars first, ETH underneath).
@@ -285,7 +287,7 @@ Failure: loss → "So close! Pudding kept their points." with "Try again in 30m"
 
 1. Day 2: hungry window → timer chip and stage turn orange; push + Telegram: "Mochi is very hungry, 6h left before sleep".
 2. Day 3, not fed → Mochi **sleeps**: zzz on Home; "Asleep pets earn no points, get no pot share and can be robbed." The pot blob reads "No pot share while asleep".
-3. Ana returns on day 5 (2 days asleep). The feed button states the cost first: "Feed Mochi to wake · free. Mochi loses 20% of points (2,496)."
+3. Ana returns on day 5 (2 days asleep). The feed button states the cost first: "Feed Mochi to wake · free. Mochi loses 30% of points (3,744)."
 4. **Climax:** she feeds Mochi → Mochi wakes on the stage, the timer chip turns lime and the pot share is back.
 
 Edge: asleep for 7 days → Home: "Mochi passed away." Points removed; "Mochi's unclaimed share went back to the pot." Ana keeps a **Tombstone** badge and gets "Hatch your free egg" (FR-11, FR-12).
@@ -303,13 +305,13 @@ Failure: wake fails → "Couldn't wake Mochi. Try again. No points were taken." 
 5. Sunday: Guild › War, best of 5 2v2 matches; they play the deciding match together.
 6. **Climax:** they win the deciding 2v2; the guild shares a Gold prize.
 
-Edge (PRD, FR-30): Priya wants to stop. She opens the Co-Pet card menu → "Leave Co-Pet" → confirm sheet: "Pudding goes back to Sam, who hatched it. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." → Leave. Pudding leaves her switcher; she gets the memory badge; Sam gets an in-app alert. There is no selling and no buy-out (#14).
+Edge (PRD, FR-30): Priya wants to stop. She opens the Co-Pet card menu → "Leave Co-Pet" → confirm sheet: "Pudding stays with Sam. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." → Leave. Pudding leaves her switcher; she gets the memory badge; Sam gets an in-app alert. There is no selling and no buy-out (#14).
 
 Edge: Sam already has 3 Co-Pets → the add egg reads "3 of 3 Co-Pets" → "Leave a Co-Pet to start a new one" (FR-29).
 
 Edge: Priya asks to enter the Co-Pet in Death Match → "Waiting for Sam to agree" → Sam declines → nothing happens; Priya sees "Sam said no to Death Match".
 
-### UJ-5. Spending and risking $PETV (Kai, holds test PETV from the faucet, $10 at sign-up and $2 a day, and claims)
+### UJ-5. Spending and risking $PETV (Kai, holds test PETV from the faucet, 3,120 PETV at sign-up and 624 a day, and claims)
 
 → [.working/key-shop-claim.html](.working/key-shop-claim.html) (store), [.working/key-play-hub.html](.working/key-play-hub.html) (dice, expeditions)
 
@@ -319,7 +321,7 @@ Edge: Priya asks to enter the Co-Pet in Death Match → "Waiting for Sam to agre
 4. **Climax:** he wins the wager and takes the pot minus the 5% burned; the **burn counter** on the result ticks up ("+$0.50 burned"); "Check this result" shows the result matched what was locked in before the fight.
 5. Resolution: he sends Mochi on a **Bold expedition** with the rest; the danger note warned "3x reward, 30% chance to fail and lose your stake"; it fails and the stake is burned: "The expedition failed. Your 500 PETV stake was burned. Mochi is home safe."
 
-Failure: he loses a wager → "So close. You lost your $5 stake. 5% of the pot was burned." with the burn counter and "Try again"; Mochi keeps all points. Not enough PETV for a stake or item → shortfall note "You need $1.40 more" with "Get today's $2" (Wallet sheet); nothing is spent.
+Failure: he loses a wager → "So close. You lost your $5 stake. 5% of the pot was burned." with the burn counter and "Try again"; Mochi keeps all points. Not enough PETV for a stake or item → shortfall note "You need $1.40 more" with "Get today's PETV" (Wallet sheet); nothing is spent.
 
 ### UJ-6. A Death Match weekend (Ana, Saturday, adult pet with 3 lives)
 
@@ -327,7 +329,7 @@ Any adult pet can enter; there is no special "Gladiator" pet type (#20).
 
 → [.working/key-play-hub.html](.working/key-play-hub.html) (Death Match card)
 
-1. Play › Death Match card: 3 lives, "Your pet can pass away at 0 lives.", "Leave safely any time."
+1. Play › Death Match card: 3 lives, "20 fights left this weekend", "Your pet can pass away at 0 lives.", "Leave safely any time."
 2. Enter → confirm sheet with the same warning → Enter Death Match.
 3. Wins twice → "Survivor streak 2".
 4. Loses → 2 lives. Loses again → 1 life → "Leave safely?" sheet.
@@ -349,7 +351,7 @@ Failure: no partner found → card stays on "Find a partner" with the Empty-stat
 
 ### Short flows (owner placements, 2026-10-14; spine-only, no mock)
 
-**Evolve (FR-33, FR-34, FR-36).** Home pet card → **Evolve** (locked until level: "Evolve at Lv 15") → at Lv 15 the button reads "Evolve · needs Elder item $3" → Store opens on the Elder item → buy → back on Home, **Evolve** → Evolve sheet: Mochi now → Mochi Elder, "Warrior path (mostly battles)", item ticked → lemon Evolve → the stage shows the new look; badge reads "Bunny · Lv 15 · Elder". Failure: "Couldn't evolve Mochi. Try again. Your item is safe."
+**Evolve (FR-33, FR-34, FR-36).** Home pet card → **Evolve** (locked until level: "Evolve at Lv 15") → at Lv 15 the button reads "Evolve · needs Elder item $3" → Store opens on the Elder item → buy → back on Home, **Evolve** → Evolve sheet: Mochi now → Mochi Elder, "Warrior path (mostly battles)", item ticked → lemon Evolve → the stage shows the new look; badge reads "Bunny · Leaf · Lv 15 · Elder". Failure: "Couldn't evolve Mochi. Try again. Your item is safe."
 
 **Breed (FR-37).** Home pet card → **Breed** (locked: "Breed at Adult") → Breed sheet: pick a second adult (own pets; a Co-Pet needs the partner to agree), egg preview, "Breed 1 of 5 · each breed costs double the last", cost dollars first ("$2.99" over the PETV amount, illustrative), "1 in 500 eggs is shiny" → lemon Breed → a new egg appears in the pet switcher. Edge: "No breeds left · 5 of 5 used". Not enough PETV → shortfall note.
 
@@ -368,7 +370,7 @@ Short **do-it** steps right after hatching, with **Skip** on every step (decisio
 | 3 of 4 | Bot battle | Tutorial bot fight finished (cannot lose, FR-5) |
 | 4 of 4 | See the pot | Pot and "your points = $X now" shown |
 
-Step chip on top + progress dots; the step advances when the task is done. Skip ends the tutorial and lands on Home. Not decided: whether skipped steps come back later as hints.
+Step chip on top + progress dots; the step advances when the task is done. Skip ends the tutorial and lands on Home. Skipped steps come back later as small hints (Open question 8).
 
 ## Notifications
 
@@ -378,11 +380,15 @@ Outside alerts are **browser push (PWA)** and a **Telegram bot**. **No email.** 
 |---|---|---|---|---|
 | Robbed: names attacker and points lost | FR-20 | Yes | Yes | Yes |
 | Hungry / about to sleep ("6h left before sleep") | UJ-1 reasons to return, UJ-3 | Yes | Yes | Yes |
-| Fell asleep; close to passing away | UJ-3 | Yes | Yes | Yes |
-| Daily wheel ready; login streak at risk | UJ-1 reasons to return | Yes | Not decided | Not decided |
-| Co-Pet partner needs to agree (breed, Death Match); partner left a Co-Pet | UJ-4, FR-30 | Yes | Not decided | Not decided |
+| Fell asleep; close to passing away (24h before death) | UJ-3 | Yes | Yes | Yes |
+| Passed away | FR-11 | Yes | Yes | Yes |
+| Claim ready | FR-16 | Yes | No | No |
+| Daily wheel ready; login streak at risk | UJ-1 reasons to return | Yes | No | No |
+| Co-Pet partner needs to agree (breed, Death Match); partner left a Co-Pet | UJ-4, FR-30 | Yes | No | No |
 
-Copy follows Voice and Tone (dollars first, gentle danger). The one-alert-at-a-time rule applies to push too: never stack robbery + hungry + asleep at once; send the most urgent. Not decided: when to ask for push permission, how a player links Telegram, per-event opt-outs and a daily cap. On iPhone, web push only works after the player adds the PWA to the Home Screen.
+Channels per event: DECISIONS #42; an in-app-only event can be turned on for push later as a template change.
+
+Copy follows Voice and Tone (dollars first, gentle danger). The one-alert-at-a-time rule applies to push too: never stack robbery + hungry + asleep at once; send the most urgent (close to death > robbed > asleep > hungry > Co-Pet > passed away > partner left > claim ready > wheel / streak; DECISIONS #43). The in-app pill shows the newest unread. Push permission is asked after the first feed; Telegram is linked in Settings; per-type opt-outs in Settings; max 3 pushes a day (close to death counts); no pushes 22:00–08:00 local except close to death (Open questions 6, 14). On iPhone, web push only works after the player adds the PWA to the Home Screen.
 
 ## Inspiration & Anti-patterns
 
@@ -400,21 +406,21 @@ From [imports/reference-extract.md](imports/reference-extract.md) (Fren Pet capt
 | Phone (mocked at 390px) | Floating bottom tab bar, 5 tabs | One column; overlays are bottom sheets; main action full width. |
 | Desktop (mocked at 1280px) | Top pill nav with streak, wallet chip and avatar | Main column + right rail (pot, points, claim, try-on, mode cards). Play hub 3 columns; Shop 6-column items, 5-column cosmetics. Full keyboard play. |
 
-- Web / PWA only; installable to the Home Screen. Not decided: when to show an install prompt.
+- Web / PWA only; installable to the Home Screen. The install prompt is offered after the first feed with the push ask (needed for push on iPhone), never on first load (DECISIONS #39).
 - Breakpoint width between layouts, tablet behaviour, and the desktop overlay form are not set (DESIGN Open questions).
 
 ## Open questions
 
 1. **Resolved, Gold name** (owner, 2026-10-14): keep "Gold".
 2. **Resolved, Gold vault location** (owner, 2026-10-14): Wallet sheet from the avatar, with balances and the faucet. The 5 tabs stay.
-3. **Resolved, unplaced surfaces** (owner, 2026-10-14): wager = Battle › Duel › Ranked / Wager; Evolve and Breed = Home pet card buttons; Season + leaderboard + Hall of Fame = Play › Season card → Season page; Co-Pet leave + 3 max = Co-Pet card menu on Home; faucet = Wallet sheet. Still open: see 11.
+3. **Resolved, unplaced surfaces** (owner, 2026-10-14): wager = Battle › Duel › Ranked / Wager; Evolve and Breed = Home pet card buttons; Season + leaderboard + Hall of Fame = Play › Season card → Season page; Co-Pet leave + 3 max = Co-Pet card menu on Home; faucet = Wallet sheet.
 4. **Resolved, Hungry threshold** (owner, 2026-10-14): the hungry window is the last 24h before sleep; timer chip turns orange and the first alert fires at its start. Copy examples with 3h / 6h are just moments inside that window.
 5. **Resolved, Out of free actions** (owner, 2026-10-14): top-bar chip, see State Patterns.
 6. **Resolved, Notifications** (owner, 2026-10-14): ask push permission after the first feed; Telegram link in Settings; max 3 pushes a day; per-type opt-outs in Settings.
 7. **Resolved, Offline** (owner, 2026-10-14): read-only; any action shows "Couldn't send. Nothing was spent."
 8. **Resolved, Keyboard** (owner, 2026-10-14): standard keys only (Tab / Enter / Esc / arrows); skipped onboarding steps return as small hints.
 9. **Resolved, mock drift** (2026-10-14): Co-Pet Sell removed, wake = feed, no pot share while asleep, pot-points wording, 312 PETV per $1, pink-deep headings and Guild / War fixed in all 8 key mocks. `direction-candy.html` stays a style source only (Lv 6, ETH-first, emoji are not rules).
-10. **Resolved, Level after a claim** (owner, 2026-10-14): level comes from lifetime points and never drops; a claim resets only pot points. PRD §4.10 wording needs a matching update (outside this spine).
+10. **Resolved, Level after a claim** (owner, 2026-10-14): level comes from lifetime points and never drops; a claim resets only pot points.
 11. **Resolved, Login streak on phone** (owner, 2026-10-14): flame chip in the top bar next to the free-actions chip.
 12. **Resolved, Wager** (owner, 2026-10-14): Ranked / Wager switch inside the Duel segment; Battle stays Attack / Duel / 2v2.
 13. **Resolved, Breeding** (owner, 2026-10-14): only your own pets and Co-Pets; breeding base price = the $2.99 egg.

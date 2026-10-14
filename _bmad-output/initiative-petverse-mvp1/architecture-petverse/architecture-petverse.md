@@ -8,7 +8,7 @@ scope: 'Petverse release 1 on Robinhood Chain testnet 46630: contracts in chain/
 status: final
 created: '2026-10-14'
 updated: '2026-10-14'
-binds: [FR-1..FR-53, NFR-1..NFR-6, DECISIONS#1-25]
+binds: [FR-1..FR-53, NFR-1..NFR-6, DECISIONS#1-30, DECISIONS#37-57]
 sources:
   - _bmad-output/initiative-petverse-mvp1/prd-petverse/prd-petverse.md
   - _bmad-output/initiative-petverse-mvp1/prd-petverse/addendum.md
@@ -86,6 +86,24 @@ whose full input is published.
 | #28 Small pot = awake living pets in the bottom half by points | docs/DECISIONS.md | AD-5 |
 | #29 Co-Pet leave: leaver's half of unclaimed pot paid first, then the pet is the other owner's normal pet; no sale, no money between players | docs/DECISIONS.md | AD-17, AD-4, AD-22 |
 | #30 Testnet Safe is 2-of-3 team signers; Safe Protocol Kit / CLI if the Safe web UI lacks 46630 | docs/DECISIONS.md | AD-3 |
+| #37 Element does not set coat colour: badge plus accent look; keeps its +10% battle edge (#55) | docs/DECISIONS.md | AD-18 (battle math); UI only otherwise |
+| #38 Every hand item fits all 10 species: babies and winged species get a hand anchor | docs/DECISIONS.md | AD-22 (Cosmetics; visual only, AD-1) |
+| #39 Resolved EXPERIENCE open questions win; install prompt after the first feed with the push ask | docs/DECISIONS.md | AD-19, Deferred (UX items) |
+| #40, #41 Flagged accounts out of epoch payouts and sponsorship until cleared; main-pot hold self-expires at 72h; every back-to-back renewal needs the Safe, which renews or clears directly | docs/DECISIONS.md | AD-15, AD-5 |
+| #42, #43 Alert kinds and channels; pill newest, push and Telegram most urgent | docs/DECISIONS.md | AD-19 |
+| #44 "Check this result" covers all nine CAP-28 result types plus claims | docs/DECISIONS.md | AD-6 (`RevealLog`, public seeds) |
+| #45 Gas Manager balance alarm from webhook spend against an owner-entered budget | docs/DECISIONS.md | AD-23 |
+| #46 `IPriceSource` and the signed quote carry `weiPerUsd` | docs/DECISIONS.md | AD-10, AD-11 |
+| #47 Faucet pays fixed N11 / N12 amounts; UI shows their live dollar value | docs/DECISIONS.md | AD-9 |
+| #48, #49 `seasonPool` holds and pays PETV; Guild War Gold uses a weekly `guildWar` stream from the Gold reserve | docs/DECISIONS.md | AD-5, AD-24 |
+| #50 Season skin is a soulbound per-season item granted when the Pass is bought | docs/DECISIONS.md | AD-22 (soulbound cosmetics) |
+| #51 Wheel resets on a rolling 24h per player | docs/DECISIONS.md | Consistency Conventions |
+| #52 Death Match win = 2 × (10% of the opponent's pot points) × min(streak, 5), new points, not taken | docs/DECISIONS.md | AD-18 |
+| #53 Gold vault grows only from the 2% swap-back fee in release 1 | docs/DECISIONS.md | AD-24 |
+| #54 Trade tax taken in ETH; pot share straight to PotFunder | docs/DECISIONS.md | AD-9, AD-11 |
+| #55 Element edge: +10% battle power when the attacker's element beats the target's; cycle fire > leaf > stone > spark > water > fire | docs/DECISIONS.md | AD-18, AD-6 |
+| #56 A confirmed bot pet's unclaimed pot ETH is recycled into the main pot once the Safe confirms; its points are zeroed | docs/DECISIONS.md | AD-15, AD-4 |
+| #57 Death Match cap: 20 fights per pet per weekend | docs/DECISIONS.md | AD-18 |
 
 ## Invariants & Rules
 
@@ -193,8 +211,9 @@ flowchart TB
     `sleep` for every due pet, then `bury` (AD-16), then `PotFunder.flush()`; so no flush pays a pet past its `sleepAt`
     while the keeper is live. Tests pin: a flush after `sleep` adds nothing to that pet;
     wake re-adds its points after the AD-16 wake cut.
-  - Recycled ETH (a buried pet's owed + pending) stays inside PetCore and goes 100% to the main accumulator, after the
-    pet's points are out of its bucket. `flush()` is never used for recycled ETH.
+  - Recycled ETH (a buried pet's owed + pending, or a confirmed bot pet's owed + pending via `recycleBotPet`, AD-15,
+    DECISIONS #56) stays inside PetCore and goes 100% to the main accumulator, after the pet's points are out of its
+    bucket. `flush()` is never used for recycled ETH.
   - Claim order: settle, pay `ethOwed + pending` (split 50/50 for a Co-Pet), set the pet's points and `rewardDebt` to
     0 and update its bucket. A `payoutHold` holds the whole claim.
   - Invariant pinned by tests: PetCore's ETH balance = Σ pet owed + Σ pet pending + Σ bucket pending + undistributed +
@@ -206,8 +225,9 @@ flowchart TB
 - **Binds:** FR-15, FR-32, FR-36, FR-47, FR-51, FR-53; §4.10 anti-bot "older than 7 days"; DECISIONS #15, #28.
 - **Prevents:** O(n) sorts on-chain, units choosing different snapshots, and roots that pay more than was funded.
 - **Rule:**
-  - One `EpochDistributor` contract with named streams: `smallPot` (ETH), `seasonPool` (season bonus, Guild War Gold
-    prize), `trophies` (top-10% season trophy, top raid teams' cosmetic). Epoch length and genesis for each stream are
+  - One `EpochDistributor` contract with named streams: `smallPot` (ETH), `seasonPool` (season bonus in PETV, fed by
+    20% of Season Pass income; DECISIONS #48), `guildWar` (weekly Guild War Gold prize, paid from the Gold reserve under
+    the N14 cap; DECISIONS #49), `trophies` (top-10% season trophy, top raid teams' cosmetic). Epoch length and genesis for each stream are
     on-chain parameters; the season boundaries live on-chain in `SeasonPass` (`seasonOf(ts)`, `isActive(addr, ts)`).
   - At epoch end the worker waits for `epochEnd + confirmations` and for the indexer to pass the snapshot block, then
     builds leaves keyed by `petId` (or `guildId` → member addresses for Guild War) and posts
@@ -220,7 +240,8 @@ flowchart TB
     neither get a share nor move the cut line. Tests pin a pet with `sleepAt == snapshotTs` as excluded.
     Guild War rosters and results are part of the published dataset.
   - Testnet epochs (N3–N5): `smallPot` weekly, ending Sunday 00:00 UTC; `seasonPool` and `trophies` one season (12
-    weeks); Guild War prize weekly (Sunday).
+    weeks); `guildWar` weekly (Sunday).
+  - Flagged accounts (AD-15) are left out of every stream's leaves until a reviewer clears them (DECISIONS #40).
   - A root is claimable after a delay (1 hour on testnet, N6); the Safe can cancel it within the delay. `datasetHash`
     covers the snapshot block number and hash. The full dataset is served by a public API route so anyone can rebuild
     the root. Unclaimed amounts roll into a later epoch after 4 epochs (N7).
@@ -295,14 +316,17 @@ sequenceDiagram
     faucet 15%, Gold reserve 15% (AD-24), team 10%. No owner mint, no transfer tax in the token.
   - On testnet the curve graduates into our own Uniswap v2-style pair and router deployed on 46630 (DECISIONS #22),
     seeded from the liquidity allocation.
-  - The 5% trade tax is taken by the venue (`PonsLikeCurve` before graduation, our v2-style pool after) and sent to
-    `TaxSplitter`, which splits by timelocked basis points (default 2% pot, 1% burn, 1% liquidity, 1% team) and sends
-    the pot share to `PotFunder`.
+  - The 5% trade tax is taken in ETH by the venue (`PonsLikeCurve` before graduation, our v2-style pool after) and
+    sent to `TaxSplitter`, which splits by timelocked basis points (default 2% pot, 1% burn, 1% liquidity, 1% team) and
+    sends the pot share to `PotFunder` as ETH (no PotConverter). For the burn share it buys PETV tax-free through the
+    venue with a minimum-out and burns it; the liquidity share is paired into the pool (held until graduation)
+    (DECISIONS #54).
   - On mainnet, `TaxSplitter` is the Pons creator-tax recipient and `PonsLikeCurve` is not deployed.
   - Burns call `burn` or send to the dead address, and emit `Burned(source, amount)`, which the burn counter reads.
   - `Faucet` (testnet only) pays test $PETV from its allocation and test ETH the team tops up, once at sign-up and once
     per UTC day, against a `VOUCHER_SIGNER` voucher per Privy DID; amounts are timelocked parameters (N11: 0.01 test
-    ETH + 3,120 PETV at sign-up; N12: 0.002 test ETH + 624 PETV daily).
+    ETH + 3,120 PETV at sign-up; N12: 0.002 test ETH + 624 PETV daily). The amounts are fixed in PETV; the app shows
+    their live dollar value (DECISIONS #47).
 
 ### AD-10: Dollar pricing through one price-source port with bounded signers
 
@@ -310,9 +334,10 @@ sequenceDiagram
 - **Prevents:** each store-like module reading prices its own way; a leaked quote key buying everything for 1 wei.
 - **Rule:**
   - USD prices (cents) for every item live on-chain in `Store` / `SeasonPass` as timelocked parameters. Every
-    USD-priced payment converts through `IPriceSource.petvPerUsd()`.
-  - Testnet `SignedRateSource`: `QUOTE_SIGNER` signs only `(petvPerUsd, burnStageBps, expiry, nonce)` via EIP-712. The
-    contract rejects a rate that moves more than a set bps per hour from the last accepted rate (5% per hour on
+    USD-priced payment converts through `IPriceSource.petvPerUsd()`; `IPriceSource.weiPerUsd()` gives the ETH rate
+    PotConverter needs (DECISIONS #46).
+  - Testnet `SignedRateSource`: `QUOTE_SIGNER` signs only `(petvPerUsd, weiPerUsd, burnStageBps, expiry, nonce)` via
+    EIP-712. The contract rejects either rate if it moves more than a set bps per hour from the last accepted rate (5% per hour on
     testnet, N10), and a burn stage other
     than 7000, 5000 or 3000.
   - Mainnet: an adapter over Chainlink ETH/USD and a Uniswap v3 30-minute TWAP behind the same interface.
@@ -323,8 +348,9 @@ sequenceDiagram
 - **Binds:** FR-17, §4.10 store, pass and market splits.
 - **Prevents:** modules swapping $PETV to ETH on their own, or sending $PETV into the ETH pot.
 - **Rule:** Store, SeasonPass and Market send the pot share of $PETV income to `PotConverter`. A keeper triggers batch
-  swaps to ETH with a minimum-out from `IPriceSource`; the ETH goes to `PotFunder`. Team, season-pool and burn shares go
-  to their fixed destinations in the same transaction as the sale.
+  swaps to ETH with a minimum-out from `IPriceSource` (`petvPerUsd` and `weiPerUsd`); the ETH goes to `PotFunder`. Team, season-pool (PETV, DECISIONS #48) and
+  burn shares go to their fixed destinations in the same transaction as the sale. The trade tax pot share is already
+  ETH and skips PotConverter (AD-9).
 
 ### AD-12: One schema, one writer per table; the indexer owns projections
 
@@ -363,15 +389,24 @@ sequenceDiagram
 
 ### AD-15: Anti-bot uses off-chain detection and a narrow on-chain hold
 
-- **Binds:** FR-6, FR-12, FR-51; §4.10 anti-bot; counter-metrics.
+- **Binds:** FR-6, FR-12, FR-51; §4.10 anti-bot; counter-metrics; DECISIONS #40, #41, #56.
 - **Prevents:** free-egg farming with fresh wallets, and a server key that can take funds.
 - **Rule:**
   - Free eggs (starter and after death) and faucet drips need a `VOUCHER_SIGNER` voucher bound to a Privy DID (email or
     Google verified) or a wallet that passes the history check. The contract caps vouchers per DID hash.
   - Risk flags live off-chain in `RiskFlag`. `RISK` can set an on-chain `payoutHold` on a pet; a hold only delays
-    claims, expires on its own after 72 hours (N9), cannot be renewed back-to-back without the Safe, and the Safe can clear
-    it.
-  - Flagged accounts are excluded from epoch snapshots and refused gas sponsorship.
+    claims, expires on its own after 72 hours (N9); `RISK` cannot set a new hold on the same pet within 72 hours after the
+    last one ended, so every back-to-back renewal (no count limit) needs the Safe; `RISK` may lift a hold it set; the Safe
+    renews or clears holds directly, not through the timelock, because a hold moves no funds and changes no rule
+    (DECISIONS #41). A hold also blocks the pet's EpochDistributor claims and a Co-Pet's whole claim.
+  - Flagged accounts are excluded from epoch snapshots and refused gas sponsorship until a reviewer clears them
+    (DECISIONS #40).
+  - **Confirmed bot (DECISIONS #56).** Once a reviewer confirms a flag, the Safe calls `PetCore.recycleBotPet(petId)`
+    (Safe-gated, direct like hold renewals, not through the timelock; `RISK` cannot call it). In one transaction it
+    settles the bucket and the pet (AD-4), recycles the pet's owed + pending ETH to the main accumulator the same way
+    bury does, takes the pet's points out of its bucket and sets them to 0, recomputes `eff` and resets debts, and
+    emits `BotPetRecycled(petId, amount)`. The pet stays alive. A Co-Pet's whole unclaimed ETH is recycled. Tests pin:
+    the AD-4 balance invariant holds, the pet's claimable ETH and points are 0, and only the Safe can call it.
 
 ### AD-16: Life cycle comes from one timestamp
 
@@ -423,24 +458,36 @@ sequenceDiagram
 
 ### AD-18: Every economy number is a parameter with one home
 
-- **Binds:** §4.10; all modules.
+- **Binds:** §4.10; all modules; DECISIONS #25, #26, #37, #52, #55, #57.
 - **Prevents:** the same number hard-coded differently in contract, server and UI.
 - **Rule:** On-chain numbers (cooldowns, steal %, tax and split bps, timers, caps, `K`, epoch lengths, prices) live in
   the contract that uses them and change only through the timelock; the UI and server read them from contract views.
   Off-chain numbers (matchmaking range, notification caps) live in one `GameConfig` table written only by an admin
-  script. Tests pin the current defaults; changing a value is an owner decision. Testnet defaults are N1–N13 in
-  `owner-numbers.md` (DECISIONS #25).
+  script. Tests pin the current defaults; changing a value is an owner decision. Testnet defaults are N1–N14 in
+  `owner-numbers.md` (DECISIONS #25, #26); N14 is the daily game-Gold cap that every Gold reward (monsters, living
+  pets, Boss Raid, Guild War) counts toward (AD-24).
 - **Battle parameters:** teams at most 2v2; Death Match is open to any adult pet and uses 3 lives; there is no
   Gladiator pet type in release 1 (DECISIONS #9, #20).
+  - Win chance = `A ÷ (A + D)` from the attacker's and defender's battle power. When the attacker's element beats the
+    target's, A gets +10% (`elementEdgeBps` = 1,000, timelocked) before the formula. Cycle: fire beats leaf, leaf
+    beats stone, stone beats spark, spark beats water, water beats fire; any other pair gets no edge (DECISIONS #37,
+    #55). The roll uses the AD-6 seed. Tests pin each of the five winning pairs, a reverse pair and a same-element pair.
+  - Death Match: at most 20 fights per pet per weekend (`deathMatchFightCap`, timelocked param, DECISIONS #57),
+    counted on-chain per pet per Death Match weekend and checked at entry. Win reward = 2 × (10% of the opponent's
+    pot points) × min(streak, 5), awarded as new points, not taken from the opponent (DECISIONS #52).
 
 ### AD-19: Notifications come from projections and never block play
 
 - **Binds:** FR-20; EXPERIENCE.md Notifications; NFR-4.
 - **Prevents:** each feature sending its own alerts, and time-based alerts that never fire.
 - **Rule:**
-  - The notifier writes `Notification` rows from indexed events (robbed, died, claimable, Co-Pet request), deduped by
-    `(chainId, txHash, logIndex)`, and from time-based states (hungry, asleep) computed from projected `sleepAt` with
-    the AD-16 status port, deduped by `(petId, kind, sleepAt)`.
+  - The notifier writes `Notification` rows from indexed events (robbed, passed away from `PetBuried`, claim ready,
+    Co-Pet partner needs to agree, partner left), deduped by `(chainId, txHash, logIndex)`, and from time-based states
+    (hungry, asleep, close to passing away = 24h before `deathAt`) computed from projected `sleepAt` with the AD-16
+    status port, deduped by `(petId, kind, sleepAt)` (DECISIONS #42).
+  - Robbed, hungry, asleep, close to death and passed away go to all channels; claim ready, wheel ready, streak at risk
+    and Co-Pet alerts are in-app only. The in-app pill shows the newest unread; push and Telegram send only the most
+    urgent due alert per tick, max 3 pushes a day, no pushes 22:00–08:00 local except close to death (DECISIONS #43).
   - Channels: in-app, web push (VAPID, through the app's service worker), Telegram bot. No email.
   - Telegram linking uses `t.me/<bot>?start=<token>` with a one-time token of up to 64 `[A-Za-z0-9_-]` characters.
   - Delivery failures are retried and logged, never surfaced as game errors.
@@ -482,13 +529,15 @@ sequenceDiagram
 - **Prevents:** a silent stall in the revealer, keeper or indexer, and counter-metrics nobody can measure.
 - **Rule:**
   - The worker exposes a health route and alerts on indexer lag, reveal backlog or late reveals, keeper backlog,
-    signer ETH balance and Gas Manager balance.
+    signer ETH balance and Gas Manager spend: sponsored spend summed from the gas webhook against an owner-entered
+    budget in `GameConfig`, alarmed at a threshold; Alchemy's policy balance is read directly only if an API exposes
+    it (DECISIONS #45).
   - A metrics job reads projections daily and stores the four counter-metrics (bot share of payouts, top-5% share,
     robbed-new-player week-1 churn, re-hatch after death) in `MetricDaily`.
 
 ### AD-24: Game Gold is paid from a funded reserve with a daily cap
 
-- **Binds:** FR-32, FR-44, FR-50; DECISIONS #16; N13.
+- **Binds:** FR-32, FR-44, FR-50; DECISIONS #16, #26, #49, #53; N13, N14.
 - **Prevents:** game rewards diluting Gold stakers, and an unbounded drain of the reserve in one day.
 - **Rule:**
   - `GoldVault` never mints vault shares for game rewards. Shares are minted only for real $PETV deposits.
@@ -497,7 +546,10 @@ sequenceDiagram
     player.
   - A daily payout cap (timelocked parameter, UTC day; testnet 0.1% of the reserve, N14, DECISIONS #26) limits all `creditFromGame` paid per day. Credit over the cap, or
     when the reserve is empty, stays in the pet's unpaid Gold counter in PetCore and pays on a later day.
-  - Guild War Gold prizes come from the same reserve through `EpochDistributor` and count toward the same cap.
+  - Guild War Gold prizes come from the same reserve through `EpochDistributor`'s weekly `guildWar` stream and count
+    toward the same cap (DECISIONS #49).
+  - In release 1 the vault grows only from the 2% swap-back fee (kept in the vault) and an open add-PETV path; no store,
+    pass, market or tax share is routed to it (DECISIONS #53).
   - Views expose reserve size, today's paid amount and the cap.
 
 ## Consistency Conventions
@@ -507,7 +559,7 @@ sequenceDiagram
 | Contract names | PascalCase, one contract per file in `chain/contracts/`; interfaces `I*` in `chain/contracts/interfaces/` |
 | Events | Past tense (`PetFed`, `PetRobbed`, `PotFunded`, `PetBuried`, `Burned`); every state change emits one; indexer handlers named after the event |
 | Amounts | On-chain integers only: wei, token base units, basis points, USD cents; JSON carries them as decimal strings |
-| Time | Unix seconds on-chain; UTC everywhere; "day" = UTC day for caps, faucet and wheel |
+| Time | Unix seconds on-chain; UTC everywhere; "day" = UTC day for caps and faucet; the free wheel spin is a rolling 24h per player from the last spin (DECISIONS #51) |
 | Ids | `tokenId` as decimal string; addresses lowercase hex; Privy DID for users; `requestId` = bytes32 hex |
 | Signatures | EIP-712, domain name `Petverse`, version, `chainId`, verifying contract; every signed struct has `expiry` and `nonce` |
 | API errors | `{ error: { code, message } }` with HTTP status; codes are SCREAMING_SNAKE |
@@ -612,7 +664,7 @@ prisma/schema.prisma   # one schema, writer named per model
 | FR-1–5 onboarding, gas | app, `server/auth`, `server/gas`, Care (tutorial) | AD-6, AD-7, AD-8, AD-15 |
 | FR-6–13 pet life | PetNFT, PetCore, Care | AD-2, AD-16, AD-22 |
 | FR-14–17, 51, 52 pot | PetCore, PotFunder, EpochDistributor, PotConverter, worker | AD-4, AD-5, AD-11 |
-| FR-18–27 battles, wagers | Battle, Wager, Randomness, signer | AD-1, AD-2, AD-6 |
+| FR-18–27 battles, wagers | Battle, Wager, Randomness, signer | AD-1, AD-2, AD-6, AD-18 |
 | FR-28–30 Co-Pet | PetCore | AD-4, AD-17, AD-22 |
 | FR-31, 32 guilds, Guild War | API (membership), Battle (matches), EpochDistributor (prize) | AD-1, AD-5 |
 | FR-33–38 growth | Evolution, Breeding, Expedition | AD-2, AD-6, AD-10 |

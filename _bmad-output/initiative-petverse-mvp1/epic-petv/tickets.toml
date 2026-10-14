@@ -1,0 +1,153 @@
+# tickets.toml — epic-petv's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids are the spec's CAP ids (spec-petverse/spec-petverse.md); numbers are in spec-petverse/game-rules.md, Money.
+# Lanes: A token and venues (1 → 2 → 3), B Gold vault (4 → 5), C PetCore Gold (6), D rates and burn API (7), E Wallet sheet (8); then deploy (9) and sweep (10).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: a PETV burn on a local node reaches the Wallet sheet burn counter"
+description = "Delivers the thinnest path through contract, deploy, indexer, API and screen: the non-upgradeable PETV ERC-20 minting 1B once into the five allocation recipients passed to its constructor (curve 40, liquidity 20, faucet 15, Gold reserve 15, team 10; no mint function) with `burn` emitting `Burned(source, amount)` (deployed after the recipient proxies, which are initialized with its address later; entries 2, 5 and 9 rely on this order), its own Ignition module, its entry in the generated chain module, the worker indexing `Burned` from every contract listed as a burn source into a burn-total projection, and a Wallet item in epic-pot's avatar menu (entry 3.10) opening a Wallet sheet showing the player's PETV balance and the total burned in PETV; entries 3, 7 and 8 build on this event, projection and sheet."
+verify = "With app and worker running against a Hardhat local node, burning PETV from a test account raises the Wallet sheet's burned total by that amount within a minute, and a contract test shows total supply 1B split 40/20/15/15/10 to the recipients with no callable mint."
+covers = ["CAP-22"]
+after = ["1.1", "1.6", "1.9", "2.3", "3.10"]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-9-petv-on-testnet-fixed-supply-token-our-pons-like-curve-one-tax-splitter",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-21-contract-addresses-and-abis-reach-src-through-one-generated-module",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/owner-numbers.md",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "The Pons-like curve graduates at 4.2 test ETH into our own v2-style pool"
+description = "Adds PonsLikeCurve (UUPS behind the timelock, graduation threshold a timelocked parameter) that sells the curve allocation for test ETH and, at 4.2 test ETH raised, graduates once by seeding our own v2-style pair (its proxy deployed before PETV and initialized with PETV's address, per entry 1) and router on 46630 with the raised ETH and the liquidity allocation, after which the curve refuses trades; tax-free here, entry 3 adds the tax to both venues."
+verify = "Contract tests pin graduation at exactly 4.2 ETH, show the pair holding the seeded reserves, curve trades reverting after graduation and pool swaps working, and a throwaway rehearsal instance on 46630 graduates and takes one pool swap with tx hashes recorded in the plan."
+covers = ["CAP-22"]
+after = [1, "1.13"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-9-petv-on-testnet-fixed-supply-token-our-pons-like-curve-one-tax-splitter",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
+]
+notes = [
+  "hitl steps: the owner OKs the throwaway rehearsal deploy to 46630 (CLAUDE.md) and funds the deployer with the test ETH the rehearsal needs.",
+  "High risk: outside check = the owner confirms the rehearsal graduation and pool swap on the explorer.",
+]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Every curve and pool trade pays 5% into TaxSplitter, split 2/1/1/1"
+description = "Makes both venues take 5% of every trade (no router bypass) and send it to TaxSplitter, which splits by timelocked basis points (default 2% pot, 1% burn, 1% liquidity, 1% team): the pot share goes to epic-pot's PotFunder, the burn share is burned emitting `Burned`, the liquidity share is added to the pool, and the team share goes to the team address."
+verify = "Contract tests on curve buys and sells and on pool swaps (including a direct pair swap) show exactly 5% taken and split 2/1/1/1, PotFunder's balance up by the pot share, one `Burned` event for the burn share, and a bps change reverting unless executed through the timelock."
+covers = ["CAP-22"]
+after = [2, "3.1"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-9-petv-on-testnet-fixed-supply-token-our-pons-like-curve-one-tax-splitter",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home",
+]
+notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on tax bypass and splitter rounding."]
+
+[[entry]]
+id = 4
+type = "story"
+title = "GoldVault: stake PETV for Gold shares, swap back for a 2% fee"
+description = "Adds GoldVault (UUPS behind the timelock): depositing PETV mints Gold shares at the vault's share price, swapping back burns shares and pays PETV minus a timelocked 2% fee that stays in the vault for remaining stakers, anyone can add PETV to grow the vault without minting shares, and Gold shares cannot be sent to contracts that are not allow-listed (AD-22)."
+verify = "Contract tests show a stake mints shares only for PETV deposited, a swap back returns 98% at an unchanged share price with the 2% raising it for the rest, an added-PETV call mints nothing, and a Gold transfer to a non-allow-listed contract reverts."
+covers = ["CAP-24"]
+after = [1, "1.13"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
+]
+notes = ["High risk: outside check = the adversarial review in the gate on share-price rounding and first-depositor inflation."]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Gold reserve and the 0.1% daily cap behind creditFromGame"
+description = "Deposits the 15% Gold reserve allocation into GoldVault once (proxy deployed before PETV, per entry 1), holding its shares in the reserve account, and adds `creditFromGame(player, amount)` (PetCore only) that moves existing reserve shares to the player under a timelocked daily UTC cap of 0.1% of the reserve and returns the amount actually paid so PetCore keeps the rest unpaid (entry 6 relies on this), plus views for reserve size, paid today and the cap that entry 7 reads."
+verify = "Contract tests pin the cap at 0.1% of the reserve per UTC day, show over-cap and empty-reserve credit returning the unpaid remainder, total Gold shares unchanged by any game credit, the cap resetting at the next UTC day, and a non-PetCore caller reverting."
+covers = ["CAP-24"]
+after = [4]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap"]
+notes = ["High risk: outside check = the adversarial review in the gate on the cap and the PetCore-only gate."]
+
+[[entry]]
+id = 6
+type = "story"
+title = "PetCore accrues a living pet's Gold, pays it from the reserve and deletes it on death"
+description = "Adds PetCore's per-pet accrued-Gold counter, growing 10 Gold a day for a living pet (timelocked parameter, from the AD-16 timestamps), pays it through `GoldVault.creditFromGame` (entry 5) on a player's Gold claim, keeping any unpaid remainder in the counter for a later day, and fills epic-pet-life's Gold-counter delete point in bury (entry 2.6) so the unpaid Gold stays in the reserve (CAP-6 part), settling in the order epic-pot's entry 3.2 sets; storage changes pass the upgrade-safety validator."
+verify = "Contract tests show 10 Gold accrued per living day, a living pet's Gold claim paid from the reserve with no shares minted, an over-cap claim leaving the remainder in the counter and paying it the next UTC day, and a buried pet's counter deleted with the reserve unchanged."
+covers = ["CAP-24", "CAP-6"]
+after = [5, "2.6", "3.2"]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
+]
+notes = ["High risk: outside check = the adversarial review in the gate on PetCore's reentrancy lock and settle order."]
+
+[[entry]]
+id = 7
+type = "story"
+title = "PETV/USD joins the display-rate service and the burn total is served in dollars"
+description = "Adds PETV/USD to epic-pot's read-only display-rate service, from the curve price before graduation and the pool price after, times its ETH/USD rate (price before tax, as entry 3 leaves it), and serves the burn total, ETH, PETV and Gold balances and today's Gold cap with their dollar values from one API route that entry 8 renders; display only, never a payment quote (AD-10 stays with epic-store-pass)."
+verify = "API tests against a local node return a PETV/USD rate equal to the curve (then pool) spot price times the stubbed ETH/USD rate, and a burned total whose dollar value matches it, before and after a graduation."
+covers = ["CAP-22", "CAP-24"]
+after = [1, 3, 5, "3.7"]
+hitl = false
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-10-dollar-pricing-through-one-price-source-port-with-bounded-signers"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Wallet sheet: balances dollars first, Gold vault stake and swap back, burn counter"
+description = "Completes the Wallet sheet from entry 1 per EXPERIENCE: ETH, PETV and Gold balances and the burn counter dollars first with PETV small underneath (from entry 7's route), a Gold vault stake confirm step and swap back with \"Swapping back costs 2%\" shown before it, sent through the GameWallet port, with Empty, Loading and Error states and no crypto words; the faucet button is epic-store-pass's."
+verify = "On a local node a test player opens the Wallet sheet, stakes 100 PETV through the confirm step and swaps back with the 2% notice shown first, and the PETV, Gold and burned totals update dollars first; a UI test fails if a word from EXPERIENCE's avoid list appears, except in the required copy \"Swapping back costs 2%\"."
+covers = ["CAP-22", "CAP-24"]
+after = [1, 4, 7]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "The token layer is live and verified on 46630"
+description = "Deploys, in entry 1's order (recipient proxies, then PETV, then their initialization), PETV with its allocation recipients, PonsLikeCurve, the v2-style pair and router, TaxSplitter and GoldVault with the reserve deposit through Ignition to 46630, verifies each on Blockscout, upgrades PetCore through the Safe-proposed timelock for Gold payment, grants roles, registers the burn sources with the worker, regenerates the chain module, and checks the epic's Done when live."
+verify = "On 46630 every new contract shows verified source, total supply reads 1B split 40/20/15/15/10, one curve buy and one sell show the 2/1/1/1 split with PotFunder receiving the pot share and the Vercel Wallet sheet's burn counter rising, a stake and swap back work there, and a living pet's Gold claim pays from the reserve."
+covers = ["CAP-22", "CAP-24"]
+after = [3, 5, 6, 7, 8, "1.10", "1.14", "1.15", "2.11", "3.11"]
+hitl = true
+risk = "high"
+notes = [
+  "hitl steps: the owner OKs every deploy to 46630 (CLAUDE.md) and funds the deployer; two Safe signers sign the PetCore upgrade and role grants through the timelock.",
+  "High risk: outside check = the owner and one other Safe signer confirm the deploy, the split and the Gold claim on the explorer.",
+]
+
+[[entry]]
+id = 10
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+hitl = false
+risk = "low"

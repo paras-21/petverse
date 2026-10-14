@@ -1,0 +1,172 @@
+# tickets.toml — epic-pet-life's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids (CAP-1, CAP-3 to CAP-6) are in spec-petverse/spec-petverse.md, Capabilities.
+# Lane A (chain/, worker, indexer, prisma, server voucher route): 1 → 2 → 4 → 5 → 6 → 7 → 11.
+# Lane B (UI: src/app, src/components): 3 → 9 → 8 → 10. Entry 9 owns the route that picks Landing / Egg / Home; 8 changes only the Home screen.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: log in, hatch the free egg on 46630 and see the pet on Home"
+description = "Delivers the thinnest path through every layer of the epic: upgradeable PetCore and PetNFT on the governance base (PetNFT minted and burned only by PetCore, every other transfer reverts), a hatch call carrying a VOUCHER_SIGNER voucher bound to the Privy DID (the contract caps free eggs per DID hash) and a Randomness commitment whose reveal settles species, coat (an index into `SPECIES_PALETTES[species]` in src/lib/pets.ts) and element (one of fire, water, leaf, spark, stone, drawn at the reveal), the indexer handler that projects PetHatched into a Pet row (first Pet model, indexer as its single writer), and the login → egg → Home screens rendering that pet with the existing EggModel and PetModel."
+verify = "With app and worker running locally against 46630, a fresh email login taps the egg and Home shows the pet whose species and coat match the PetHatched event and the indexed Pet row, and a second free-egg request for the same login is refused."
+covers = ["CAP-1", "CAP-3"]
+after = ["1.8", "1.11", "1.12", "1.15", "1.16"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-21-contract-addresses-and-abis-reach-src-through-one-generated-module",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-landing-hatch.html",
+  "src/lib/pets.ts",
+]
+notes = [
+  "hitl steps: the owner OKs the PetCore and PetNFT deploy to 46630 (CLAUDE.md); the Safe grants GAME_MODULE / VOUCHER_SIGNER wiring through the timelock; the owner creates and funds the VOUCHER_SIGNER key and enters it in the local env and the host secret store; the owner adds PetCore to the Gas Manager policy allow-list.",
+  "High risk: outside check = the owner repeats the login and hatch on their own phone browser and confirms the hatch and reveal transactions on the explorer.",
+]
+
+[[entry]]
+id = 2
+type = "story"
+title = "PetCore life cycle: sleep, wake loss, death and new-pet protection from one timestamp"
+description = "Adds to PetCore the AD-16 rule (sleepAt, deathAt = sleepAt + 7 days, dead at exactly deathAt), the anyone-callable sleep, wake with the 10%-per-day pot-point cut that leaves level and lifetime points untouched, touch returning Status so a module that gets Dead ends with no state change, per-pet pot points and lifetime points with a GAME_MODULE awardPoints that gives an asleep pet nothing, the 3-day new-pet protection timestamp, the shield-until field and view (epic-store-pass 5.6 adds its one setter, which it sells and epic-battle 6.3 calls), per-pet care, battle and expedition counters with a GAME_MODULE increment (entry 4, epic-battle and epic-play-hub call it), the accrued-Gold counter epic-petv pays and deletes, a GAME_MODULE feed setter that entry 4's Care calls, and named empty settle points where epic-pot plugs the bucket settlement; plus the TS status port in src/lib and a shared JSON vector file both test suites read."
+verify = "Contract tests pin asleep at exactly sleepAt, dead at exactly deathAt, wake loss day 1 = 10% to day 7 = 70% with level and lifetime points unchanged, protection ending at exactly 3 days, and awardPoints adding pot and lifetime points to an awake pet and nothing to an asleep one, and the TS status port's test passes the same vector file."
+covers = ["CAP-3", "CAP-5", "CAP-6"]
+after = [1]
+hitl = false
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-20-test-strategy",
+]
+notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on the status boundaries and the wake cut."]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Candy UI kit and app shell"
+description = "Sets up the shared UI layer every screen of this and later epics uses: DESIGN.md colour and type tokens with Baloo 2 + Nunito replacing the prototype pixel fonts, the chunky SVG icons this epic needs, pill / cooldown / text buttons, sticker card, number blob, timer chip, status and alert pills, pet badge, blob stage around the existing Stage, bottom sheet, step chip with progress dots, focus ring, a copy check that fails on the banned crypto words (EXPERIENCE Voice and Tone), and the top bar with avatar plus the phone tab bar / desktop top nav carrying only the Home tab (later epics add theirs)."
+verify = "A kit page run locally at 390px and 1280px shows every listed component as DESIGN.md specifies, with the 3px ink focus ring reaching each one by Tab, the copy check fails on a planted \"gas\" string in a screen, and typecheck and lint pass."
+covers = []
+after = [1]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/direction-candy.html"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Care: feeding spends a meal, resets the timer and earns points; the tutorial win"
+description = "Adds the Care module as a GAME_MODULE: feed spends one meal from the owner's food balance kept in PetCore (which epic-store-pass and epic-play-hub later credit), calls entry 2's feed setter so the timer resets or the pet wakes with its cut, awards the feed points, counts the care action on the pet, grants the starter meals with the first hatch, and offers a one-time deterministic tutorial bot win per pet with no randomness (AD-6); the indexer projects PetFed and the food balance."
+verify = "Contract tests show a feed sets sleepAt to now + 3 days, adds the feed points, spends one meal and increments the care count, a feed with no meal reverts, a feed on an asleep pet wakes it with that day's cut, and the tutorial win succeeds once per pet and never loses."
+covers = ["CAP-1", "CAP-4", "CAP-5"]
+after = [2]
+hitl = false
+risk = "medium"
+unknown = "Owner sets the economy numbers: points per feed (EXPERIENCE copy shows +20), starter meals at hatch (copy shows 2 free meals), whether free meals refill, and the tutorial win's points (if any)."
+
+[[entry]]
+id = 5
+type = "story"
+title = "Cosmetics ERC-1155 base with soulbound badges and the free starter item"
+description = "Adds the one Cosmetics ERC-1155 base that epic-cosmetics-market later extends (catalogue and rarities 7.3, granted items 7.5, drop 7.6) without rebuilding it: a per-id soulbound flag under which flagged ids (Tombstone, the other badge types and the common starter item) revert on every transfer path while unflagged ids transfer, minting only through a MINTER role held by PetCore, the free common starter item PetCore mints with the first hatch (the onboarding dress-up item), and the indexer projection of cosmetics and badges held."
+verify = "Contract tests show a soulbound id reverts on every transfer path, a rare id transfers, only the MINTER role mints, and a first hatch mints exactly one starter item that a second hatch by the same owner does not repeat."
+covers = ["CAP-1", "CAP-6"]
+after = [4]
+hitl = false
+risk = "medium"
+references = ["src/lib/cosmetics.ts"]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Burial: the keeper buries due pets, burns the NFT, mints the Tombstone and gives a free egg"
+description = "Adds PetCore.bury (anyone, at or after deathAt; also reached through touch): run sleep first, call the named recycle point where epic-pot returns owed ETH to the pot and the Gold-counter delete that epic-petv extends, burn the PetNFT, mint the soulbound Tombstone through entry 5, and issue a free-egg right that lets the voucher route sign one more free egg for that DID; plus the keeper job in the worker, holding a KEEPER key granted here through the timelock, that buries every due pet and reports its backlog on the health route (AD-23), and the PetBuried projection that marks the Pet row dead."
+verify = "Contract tests show bury reverts one second before deathAt and succeeds at it, the NFT is gone, the pet's pot points are removed, and the owner holds a non-transferable Tombstone, and a worker test on a local node shows the keeper burying a due pet after time travel, after which the same login gets a voucher and hatches a free egg."
+covers = ["CAP-3", "CAP-6"]
+after = [5]
+hitl = false
+risk = "high"
+notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on bury ordering, the free-egg right and the burn path."]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Free egg for an existing wallet only when it has history"
+description = "Extends the voucher route so a login with no verified email or Google gets a free-egg voucher only when its wallet passes the history check, refusing a fresh empty wallet with a plain reason in the same error shape as entry 1's per-login refusal (which entry 9's egg screen shows), with no schema change, and binds that voucher to the wallet so the contract's per-identity cap still holds."
+verify = "Server tests on a local node give a voucher to a wallet fixture with history, refuse a fresh empty wallet with the standard error shape, and refuse a second voucher for the same wallet."
+covers = ["CAP-3"]
+after = [6]
+hitl = false
+risk = "medium"
+unknown = "What counts as wallet history (minimum transaction count, age or balance, and on which chains) — an anti-bot rule the owner sets (AD-15)."
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-15-anti-bot-uses-off-chain-detection-and-a-narrow-on-chain-hold"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Home shows the timer, the hungry window, feeding, asleep and wake, and passed away"
+description = "Builds the Home screen states from the mocks on the UI kit, reading status only through entry 2's TS port and acting through entry 4's Care: the lime timer chip, the orange hungry chip and feed card in the last 24h, the asleep stage stating the exact point loss before the tap and the free wake by feeding, the calm passed-away card with the Tombstone and a Hatch your free egg button that opens the egg route owned by entry 9 for the free egg after death, and the pending, error and offline states, with no crypto words."
+verify = "With app and worker running against a local node, time travel shows on Home the fed chip, the orange hungry chip at sleepAt minus 24h, the asleep stage whose stated loss equals the port's value, a wake by feeding that turns the chip lime, and at deathAt the passed-away card whose button hatches a new egg."
+covers = ["CAP-4", "CAP-5", "CAP-6"]
+after = [3, 4, 6, 9]
+hitl = false
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-sleep-death.html",
+  "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-home-copet.html",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Landing, login sheet and egg screen as in the mocks"
+description = "Replaces the tracer's plain screens with the mocked Landing (one Play button, no pot teaser until epic-pot adds it), the login sheet (email, Google, I already have a wallet, errors inside the sheet with the email kept) and the egg screen with Hatching… and Being revealed states the Couldn't hatch retry and the voucher route's refusal reason shown in plain words, and owns the route that sends a logged-out visitor to Landing, a player without a living pet (new, or after a death) to the egg and a player with one to Home."
+verify = "Run locally at 390px and 1280px, a logged-out visitor sees Landing, Play opens the login sheet, a Google login without a pet lands on the egg and one with a pet lands on Home, and a forced login failure shows the error inside the sheet with the email kept."
+covers = ["CAP-1", "CAP-3"]
+after = [3]
+hitl = false
+risk = "low"
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-landing-hatch.html"]
+
+[[entry]]
+id = 10
+type = "story"
+title = "Onboarding steps 1–3 with Skip, hints and the closing card"
+description = "Adds the step chip flow after the first hatch: step 1 feed (entry 4), step 2 dress up by equipping the free starter item (entry 5) through an off-chain equip route whose CosmeticEquip row the API writes and PetModel shows through LoadoutContext, step 3 the tutorial bot battle (entry 4's win) played with the existing battle visuals, the closing card; Skip on every step lands on Home, skipped steps return as small Home hints, progress is kept per user, and step 4 is left for epic-pot to insert before the closing card."
+verify = "Run locally, a new login after hatch sees Step 1 of 4, feeding advances to step 2, equipping the free item advances to step 3 with the pet wearing it, the bot battle ends You won!, and skipping any step lands on Home with that step shown as a hint."
+covers = ["CAP-1"]
+after = [4, 5, 8, 9]
+hitl = false
+risk = "medium"
+references = ["src/components/BattleScreen.tsx"]
+
+[[entry]]
+id = 11
+type = "story"
+title = "Pet life on 46630: upgrades through the timelock, Vercel and Render, and the neglect drill"
+description = "Ships the epic: upgrades PetCore and deploys Care and Cosmetics through Ignition and the Safe-proposed timelock on 46630, verifies every contract on Blockscout, regenerates the chain module, runs the keeper on Render and the screens on Vercel, and runs the neglect drill on a separate drill instance whose sleep and death timers are shortened."
+verify = "On the Vercel production app against 46630 a fresh Google login hatches a pet and completes onboarding steps 1–3, an existing wallet with history hatches, a second free egg for that login and a fresh empty wallet are refused, every contract shows verified source on Blockscout, and on the drill instance an unfed pet sleeps, is buried by the Render keeper, its NFT is burned and its owner holds a Tombstone and hatches a free egg."
+covers = ["CAP-1", "CAP-3", "CAP-4", "CAP-5", "CAP-6"]
+after = [7, 10, "1.9", "1.10"]
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-23-testnet-operations",
+]
+notes = [
+  "hitl steps: the owner OKs every deploy to 46630 (CLAUDE.md); two Safe signers sign the upgrade and role grants; the owner sets the drill instance's shortened timers; the owner enters the keeper and voucher keys in Render and Vercel secrets; the owner adds Care and Cosmetics to the Gas Manager policy allow-list.",
+  "High risk: outside check = the owner runs the hatch and onboarding on their own phone and confirms the drill's bury, burn and Tombstone on the explorer.",
+]
+
+[[entry]]
+id = 12
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+hitl = false
+risk = "low"
