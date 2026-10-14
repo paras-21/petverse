@@ -112,6 +112,8 @@ covers = ["R7"]
 after = [6]
 hitl = false
 risk = "medium"
+owns = ["src/lib/env.ts", ".env.example", "chain/hardhat.config.ts", "src/lib/env.test.ts"]
+test = "src/lib/env.test.ts"
 
 [[entry]]
 id = 8
@@ -165,6 +167,8 @@ covers = ["R2"]
 after = [9]
 hitl = false
 risk = "high"
+owns = ["src/server/auth/**", "src/server/errors.ts", "src/app/api/me/**", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**"]
+test = "src/server/auth/privy.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-8-wallet-and-identity"]
 notes = ["High risk: outside check = the security review in the gate (DECISIONS #2) on the auth path."]
 
@@ -178,6 +182,8 @@ covers = ["R2"]
 after = [2, 6, 7]
 hitl = false
 risk = "medium"
+owns = ["src/lib/wallet/**"]
+test = "src/lib/wallet/game-wallet.test.ts"
 
 [[entry]]
 id = 13
@@ -189,6 +195,8 @@ covers = ["R1"]
 after = [3, 7]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/GovernedUpgradeable.sol", "chain/contracts/interfaces/IGoverned.sol", "chain/contracts/test/**", "chain/ignition/modules/Petverse.ts", "chain/hardhat.config.ts", "chain/test/Governance.test.ts"]
+test = "chain/test/Governance.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock"]
 notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on the admin paths, and the testnet drill in entry 15."]
 
@@ -202,6 +210,8 @@ covers = ["R6"]
 after = [13]
 hitl = false
 risk = "medium"
+owns = ["chain/package.json", "chain/package-lock.json", "chain/scripts/validate-upgrades.ts", "chain/.openzeppelin/**", "chain/test/fixtures/upgrade-safety/**", "scripts/gate.*", "chain/test/UpgradeSafety.test.ts"]
+test = "chain/test/UpgradeSafety.test.ts"
 
 [[entry]]
 id = 15
@@ -244,3 +254,5 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 hitl = false
 risk = "low"
+owns = [".env.example", "chain/contracts/**", "chain/ignition/**", "chain/test/**", "chain/scripts/**", "chain/hardhat.config.ts", "chain/package.json", "chain/package-lock.json", "src/app/api/**", "src/app/tracer/**", "src/server/**", "src/worker/**", "src/lib/env.ts", "src/lib/env.test.ts", "src/lib/db.ts", "src/lib/wallet/**", "src/lib/chain/**", "prisma/**", "src/generated/prisma/**", "scripts/gate.*"]
+test = "chain/test/Governance.test.ts"

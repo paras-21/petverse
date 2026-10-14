@@ -31,6 +31,8 @@ verify = "The chain/ contract tests show a duel joined by both seats settles fro
 covers = ["CAP-11"]
 after = [1, "1.16", "3.2", "5.10"]
 hitl = false
+owns = ["chain/contracts/MatchArena.sol", "chain/contracts/interfaces/IMatchArena.sol", "chain/contracts/libraries/MatchTicket.sol", "chain/ignition/modules/MatchArena.ts", "src/lib/chain/**"]
+test = "chain/test/MatchArena.duel.test.ts"
 risk = "high"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-1-points-affecting-actions-are-on-chain-the-server-only-signs-bounded-inputs"]
 
@@ -43,6 +45,8 @@ verify = "The chain/ contract tests pin every attack default (5%, ±2, 30 / 10 m
 covers = ["CAP-10"]
 after = [1, "5.6", "5.10", "2.2"]
 hitl = false
+owns = ["chain/contracts/Battle.sol", "chain/contracts/interfaces/IBattle.sol"]
+test = "chain/test/Battle.rules.test.ts"
 risk = "high"
 
 [[entry]]
@@ -65,6 +69,8 @@ verify = "The chain/ contract tests show a filled 2v2 settles from the revealed 
 covers = ["CAP-11"]
 after = [2]
 hitl = false
+owns = ["chain/contracts/MatchArena.sol", "chain/contracts/interfaces/IMatchArena.sol"]
+test = "chain/test/MatchArena.2v2.test.ts"
 risk = "medium"
 
 [[entry]]
@@ -76,6 +82,8 @@ verify = "The chain/ contract tests show a settled wager pays the winner exactly
 covers = ["CAP-12"]
 after = [2, "4.1"]
 hitl = false
+owns = ["chain/contracts/Wager.sol", "chain/contracts/interfaces/IWager.sol", "chain/ignition/modules/Wager.ts", "src/lib/chain/**", "src/worker/burn-sources.ts"]
+test = "chain/test/Wager.wager.test.ts"
 risk = "high"
 unknown = "Does the owner accept the assumed wager and dice stake tiers in this epic's Notes (312 / 624 / 1,560 / 3,120 PETV, about $1 / $2 / $5 / $10) and 5% burn as the only fee?"
 
@@ -88,6 +96,8 @@ verify = "The chain/ contract tests show a joined table pays the seed's winner e
 covers = ["CAP-12"]
 after = [6]
 hitl = false
+owns = ["chain/contracts/Wager.sol", "chain/contracts/interfaces/IWager.sol", "chain/ignition/modules/Wager.ts", "src/lib/chain/**"]
+test = "chain/test/Wager.dice.test.ts"
 risk = "medium"
 
 [[entry]]
@@ -99,6 +109,8 @@ verify = "Component tests show the same seed always gives the same script ending
 covers = ["CAP-10", "CAP-11", "CAP-12"]
 after = [1, "3.7"]
 hitl = false
+owns = ["src/lib/battle/fight-script.ts", "src/components/battle/FightView.tsx", "src/components/battle/ResultCard.tsx", "src/components/battle/RevealPill.tsx", "src/components/battle/AttackList.tsx"]
+test = "src/components/battle/FightView.test.tsx"
 risk = "medium"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-battle.html", "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md"]
 
@@ -111,6 +123,8 @@ verify = "In the running app against a local node a robbed test player sees the 
 covers = ["CAP-10"]
 after = [3, 8]
 hitl = false
+owns = ["src/app/(game)/battle/page.tsx", "src/components/BattleScreen.tsx", "src/components/battle/BattleTabs.tsx", "src/components/battle/AttackList.tsx", "src/components/battle/TargetRow.tsx", "src/components/battle/RevengeRow.tsx", "src/components/battle/CooldownButton.tsx"]
+test = "src/components/battle/AttackList.test.tsx"
 risk = "medium"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-battle.html", "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
 
@@ -123,6 +137,8 @@ verify = "In the running app against a local node two test players find a ranked
 covers = ["CAP-11"]
 after = [4, 5, 9]
 hitl = false
+owns = ["src/app/(game)/battle/duel/**", "src/app/(game)/battle/2v2/**", "src/components/battle/DuelRanked.tsx", "src/components/battle/TwoVTwo.tsx", "src/components/battle/MatchFinder.tsx", "src/lib/battle/match-client.ts"]
+test = "src/components/battle/MatchFinder.test.tsx"
 risk = "medium"
 
 [[entry]]
@@ -134,6 +150,8 @@ verify = "In the running app against a local node a test player stakes the $5 ti
 covers = ["CAP-12"]
 after = [4, 7, 10, "4.7", "4.8", "5.7"]
 hitl = false
+owns = ["src/app/(game)/battle/duel/wager/**", "src/app/(game)/play/**", "src/components/battle/WagerFlow.tsx", "src/components/battle/StakeChips.tsx", "src/components/battle/BurnCounter.tsx", "src/components/play/**"]
+test = "src/components/battle/WagerFlow.test.tsx"
 risk = "medium"
 
 [[entry]]
@@ -156,4 +174,6 @@ verify = "The gate passes and every deferred finding recorded in this epic's pla
 covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 hitl = false
+owns = ["chain/contracts/Battle.sol", "chain/contracts/MatchArena.sol", "chain/contracts/Wager.sol", "chain/contracts/libraries/BattleMath.sol", "chain/contracts/libraries/MatchTicket.sol", "chain/contracts/interfaces/IBattle.sol", "chain/contracts/interfaces/IMatchArena.sol", "chain/contracts/interfaces/IWager.sol", "chain/ignition/modules/Battle.ts", "chain/ignition/modules/MatchArena.ts", "chain/ignition/modules/Wager.ts", "chain/test/Battle*.test.ts", "chain/test/MatchArena*.test.ts", "chain/test/Wager*.test.ts", "src/lib/battle/**", "src/lib/chain/**", "src/server/matchmaker/**", "src/app/api/match/**", "src/worker/indexer/**", "src/worker/burn-sources.ts", "src/app/(game)/battle/**", "src/app/(game)/play/**", "src/components/BattleScreen.tsx", "src/components/battle/**", "src/components/play/**", "prisma/schema.prisma"]
+test = "chain/test/Battle.rules.test.ts"
 risk = "low"

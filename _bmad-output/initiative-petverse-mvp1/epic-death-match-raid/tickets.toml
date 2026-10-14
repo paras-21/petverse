@@ -13,6 +13,8 @@ covers = ["CAP-13"]
 after = ["9.2", "9.3", "6.1", "8.3", "1.16"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/DeathMatch.sol", "chain/contracts/interfaces/IDeathMatch.sol", "chain/ignition/modules/DeathMatch.ts", "chain/test/DeathMatch.test.ts", "src/lib/chain/**"]
+test = "chain/test/DeathMatch.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-17-co-pet-ownership-is-on-chain"]
 
 [[entry]]
@@ -25,6 +27,8 @@ covers = ["CAP-13"]
 after = [1, "6.8"]
 hitl = false
 risk = "medium"
+owns = ["src/app/(game)/play/death-match/page.tsx", "src/app/(game)/play/death-match/run/**", "src/components/death-match/DeathMatchCard.tsx", "src/components/death-match/EntryWarningSheet.tsx", "src/components/death-match/RunScreen.tsx", "src/components/death-match/LeaveSafelySheet.tsx", "src/components/death-match/DeathMatchFlow.test.tsx", "src/lib/death-match/**"]
+test = "src/components/death-match/DeathMatchFlow.test.tsx"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-death-match.html"]
 
 [[entry]]
@@ -37,6 +41,8 @@ covers = ["CAP-13"]
 after = [2]
 hitl = false
 risk = "low"
+owns = ["src/worker/indexer/handlers/DeathMatch*.ts", "src/worker/projections/death-match.ts", "src/app/api/death-match/**", "src/app/(game)/play/death-match/page.tsx", "src/app/(game)/play/death-match/leaderboard/**", "src/components/death-match/DeathMatchLobby.tsx", "src/components/death-match/Leaderboard.tsx", "src/components/death-match/HallOfFame.tsx", "prisma/schema.prisma", "prisma/migrations/**"]
+test = "src/app/api/death-match/leaderboard/route.test.ts"
 
 [[entry]]
 id = 4
@@ -48,6 +54,8 @@ covers = ["CAP-20"]
 after = ["9.2", "9.3", "6.1", "5.10", "1.16"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/Raid.sol", "chain/contracts/interfaces/IRaid.sol", "chain/ignition/modules/Raid.ts", "chain/test/Raid.test.ts", "src/lib/chain/**"]
+test = "chain/test/Raid.test.ts"
 
 [[entry]]
 id = 5
@@ -59,6 +67,8 @@ covers = ["CAP-20"]
 after = [4, "6.4", "6.8", "7.3"]
 hitl = false
 risk = "medium"
+owns = ["src/app/(game)/play/raid/**", "src/components/raid/**", "src/lib/raid/**", "src/server/matchmaker/raid.ts", "src/worker/epoch/raid-trophies.ts", "src/worker/epoch/raid-trophies.test.ts"]
+test = "src/worker/epoch/raid-trophies.test.ts"
 
 [[entry]]
 id = 6
@@ -85,3 +95,5 @@ covers = []
 after = [1, 2, 3, 4, 5, 6]
 hitl = false
 risk = "low"
+owns = ["chain/contracts/DeathMatch.sol", "chain/contracts/interfaces/IDeathMatch.sol", "chain/ignition/modules/DeathMatch.ts", "chain/test/DeathMatch.test.ts", "src/lib/chain/**", "src/app/(game)/play/death-match/page.tsx", "src/app/(game)/play/death-match/run/**", "src/components/death-match/DeathMatchCard.tsx", "src/components/death-match/EntryWarningSheet.tsx", "src/components/death-match/RunScreen.tsx", "src/components/death-match/LeaveSafelySheet.tsx", "src/components/death-match/DeathMatchFlow.test.tsx", "src/lib/death-match/**", "src/worker/indexer/handlers/DeathMatch*.ts", "src/worker/projections/death-match.ts", "src/app/api/death-match/**", "src/app/(game)/play/death-match/leaderboard/**", "src/components/death-match/DeathMatchLobby.tsx", "src/components/death-match/Leaderboard.tsx", "src/components/death-match/HallOfFame.tsx", "prisma/schema.prisma", "prisma/migrations/**", "chain/contracts/Raid.sol", "chain/contracts/interfaces/IRaid.sol", "chain/ignition/modules/Raid.ts", "chain/test/Raid.test.ts", "src/app/(game)/play/raid/**", "src/components/raid/**", "src/lib/raid/**", "src/server/matchmaker/raid.ts", "src/worker/epoch/raid-trophies.ts", "src/worker/epoch/raid-trophies.test.ts"]
+test = "chain/test/DeathMatch.test.ts"

@@ -66,6 +66,8 @@ verify = "Component tests show the sheet appears after the first feed and never 
 covers = ["CAP-27"]
 after = [3, "2.4", "2.8"]
 hitl = false
+owns = ["src/components/push/**", "src/lib/push/permission.ts", "src/lib/push/permission.test.ts", "src/components/home/FeedPushPrompt.tsx"]
+test = "src/components/push/PushPermissionSheet.test.tsx"
 risk = "medium"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#open-questions"]
 
@@ -78,6 +80,8 @@ verify = "Worker tests on a test_ schema with a fake clock pin each kind firing 
 covers = ["CAP-27"]
 after = [1, "2.2", "2.4", "2.6"]
 hitl = false
+owns = ["src/worker/notifier/timed/**", "src/worker/notifier/handlers/PetBuried.ts", "src/worker/notifier/templates.ts", "src/worker/notifier/timed.test.ts"]
+test = "src/worker/notifier/timed.test.ts"
 risk = "medium"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
@@ -93,6 +97,8 @@ verify = "Worker tests on a test_ schema emit each event or state once and show 
 covers = ["CAP-27"]
 after = [5, "8.2", "8.3", "3.5", "9.1", "9.4"]
 hitl = false
+owns = ["src/worker/notifier/events/**", "src/worker/notifier/templates.ts", "src/worker/notifier/events.test.ts"]
+test = "src/worker/notifier/events.test.ts"
 risk = "medium"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#uj-4-two-friends-and-their-guild-sam-and-priya"]
 
@@ -105,6 +111,8 @@ verify = "API and component tests show toggling a kind persists per player, the 
 covers = ["CAP-27"]
 after = [2, 4]
 hitl = false
+owns = ["src/app/settings/notifications/**", "src/app/api/notifications/settings/**", "src/components/settings/**", "src/lib/timezone.ts", "src/app/layout.tsx", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**"]
+test = "src/app/api/notifications/settings/settings.test.ts"
 risk = "medium"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#state-patterns"]
 
@@ -117,6 +125,8 @@ verify = "Worker tests with a fake clock show a robbery plus hungry plus asleep 
 covers = ["CAP-27"]
 after = [6, 7]
 hitl = false
+owns = ["src/worker/notifier/policy/**", "src/worker/notifier/dispatch.ts", "scripts/admin/game-config-alerts.ts", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**"]
+test = "src/worker/notifier/policy/policy.test.ts"
 risk = "medium"
 references = [
   "_bmad-output/initiative-petverse-mvp1/spec-petverse/game-rules.md#alerts",
@@ -132,6 +142,8 @@ verify = "Component tests show only the newest unread alert, its action button p
 covers = ["CAP-27"]
 after = [2, 4, 6, "6.9"]
 hitl = false
+owns = ["src/components/alerts/**", "src/app/api/alerts/[id]/read/**", "src/lib/alerts/deep-link.ts", "src/app/home/**", "src/app/(game)/battle/page.tsx"]
+test = "src/components/alerts/AlertPill.test.tsx"
 risk = "low"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md#component-patterns"]
 
@@ -144,6 +156,8 @@ verify = "Worker tests with fake channels show a 500 is retried then logged as f
 covers = ["CAP-27"]
 after = [8]
 hitl = false
+owns = ["src/worker/notifier/delivery/**", "src/worker/notifier/dispatch.ts", "src/worker/notifier/channels/**", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**"]
+test = "src/worker/notifier/delivery/retry.test.ts"
 risk = "medium"
 
 [[entry]]
@@ -182,4 +196,6 @@ verify = "The gate passes and every deferred finding recorded in this epic's pla
 covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 hitl = false
+owns = ["src/components/push/**", "src/lib/push/permission.ts", "src/lib/push/permission.test.ts", "src/components/home/FeedPushPrompt.tsx", "src/components/push/PushPermissionSheet.test.tsx", "src/worker/notifier/timed/**", "src/worker/notifier/handlers/PetBuried.ts", "src/worker/notifier/templates.ts", "src/worker/notifier/timed.test.ts", "src/worker/notifier/events/**", "src/worker/notifier/events.test.ts", "src/app/settings/notifications/**", "src/app/api/notifications/settings/**", "src/components/settings/**", "src/lib/timezone.ts", "src/app/layout.tsx", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**", "src/app/api/notifications/settings/settings.test.ts", "src/worker/notifier/policy/**", "src/worker/notifier/dispatch.ts", "scripts/admin/game-config-alerts.ts", "src/worker/notifier/policy/policy.test.ts", "src/components/alerts/**", "src/app/api/alerts/[id]/read/**", "src/lib/alerts/deep-link.ts", "src/app/home/**", "src/app/(game)/battle/page.tsx", "src/components/alerts/AlertPill.test.tsx", "src/worker/notifier/delivery/**", "src/worker/notifier/channels/**", "src/worker/notifier/delivery/retry.test.ts"]
+test = "src/worker/notifier/policy/policy.test.ts"
 risk = "low"

@@ -29,6 +29,8 @@ covers = ["CAP-8", "CAP-6"]
 after = [1, "1.4", "2.6"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/libraries/EffPoints.sol", "chain/test/pot/PotInvariant.test.ts", "chain/test/pot/vectors/eff-points.json", "src/lib/eff-points.ts", "src/lib/eff-points.test.ts"]
+test = "chain/test/pot/PotInvariant.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-20-test-strategy",
@@ -44,6 +46,8 @@ covers = ["CAP-7"]
 after = [2]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/PetCore.sol", "chain/test/pot/Level.test.ts", "chain/test/pot/vectors/level.json", "src/lib/level.ts", "src/lib/level.test.ts", "src/lib/chain/**"]
+test = "chain/test/pot/Level.test.ts"
 
 [[entry]]
 id = 4
@@ -55,6 +59,8 @@ covers = ["CAP-9"]
 after = [3]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/EpochDistributor.sol", "chain/contracts/interfaces/IEpochDistributor.sol", "chain/ignition/modules/Petverse.ts", "chain/test/pot/EpochDistributor.test.ts", "src/lib/chain/**"]
+test = "chain/test/pot/EpochDistributor.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
 
 [[entry]]
@@ -67,6 +73,8 @@ covers = ["CAP-9"]
 after = [4, "1.9", "2.2"]
 hitl = false
 risk = "high"
+owns = ["src/worker/epoch/**", "src/worker/index.ts", "prisma/schema.prisma", "prisma/migrations/**", "package.json", "package-lock.json"]
+test = "src/worker/epoch/epoch-builder.test.ts"
 
 [[entry]]
 id = 6
@@ -78,6 +86,8 @@ covers = ["CAP-9"]
 after = [5]
 hitl = false
 risk = "medium"
+owns = ["src/app/api/epochs/**", "src/server/epochs/**", "scripts/rebuild-epoch-root.mjs"]
+test = "src/server/epochs/dataset.test.ts"
 
 [[entry]]
 id = 7
@@ -101,6 +111,8 @@ covers = ["CAP-8", "CAP-7"]
 after = [1, 3, 7]
 hitl = false
 risk = "medium"
+owns = ["src/components/pot/PotBlob.tsx", "src/components/pot/ClaimSheet.tsx", "src/components/pot/PotAmount.tsx", "src/components/pot/LevelBadge.tsx", "src/components/pot/pot.test.tsx", "src/components/HomeScreen.tsx"]
+test = "src/components/pot/pot.test.tsx"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
@@ -116,6 +128,8 @@ covers = ["CAP-1"]
 after = [8, "2.10"]
 hitl = false
 risk = "low"
+owns = ["src/components/pot/PotTeaser.tsx", "src/components/LandingScreen.tsx", "src/components/onboarding/StepSeePot.tsx", "src/components/onboarding/steps.ts", "src/components/pot/teaser.test.tsx"]
+test = "src/components/pot/teaser.test.tsx"
 
 [[entry]]
 id = 10
@@ -127,6 +141,8 @@ covers = ["CAP-9", "CAP-8"]
 after = [6, 8]
 hitl = false
 risk = "medium"
+owns = ["src/app/(game)/claims/**", "src/components/claims/**", "src/components/AvatarMenu.tsx", "src/server/claims/**", "src/worker/indexer/handlers/claim.ts", "prisma/schema.prisma", "prisma/migrations/**"]
+test = "src/server/claims/claims.test.ts"
 
 [[entry]]
 id = 11
@@ -160,3 +176,5 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 hitl = false
 risk = "low"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/libraries/EffPoints.sol", "chain/test/pot/PotInvariant.test.ts", "chain/test/pot/vectors/eff-points.json", "src/lib/eff-points.ts", "src/lib/eff-points.test.ts", "chain/test/pot/Level.test.ts", "chain/test/pot/vectors/level.json", "src/lib/level.ts", "src/lib/level.test.ts", "src/lib/chain/**", "chain/contracts/EpochDistributor.sol", "chain/contracts/interfaces/IEpochDistributor.sol", "chain/ignition/modules/Petverse.ts", "chain/test/pot/EpochDistributor.test.ts", "src/worker/epoch/**", "src/worker/index.ts", "prisma/schema.prisma", "prisma/migrations/**", "package.json", "package-lock.json", "src/app/api/epochs/**", "src/server/epochs/**", "scripts/rebuild-epoch-root.mjs", "src/components/pot/PotBlob.tsx", "src/components/pot/ClaimSheet.tsx", "src/components/pot/PotAmount.tsx", "src/components/pot/LevelBadge.tsx", "src/components/pot/pot.test.tsx", "src/components/HomeScreen.tsx", "src/components/pot/PotTeaser.tsx", "src/components/LandingScreen.tsx", "src/components/onboarding/StepSeePot.tsx", "src/components/onboarding/steps.ts", "src/components/pot/teaser.test.tsx", "src/app/(game)/claims/**", "src/components/claims/**", "src/components/AvatarMenu.tsx", "src/server/claims/**", "src/worker/indexer/handlers/claim.ts", "src/lib/pot/**"]
+test = "chain/test/pot/PotInvariant.test.ts"

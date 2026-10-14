@@ -46,6 +46,19 @@ covers = ["CAP-29"]
 after = [1, "3.2", "3.4"]
 hitl = false
 risk = "high"
+owns = [
+  "chain/contracts/PetCore.sol",
+  "chain/contracts/interfaces/IPetCore.sol",
+  "chain/contracts/EpochDistributor.sol",
+  "chain/contracts/interfaces/IEpochDistributor.sol",
+  "chain/contracts/libraries/PayoutHold.sol",
+  "chain/ignition/modules/Petverse.ts",
+  "chain/test/antibot/PayoutHold.test.ts",
+  "chain/test/pot/PotInvariant.test.ts",
+  "src/worker/indexer/handlers/PayoutHold*.ts",
+  "src/lib/chain/**",
+]
+test = "chain/test/antibot/PayoutHold.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock",
@@ -62,6 +75,12 @@ covers = ["CAP-29"]
 after = [1]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/risk/rules/index.ts",
+  "src/worker/risk/rules/timing.ts",
+  "src/worker/risk/rules/timing.test.ts",
+]
+test = "src/worker/risk/rules/timing.test.ts"
 
 [[entry]]
 id = 5
@@ -73,6 +92,13 @@ covers = ["CAP-29"]
 after = [2, 4]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/risk/rules/index.ts",
+  "src/worker/risk/rules/funding.ts",
+  "src/worker/risk/rules/funding.test.ts",
+  "src/worker/risk/funder/**",
+]
+test = "src/worker/risk/rules/funding.test.ts"
 
 [[entry]]
 id = 6
@@ -84,6 +110,12 @@ covers = ["CAP-29"]
 after = [3, 5]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/risk/hold-keeper.ts",
+  "src/worker/risk/safe-renewal.ts",
+  "src/worker/risk/hold-keeper.test.ts",
+]
+test = "src/worker/risk/hold-keeper.test.ts"
 
 [[entry]]
 id = 7
@@ -95,6 +127,19 @@ covers = ["CAP-29"]
 after = [1, "3.8", "5.2", "5.4"]
 hitl = false
 risk = "high"
+owns = [
+  "src/server/risk/refuse.ts",
+  "src/server/risk/refuse.test.ts",
+  "src/server/gas/**",
+  "src/app/api/gas/**",
+  "src/server/faucet/**",
+  "src/app/api/faucet/**",
+  "src/server/voucher/**",
+  "src/app/api/voucher/**",
+  "src/components/risk/PausedNotice.tsx",
+  "src/components/pot/ClaimSheet.tsx",
+]
+test = "src/server/risk/refuse.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-7-gas-sponsorship-cap-is-enforced-by-our-gas-manager-webhook"]
 
 [[entry]]
@@ -107,6 +152,13 @@ covers = ["CAP-29"]
 after = [3, "3.5", "3.6"]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/epoch/exclusion.ts",
+  "src/worker/epoch/exclusion.test.ts",
+  "src/server/epochs/dataset.ts",
+  "src/worker/season-end/exclusion.ts",
+]
+test = "src/worker/epoch/exclusion.test.ts"
 
 [[entry]]
 id = 9
@@ -129,6 +181,12 @@ covers = ["CAP-29"]
 after = [7, 8, 9, "6.3"]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/risk/seeded-farm.test.ts",
+  "src/worker/risk/fixtures/seeded-farm/**",
+  "chain/test/antibot/FarmCounters.test.ts",
+]
+test = "src/worker/risk/seeded-farm.test.ts"
 
 [[entry]]
 id = 11
@@ -140,6 +198,13 @@ covers = ["CAP-29"]
 after = [1, "3.10", "6.1"]
 hitl = false
 risk = "medium"
+owns = [
+  "src/worker/metrics/**",
+  "src/server/metrics/**",
+  "src/app/admin/metrics/**",
+  "src/components/admin/MetricsTable.tsx",
+]
+test = "src/worker/metrics/metrics.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-23-testnet-operations"]
 
 [[entry]]
@@ -163,3 +228,56 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 hitl = false
 risk = "low"
+owns = [
+  "chain/contracts/PetCore.sol",
+  "chain/contracts/interfaces/IPetCore.sol",
+  "chain/contracts/EpochDistributor.sol",
+  "chain/contracts/interfaces/IEpochDistributor.sol",
+  "chain/contracts/libraries/PayoutHold.sol",
+  "chain/ignition/modules/Petverse.ts",
+  "chain/test/antibot/PayoutHold.test.ts",
+  "chain/test/pot/PotInvariant.test.ts",
+  "src/worker/indexer/handlers/PayoutHold*.ts",
+  "src/lib/chain/**",
+  "src/worker/risk/rules/index.ts",
+  "src/worker/risk/rules/timing.ts",
+  "src/worker/risk/rules/timing.test.ts",
+  "src/worker/risk/rules/funding.ts",
+  "src/worker/risk/rules/funding.test.ts",
+  "src/worker/risk/funder/**",
+  "src/worker/risk/hold-keeper.ts",
+  "src/worker/risk/safe-renewal.ts",
+  "src/worker/risk/hold-keeper.test.ts",
+  "src/server/risk/refuse.ts",
+  "src/server/risk/refuse.test.ts",
+  "src/server/gas/**",
+  "src/app/api/gas/**",
+  "src/server/faucet/**",
+  "src/app/api/faucet/**",
+  "src/server/voucher/**",
+  "src/app/api/voucher/**",
+  "src/components/risk/PausedNotice.tsx",
+  "src/components/pot/ClaimSheet.tsx",
+  "src/worker/epoch/exclusion.ts",
+  "src/worker/epoch/exclusion.test.ts",
+  "src/server/epochs/dataset.ts",
+  "src/worker/season-end/exclusion.ts",
+  "src/worker/risk/seeded-farm.test.ts",
+  "src/worker/risk/fixtures/seeded-farm/**",
+  "chain/test/antibot/FarmCounters.test.ts",
+  "src/worker/metrics/**",
+  "src/server/metrics/**",
+  "src/app/admin/metrics/**",
+  "src/components/admin/MetricsTable.tsx",
+  "src/server/auth/**",
+  "src/server/risk/**",
+  "src/worker/risk/**",
+  "src/app/admin/**",
+  "src/app/api/admin/**",
+  "src/components/admin/**",
+  "src/components/risk/**",
+  "prisma/schema.prisma",
+  "prisma/migrations/**",
+  "chain/scripts/antibot-drill.ts",
+]
+test = "src/worker/risk/seeded-farm.test.ts"

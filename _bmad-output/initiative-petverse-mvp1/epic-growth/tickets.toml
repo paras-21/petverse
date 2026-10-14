@@ -29,6 +29,8 @@ covers = ["CAP-17"]
 after = [1, "8.3"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/Breeding.sol", "chain/contracts/interfaces/IBreeding.sol", "chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/test/Breeding.test.ts", "chain/test/vectors/breed-vectors.json", "src/lib/breeding.ts", "src/lib/breeding.test.ts"]
+test = "chain/test/Breeding.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-10-dollar-pricing-through-one-price-source-port-with-bounded-signers",
@@ -46,6 +48,8 @@ covers = ["CAP-16"]
 after = [1]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/Evolution.sol", "chain/contracts/interfaces/IEvolution.sol", "chain/contracts/Cosmetics.sol", "chain/contracts/interfaces/ICosmetics.sol", "chain/test/Evolution.elder-mythic.test.ts"]
+test = "chain/test/Evolution.elder-mythic.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
 ]
@@ -86,6 +90,8 @@ covers = ["CAP-16", "CAP-17"]
 after = [5]
 hitl = false
 risk = "medium"
+owns = ["src/worker/indexer/handlers/Evolved.ts", "src/worker/indexer/handlers/Breed*.ts", "src/worker/indexer/handlers/growth.test.ts", "src/server/growth/**", "src/app/api/pets/[id]/growth/**", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**"]
+test = "src/server/growth/growth.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-12-one-schema-one-writer-per-table-the-indexer-owns-projections",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-14-indexer-is-one-in-repo-worker-with-a-cursor-and-idempotent-writes",
@@ -101,6 +107,8 @@ covers = ["CAP-16"]
 after = [4, 6]
 hitl = false
 risk = "medium"
+owns = ["src/components/home/GrowthButtons.tsx", "src/components/home/EvolveSheet.tsx", "src/components/home/EvolveSheet.test.tsx", "src/components/HomeScreen.tsx"]
+test = "src/components/home/EvolveSheet.test.tsx"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
@@ -116,6 +124,8 @@ covers = ["CAP-17"]
 after = [6, 7, "8.5"]
 hitl = false
 risk = "medium"
+owns = ["src/components/home/GrowthButtons.tsx", "src/components/home/BreedSheet.tsx", "src/components/home/BreedSheet.test.tsx", "src/components/home/PetSwitcher.tsx"]
+test = "src/components/home/BreedSheet.test.tsx"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md",
@@ -131,6 +141,8 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8]
 hitl = false
 risk = "low"
+owns = ["chain/contracts/Breeding.sol", "chain/contracts/interfaces/IBreeding.sol", "chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/test/Breeding.test.ts", "chain/test/vectors/breed-vectors.json", "src/lib/breeding.ts", "src/lib/breeding.test.ts", "chain/contracts/Evolution.sol", "chain/contracts/interfaces/IEvolution.sol", "chain/contracts/Cosmetics.sol", "chain/contracts/interfaces/ICosmetics.sol", "chain/test/Evolution.elder-mythic.test.ts", "src/worker/indexer/handlers/Evolved.ts", "src/worker/indexer/handlers/Breed*.ts", "src/worker/indexer/handlers/growth.test.ts", "src/server/growth/**", "src/app/api/pets/[id]/growth/**", "prisma/schema.prisma", "prisma/migrations/**", "src/generated/prisma/**", "src/components/home/GrowthButtons.tsx", "src/components/home/EvolveSheet.tsx", "src/components/home/EvolveSheet.test.tsx", "src/components/HomeScreen.tsx", "src/components/home/BreedSheet.tsx", "src/components/home/BreedSheet.test.tsx", "src/components/home/PetSwitcher.tsx", "chain/ignition/modules/Breeding.ts", "chain/ignition/modules/Evolution.ts", "chain/test/Evolution*.test.ts", "src/lib/chain/**", "src/components/three/PetModel.tsx", "src/components/three/species.tsx", "src/components/Gallery.tsx"]
+test = "chain/test/Breeding.test.ts"
 
 [[entry]]
 id = 10

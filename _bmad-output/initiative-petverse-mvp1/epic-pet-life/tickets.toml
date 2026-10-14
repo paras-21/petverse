@@ -35,6 +35,8 @@ covers = ["CAP-3", "CAP-5", "CAP-6"]
 after = [1]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/test/vectors/status-vectors.json", "src/lib/status.ts", "src/lib/status.test.ts", "src/lib/chain/**"]
+test = "chain/test/PetCore.lifecycle.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-20-test-strategy",
@@ -51,6 +53,8 @@ covers = []
 after = [1]
 hitl = false
 risk = "low"
+owns = ["src/components/ui/**", "src/components/ui.tsx", "src/components/shell/**", "src/app/layout.tsx", "src/app/globals.css", "src/app/kit/**", "scripts/copy-check.mjs"]
+test = "src/components/ui/copy-check.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/direction-candy.html"]
 
 [[entry]]
@@ -63,6 +67,8 @@ covers = ["CAP-1", "CAP-4", "CAP-5"]
 after = [2]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/Care.sol", "chain/contracts/interfaces/ICare.sol", "chain/contracts/PetCore.sol", "chain/ignition/modules/Petverse.ts", "src/worker/indexer/handlers/PetFed.ts", "src/worker/indexer/handlers/Food*.ts", "prisma/schema.prisma", "prisma/migrations/**", "src/lib/chain/**"]
+test = "chain/test/Care.test.ts"
 unknown = "Owner sets the economy numbers: points per feed (EXPERIENCE copy shows +20), starter meals at hatch (copy shows 2 free meals), whether free meals refill, and the tutorial win's points (if any)."
 
 [[entry]]
@@ -75,6 +81,8 @@ covers = ["CAP-1", "CAP-6"]
 after = [4]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/Cosmetics.sol", "chain/contracts/interfaces/ICosmetics.sol", "chain/contracts/PetCore.sol", "chain/ignition/modules/Petverse.ts", "src/worker/indexer/handlers/TransferSingle.ts", "src/worker/indexer/handlers/TransferBatch.ts", "prisma/schema.prisma", "prisma/migrations/**", "src/lib/chain/**"]
+test = "chain/test/Cosmetics.test.ts"
 references = ["src/lib/cosmetics.ts"]
 
 [[entry]]
@@ -87,6 +95,8 @@ covers = ["CAP-3", "CAP-6"]
 after = [5]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/PetNFT.sol", "chain/ignition/modules/Petverse.ts", "src/worker/keeper/**", "src/worker/indexer/handlers/PetBuried.ts", "src/app/api/health/**", "src/server/voucher/**", "src/lib/chain/**"]
+test = "chain/test/PetCore.bury.test.ts"
 notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on bury ordering, the free-egg right and the burn path."]
 
 [[entry]]
@@ -99,6 +109,8 @@ covers = ["CAP-3"]
 after = [6]
 hitl = false
 risk = "medium"
+owns = ["src/server/voucher/**", "src/server/wallet-history.ts", "src/app/api/voucher/**"]
+test = "src/server/voucher/voucher.test.ts"
 unknown = "What counts as wallet history (minimum transaction count, age or balance, and on which chains) — an anti-bot rule the owner sets (AD-15)."
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-15-anti-bot-uses-off-chain-detection-and-a-narrow-on-chain-hold"]
 
@@ -112,6 +124,8 @@ covers = ["CAP-4", "CAP-5", "CAP-6"]
 after = [3, 4, 6, 9]
 hitl = false
 risk = "medium"
+owns = ["src/app/home/**", "src/components/home/**", "src/components/HomeScreen.tsx"]
+test = "src/app/home/home-state.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-sleep-death.html",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-home-copet.html",
@@ -127,6 +141,8 @@ covers = ["CAP-1", "CAP-3"]
 after = [3]
 hitl = false
 risk = "low"
+owns = ["src/app/page.tsx", "src/app/egg/**", "src/components/landing/**", "src/components/egg/**", "src/components/EggScreen.tsx", "src/components/Game.tsx"]
+test = "src/app/entry-route.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-landing-hatch.html"]
 
 [[entry]]
@@ -139,6 +155,8 @@ covers = ["CAP-1"]
 after = [4, 5, 8, 9]
 hitl = false
 risk = "medium"
+owns = ["src/components/onboarding/**", "src/lib/onboarding.ts", "src/app/api/equip/**", "src/components/home/OnboardingHints.tsx", "src/components/three/PetModel.tsx", "src/components/three/cosmetics.tsx", "src/components/BattleScreen.tsx", "prisma/schema.prisma", "prisma/migrations/**"]
+test = "src/lib/onboarding.test.ts"
 references = ["src/components/BattleScreen.tsx"]
 
 [[entry]]
@@ -170,3 +188,5 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 hitl = false
 risk = "low"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/test/vectors/status-vectors.json", "src/lib/status.ts", "src/lib/status.test.ts", "src/lib/chain/**", "chain/test/PetCore.lifecycle.test.ts", "src/components/ui/**", "src/components/ui.tsx", "src/components/shell/**", "src/app/layout.tsx", "src/app/globals.css", "src/app/kit/**", "scripts/copy-check.mjs", "src/components/ui/copy-check.test.ts", "chain/contracts/Care.sol", "chain/contracts/interfaces/ICare.sol", "chain/ignition/modules/Petverse.ts", "src/worker/indexer/handlers/PetFed.ts", "src/worker/indexer/handlers/Food*.ts", "prisma/schema.prisma", "prisma/migrations/**", "chain/test/Care.test.ts", "chain/contracts/Cosmetics.sol", "chain/contracts/interfaces/ICosmetics.sol", "src/worker/indexer/handlers/TransferSingle.ts", "src/worker/indexer/handlers/TransferBatch.ts", "chain/test/Cosmetics.test.ts", "chain/contracts/PetNFT.sol", "src/worker/keeper/**", "src/worker/indexer/handlers/PetBuried.ts", "src/app/api/health/**", "src/server/voucher/**", "chain/test/PetCore.bury.test.ts", "src/server/wallet-history.ts", "src/app/api/voucher/**", "src/server/voucher/voucher.test.ts", "src/app/home/**", "src/components/home/**", "src/components/HomeScreen.tsx", "src/app/home/home-state.test.ts", "src/app/page.tsx", "src/app/egg/**", "src/components/landing/**", "src/components/egg/**", "src/components/EggScreen.tsx", "src/components/Game.tsx", "src/app/entry-route.test.ts", "src/components/onboarding/**", "src/lib/onboarding.ts", "src/app/api/equip/**", "src/components/home/OnboardingHints.tsx", "src/components/three/PetModel.tsx", "src/components/three/cosmetics.tsx", "src/components/BattleScreen.tsx", "src/lib/onboarding.test.ts"]
+test = "chain/test/PetCore.lifecycle.test.ts"

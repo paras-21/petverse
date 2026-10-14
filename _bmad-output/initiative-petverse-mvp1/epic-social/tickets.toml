@@ -32,6 +32,8 @@ covers = ["CAP-14"]
 after = [1]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/contracts/CoPetMemoryBadge.sol", "chain/test/pot/PotInvariant.test.ts", "chain/test/social/CoPet.claim-leave.test.ts", "src/worker/indexer/handlers/CoPetLeft.ts"]
+test = "chain/test/social/CoPet.claim-leave.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-22-transfer-rules",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
@@ -48,6 +50,8 @@ covers = ["CAP-14"]
 after = [2]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/CoPetApprovals.sol", "chain/contracts/interfaces/ICoPetApprovals.sol", "chain/ignition/modules/CoPetApprovals.ts", "chain/test/social/CoPetApprovals.test.ts", "src/lib/chain/**"]
+test = "chain/test/social/CoPetApprovals.test.ts"
 
 [[entry]]
 id = 4
@@ -59,6 +63,8 @@ covers = ["CAP-14"]
 after = [2, "3.3"]
 hitl = false
 risk = "medium"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/test/social/CoPet.together.test.ts"]
+test = "chain/test/social/CoPet.together.test.ts"
 
 [[entry]]
 id = 5
@@ -70,6 +76,8 @@ covers = ["CAP-14"]
 after = [3, 4, "3.8"]
 hitl = false
 risk = "medium"
+owns = ["src/components/copet/**", "src/components/HomeScreen.tsx", "src/components/profile/BadgeList.tsx", "src/app/api/copet/**", "src/server/copet/**"]
+test = "src/components/copet/copet.test.tsx"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-home-copet.html",
@@ -85,6 +93,8 @@ covers = ["CAP-15"]
 after = [1]
 hitl = false
 risk = "medium"
+owns = ["src/server/guild/**", "src/app/api/guild/**"]
+test = "src/server/guild/guild.test.ts"
 
 [[entry]]
 id = 7
@@ -96,6 +106,8 @@ covers = ["CAP-15"]
 after = [6, "6.9"]
 hitl = false
 risk = "low"
+owns = ["src/app/(game)/guild/layout.tsx", "src/app/(game)/guild/page.tsx", "src/components/guild/GuildShell.tsx", "src/components/guild/guild/**", "src/components/battle/TargetRow.tsx", "src/components/shell/TabBar.tsx"]
+test = "src/components/guild/guild/guild-segment.test.tsx"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-guild.html"]
 
 [[entry]]
@@ -108,6 +120,8 @@ covers = ["CAP-15"]
 after = ["6.5"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/Battle.sol", "chain/contracts/MatchArena.sol", "chain/contracts/interfaces/IBattle.sol", "chain/contracts/interfaces/IMatchArena.sol", "chain/contracts/libraries/GuildWarTicket.sol", "chain/test/social/Battle.guildWar.test.ts"]
+test = "chain/test/social/Battle.guildWar.test.ts"
 
 [[entry]]
 id = 9
@@ -119,6 +133,8 @@ covers = ["CAP-15"]
 after = [6, 8]
 hitl = false
 risk = "high"
+owns = ["src/worker/guild-war/**", "src/worker/index.ts", "src/worker/indexer/handlers/GuildWarMatchSettled.ts", "src/server/signers/guild-war.ts", "src/app/api/guild-war/**"]
+test = "src/worker/guild-war/guild-war.test.ts"
 
 [[entry]]
 id = 10
@@ -130,6 +146,8 @@ covers = ["CAP-15"]
 after = [9, "3.4", "3.6", "4.5"]
 hitl = false
 risk = "high"
+owns = ["chain/contracts/EpochDistributor.sol", "chain/contracts/interfaces/IEpochDistributor.sol", "chain/contracts/GoldVault.sol", "chain/contracts/interfaces/IGoldVault.sol", "chain/contracts/GuildWarGoldPayer.sol", "chain/ignition/modules/GuildWarPrize.ts", "chain/test/social/GuildWarPrize.test.ts", "src/worker/guild-war-prize/**", "src/server/epochs/guild-war.ts"]
+test = "chain/test/social/GuildWarPrize.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-24-game-gold-is-paid-from-a-funded-reserve-with-a-daily-cap",
@@ -145,6 +163,8 @@ covers = ["CAP-15"]
 after = [7, 9, 10]
 hitl = false
 risk = "medium"
+owns = ["src/app/(game)/guild/war/**", "src/components/guild/war/**"]
+test = "src/components/guild/war/war-segment.test.tsx"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-guild.html"]
 
 [[entry]]
@@ -168,3 +188,5 @@ covers = ["CAP-14", "CAP-15"]
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 hitl = false
 risk = "low"
+owns = ["chain/contracts/PetCore.sol", "chain/contracts/interfaces/IPetCore.sol", "chain/contracts/CoPetMemoryBadge.sol", "chain/test/pot/PotInvariant.test.ts", "chain/test/social/CoPet.claim-leave.test.ts", "src/worker/indexer/handlers/CoPetLeft.ts", "chain/contracts/CoPetApprovals.sol", "chain/contracts/interfaces/ICoPetApprovals.sol", "chain/ignition/modules/CoPetApprovals.ts", "chain/test/social/CoPetApprovals.test.ts", "src/lib/chain/**", "chain/test/social/CoPet.together.test.ts", "src/components/copet/**", "src/components/HomeScreen.tsx", "src/components/profile/BadgeList.tsx", "src/app/api/copet/**", "src/server/copet/**", "src/server/guild/**", "src/app/api/guild/**", "src/app/(game)/guild/layout.tsx", "src/app/(game)/guild/page.tsx", "src/components/guild/GuildShell.tsx", "src/components/guild/guild/**", "src/components/battle/TargetRow.tsx", "src/components/shell/TabBar.tsx", "chain/contracts/Battle.sol", "chain/contracts/MatchArena.sol", "chain/contracts/interfaces/IBattle.sol", "chain/contracts/interfaces/IMatchArena.sol", "chain/contracts/libraries/GuildWarTicket.sol", "chain/test/social/Battle.guildWar.test.ts", "src/worker/guild-war/**", "src/worker/index.ts", "src/worker/indexer/handlers/GuildWarMatchSettled.ts", "src/server/signers/guild-war.ts", "src/app/api/guild-war/**", "chain/contracts/EpochDistributor.sol", "chain/contracts/interfaces/IEpochDistributor.sol", "chain/contracts/GoldVault.sol", "chain/contracts/interfaces/IGoldVault.sol", "chain/contracts/GuildWarGoldPayer.sol", "chain/ignition/modules/GuildWarPrize.ts", "chain/test/social/GuildWarPrize.test.ts", "src/worker/guild-war-prize/**", "src/server/epochs/guild-war.ts", "src/app/(game)/guild/war/**", "src/components/guild/war/**"]
+test = "chain/test/social/CoPet.claim-leave.test.ts"

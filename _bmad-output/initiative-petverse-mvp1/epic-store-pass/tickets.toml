@@ -53,6 +53,13 @@ covers = ["CAP-2"]
 after = [2, 5, "1.12", "2.3", "3.7"]
 hitl = false
 risk = "medium"
+owns = [
+  "src/server/gas/fallback.ts",
+  "src/components/shell/FreeActionsChip.tsx",
+  "src/components/shell/FeeConfirm.tsx",
+  "src/components/shell/TopBar.tsx",
+]
+test = "e2e/store-pass/paid-fallback.spec.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md"]
 
 [[entry]]
@@ -65,6 +72,15 @@ covers = ["CAP-2"]
 after = ["1.11", "1.13", "2.7", "4.1"]
 hitl = false
 risk = "high"
+owns = [
+  "chain/contracts/Faucet.sol",
+  "chain/ignition/modules/Faucet.ts",
+  "chain/test/Faucet.test.ts",
+  "src/app/api/faucet/**",
+  "src/server/signers/faucetVoucher.ts",
+  "src/server/faucet/**",
+]
+test = "chain/test/Faucet.test.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-9-petv-on-testnet-fixed-supply-token-our-pons-like-curve-one-tax-splitter",
   "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-15-anti-bot-uses-off-chain-detection-and-a-narrow-on-chain-hold",
@@ -81,6 +97,12 @@ covers = ["CAP-2"]
 after = [4, "4.8"]
 hitl = false
 risk = "medium"
+owns = [
+  "src/components/wallet/FaucetSection.tsx",
+  "src/components/wallet/WalletSheet.tsx",
+  "src/lib/faucet.ts",
+]
+test = "e2e/store-pass/wallet-faucet.spec.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md"]
 
 [[entry]]
@@ -93,6 +115,12 @@ covers = ["CAP-23"]
 after = [1]
 hitl = false
 risk = "medium"
+owns = [
+  "chain/contracts/Store.sol",
+  "chain/contracts/PetCore.sol",
+  "chain/test/Store.registry.test.ts",
+]
+test = "chain/test/Store.registry.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes"]
 
 [[entry]]
@@ -105,6 +133,13 @@ covers = ["CAP-23"]
 after = [1, 3, 5, 6]
 hitl = false
 risk = "medium"
+owns = [
+  "src/app/(game)/shop/store/**",
+  "src/components/shop/StoreTile.tsx",
+  "src/components/shop/StoreDetail.tsx",
+  "src/components/shop/ShortfallNote.tsx",
+]
+test = "e2e/store-pass/shop-store.spec.ts"
 references = [
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html",
   "_bmad-output/initiative-petverse-mvp1/ux-petverse/EXPERIENCE.md",
@@ -120,6 +155,12 @@ covers = ["CAP-23"]
 after = [1]
 hitl = false
 risk = "medium"
+owns = [
+  "src/app/api/quote/**",
+  "src/server/quote/**",
+  "src/server/signers/quoteSigner.ts",
+]
+test = "src/server/quote/quote.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-18-every-economy-number-is-a-parameter-with-one-home"]
 
 [[entry]]
@@ -132,6 +173,13 @@ covers = ["CAP-23"]
 after = [1, "1.9", "3.1", "4.3"]
 hitl = false
 risk = "high"
+owns = [
+  "chain/contracts/PotConverter.sol",
+  "chain/test/PotConverter.test.ts",
+  "src/worker/keeper/potConverter.ts",
+  "src/worker/keeper/potConverter.test.ts",
+]
+test = "src/worker/keeper/potConverter.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-11-revenue-in-petv-reaches-the-eth-pot-only-through-potconverter"]
 notes = ["High risk: outside check = the adversarial review in the gate on minimum-out and sandwich exposure."]
 
@@ -145,6 +193,12 @@ covers = ["CAP-23"]
 after = [1, 2, "2.5", "3.4"]
 hitl = false
 risk = "high"
+owns = [
+  "chain/contracts/SeasonPass.sol",
+  "chain/ignition/modules/SeasonPass.ts",
+  "chain/test/SeasonPass.test.ts",
+]
+test = "chain/test/SeasonPass.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-5-ranked-and-bottom-half-payouts-go-through-one-epoch-merkle-distributor"]
 notes = ["High risk: outside check = the adversarial review in the gate on season boundaries and the income split."]
 
@@ -158,6 +212,11 @@ covers = ["CAP-23"]
 after = [6, 10]
 hitl = false
 risk = "medium"
+owns = [
+  "chain/contracts/PetCore.sol",
+  "chain/test/PetCore.passMultiplier.test.ts",
+]
+test = "chain/test/PetCore.passMultiplier.test.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-2-petcore-is-the-single-ledger-modules-are-spokes"]
 
 [[entry]]
@@ -170,6 +229,12 @@ covers = ["CAP-23"]
 after = [3, 7, 10]
 hitl = false
 risk = "low"
+owns = [
+  "src/app/(game)/shop/pass/**",
+  "src/components/shop/PassCard.tsx",
+  "src/components/shop/PassOwned.tsx",
+]
+test = "e2e/store-pass/shop-pass.spec.ts"
 references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/key-shop-claim.html"]
 
 [[entry]]
@@ -198,3 +263,40 @@ covers = []
 after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 hitl = false
 risk = "low"
+owns = [
+  "chain/contracts/SignedRateSource.sol",
+  "chain/contracts/Store.sol",
+  "chain/contracts/PotConverter.sol",
+  "chain/contracts/Faucet.sol",
+  "chain/contracts/SeasonPass.sol",
+  "chain/contracts/PetCore.sol",
+  "chain/contracts/interfaces/IPriceSource.sol",
+  "chain/contracts/interfaces/ISeasonPass.sol",
+  "chain/ignition/modules/SignedRateSource.ts",
+  "chain/ignition/modules/Store.ts",
+  "chain/ignition/modules/PotConverter.ts",
+  "chain/ignition/modules/Faucet.ts",
+  "chain/ignition/modules/SeasonPass.ts",
+  "chain/test/Store*.test.ts",
+  "chain/test/PotConverter.test.ts",
+  "chain/test/Faucet.test.ts",
+  "chain/test/SeasonPass.test.ts",
+  "chain/test/PetCore.passMultiplier.test.ts",
+  "src/app/api/quote/**",
+  "src/app/api/gas/**",
+  "src/app/api/faucet/**",
+  "src/server/quote/**",
+  "src/server/gas/**",
+  "src/server/faucet/**",
+  "src/server/signers/quoteSigner.ts",
+  "src/server/signers/faucetVoucher.ts",
+  "src/worker/keeper/potConverter*.ts",
+  "src/app/(game)/shop/**",
+  "src/components/shop/**",
+  "src/components/wallet/FaucetSection.tsx",
+  "src/components/shell/FreeActionsChip.tsx",
+  "src/components/shell/FeeConfirm.tsx",
+  "src/lib/faucet.ts",
+  "e2e/store-pass/**",
+]
+test = "chain/test/Store.test.ts"
