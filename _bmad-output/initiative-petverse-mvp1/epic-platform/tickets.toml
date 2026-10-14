@@ -1,0 +1,246 @@
+# tickets.toml — epic-platform's agreed entries in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an entry for good and is never reused.
+# Requirement ids (R1–R8) are in epic-platform.md, Requirements.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Tracer: one sponsored action from login to screen on 46630"
+description = "Delivers the thinnest working path: the Next app logs in with Privy, gets an EIP-7702 smart account on 46630 through the GameWallet port, sends one gas-sponsored call to a minimal tracer contract, the worker indexes its event into the dev schema, and the page shows the row; it adds the first Prisma model and migration with a minimal DB_SCHEMA in db.ts, the Ignition module and Blockscout chain entry that deploy and verify the tracer contract, and the generated chain module that carries its address into src/."
+verify = "With app and worker running locally, a fresh email login presses the tracer button and within a minute the page shows the indexed row with the call's tx hash, and the tx on 46630 shows the paymaster paid the gas."
+covers = ["R2", "R4", "R5", "R8"]
+after = []
+hitl = true
+risk = "high"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-8-wallet-and-identity",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-21-contract-addresses-and-abis-reach-src-through-one-generated-module",
+  "docs/LESSONS.md",
+]
+notes = [
+  "hitl steps: owner creates the dev schema in Supabase; owner creates the Privy app (email + Google + external wallet), the Alchemy app and one Gas Manager policy allow-listing the tracer contract; owner funds the deployer with test ETH; owner enters every secret in the Hardhat keystore and local env; owner OKs the tracer contract deploy to 46630 (CLAUDE.md).",
+  "High risk: outside check = the owner repeats the login and tracer action on their own phone browser and confirms the sponsored tx on the explorer.",
+]
+
+[[entry]]
+id = 2
+type = "spike"
+title = "Do EIP-7702 and the ERC-4337 fallback both work on 46630 with one Gas Manager policy and a custom-rules webhook?"
+description = "Answers, for the GameWallet port and epic-store-pass's cap webhook, whether an external wallet that refuses 7702 gets a working 4337 smart account on 46630, whether both modes are sponsored by the same policy, and whether the Gas Manager calls a custom-rules webhook with the sender and calldata the AD-7 cap needs, captured on a Vercel preview of the tracer app."
+verify = "A write-up in epic-platform/ shows one sponsored call in each mode on 46630 with tx hashes, the webhook payload captured, and the answer recorded as a dated decision in epic-platform.md Notes."
+covers = ["R2"]
+after = [1]
+hitl = true
+risk = "high"
+unknown = "Resolved: MetaMask is the 7702-refusing wallet (DECISIONS #34)."
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-7-gas-sponsorship-cap-is-enforced-by-our-gas-manager-webhook"]
+notes = [
+  "hitl steps: the owner deploys a Vercel preview of the tracer branch for the webhook capture, points the policy's custom rules at it, and approves the recorded answer.",
+  "High risk: outside check = the owner confirms both sponsored txs on the explorer and approves the recorded answer.",
+]
+
+[[entry]]
+id = 3
+type = "spike"
+title = "Can a 2-of-3 Safe propose, cancel and execute through a 1-hour TimelockController on 46630, with the Protocol Kit / CLI fallback?"
+description = "Answers, for the governance base and every contract epic, whether Safe v1.4.1 canonical contracts and the Safe web UI work on 46630, and if the UI does not, whether Safe Protocol Kit or Safe CLI can propose, sign, cancel and execute a timelocked call there."
+verify = "A write-up in epic-platform/ shows a test Safe's propose → 1-hour wait → execute and a propose → cancel on 46630 with tx hashes and the path used (UI or Protocol Kit / CLI), recorded as a dated decision in epic-platform.md Notes."
+covers = ["R1"]
+after = [1]
+hitl = true
+risk = "high"
+unknown = "Resolved: spike uses 3 fresh test keys; real signers (owner + 2 teammates) swap in before entry 15 (DECISIONS #35)."
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock"]
+notes = [
+  "hitl steps: the three signers create the 2-of-3 Safe and sign; the owner OKs the test timelock deploy to 46630; Protocol Kit is approved (DECISIONS #32).",
+  "High risk: outside check = two of the three signers confirm the executed and cancelled operations on the explorer.",
+]
+
+[[entry]]
+id = 4
+type = "spike"
+title = "Does the two-level per-owner pot accumulator keep its balance invariant under every settle path?"
+description = "Answers, for epic-pot, whether the AD-4 design (global → bucket by per-owner effective points, bucket → pet by raw points, sleep/wake/bury/claim/Co-Pet settle order) keeps PetCore's ETH balance equal to owed + pending + undistributed + pull balances with no loop over pets, by prototyping it with randomized invariant tests on Hardhat's in-process network."
+verify = "The prototype's invariant test runs thousands of random award, steal, sleep, wake (with the day cut), bury, claim, flush and Co-Pet start/leave steps with zero invariant breaks and bounded rounding dust, and the write-up and result are recorded as a dated decision in epic-pot.md Notes."
+covers = []
+after = []
+hitl = true
+risk = "medium"
+references = [
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-4-pot-accounting-is-a-two-level-masterchef-accumulator-over-per-owner-effective-points",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-16-life-cycle-comes-from-one-timestamp",
+  "_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-17-co-pet-ownership-is-on-chain",
+]
+notes = ["hitl step: the owner accepts the answer before epic-pot is incepted."]
+
+[[entry]]
+id = 5
+type = "spike"
+title = "Can one worker reveal every commitment on 46630 well inside the 10-minute timeout, and recover after a restart?"
+description = "Answers, for the Randomness service and every module that settles on a reveal, the reveal latency on 46630, the backlog behaviour under a burst of requests, the restart and late-reveal behaviour, and the signer's gas cost, by prototyping the AD-6 flow end to end against a test Randomness contract."
+verify = "A write-up in epic-platform/ shows p50 and p99 commit-to-reveal times for a burst of at least 100 requests on 46630, a restart mid-burst with no lost reveal, a timed-out request closed as a no-op, and the signer's gas per reveal, recorded as a dated decision in epic-platform.md Notes."
+covers = ["R3"]
+after = [1]
+hitl = true
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy"]
+notes = ["hitl steps: the owner OKs the test contract deploy to 46630 and funds the spike signer key with test ETH."]
+
+[[entry]]
+id = 6
+type = "story"
+title = "The gate runs install, typecheck, lint and test for the app and chain/"
+description = "Adds the missing typecheck and test scripts to the root app (node:test with Node's TypeScript type stripping), contract tests on Hardhat 3's in-process network with node:test in chain/, one gate script that runs all of them in order, a Hardhat local-node fixture that deploys the Ignition modules for server and worker tests (AD-20), and a CI workflow that runs the same script."
+verify = "Running the gate script passes on a clean checkout and fails when a planted failing test is added in either the app or chain/."
+covers = ["R6"]
+after = [1]
+hitl = true
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-20-test-strategy"]
+notes = [
+  "hitl step: the owner sets up the GitHub remote (gh auth login, OWNER-CHECKLIST) so the CI workflow runs; until then the gate runs locally through floor gate.",
+  "Known uncertainty: Node's type stripping does not run .tsx or resolve the @/ alias; if tests need either, the owner approves a runner first (not in DECISIONS #24).",
+]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Config and secrets load from one place and never leak"
+description = "Adds one typed env loader for app, server and worker that refuses to start when a required value is missing and never prints values, a names-only .env.example, and the Hardhat configVariable / keystore entries for the deployer key and RPC URLs; role keys are added by the entries that create the roles (13, 16)."
+verify = "A test starts the loader with one required value missing and gets an error naming the variable but not any value, and a repo search finds no secret value in tracked files."
+covers = ["R7"]
+after = [6]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Each environment uses its own Postgres schema; tests never touch live data"
+description = "Hardens what the tracer started: makes DB_SCHEMA the only source of the schema for the app client, the Prisma CLI and raw SQL; the test setup creates, migrates and drops a test_<runid> schema and refuses any other; seed and reset refuse game; a smoke test queries through the :6543 pooler; a gate check fails when a Prisma model lacks its single-writer comment (AD-12)."
+verify = "The test suite creates and drops its own test_ schema (visible in a before/after schema listing), refuses to run with DB_SCHEMA=game, and the pooler smoke test passes."
+covers = ["R5"]
+after = [6, 7]
+hitl = true
+risk = "high"
+unknown = "The owner confirms the test setup may DROP its own test_<runid> schemas on the live database (AD-13 asks for it; CLAUDE.md needs the owner to say so)."
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-13-environments-are-postgres-schemas-in-the-one-hosted-database"]
+notes = [
+  "hitl steps: the owner creates the game and dev schemas, keeps them out of the Supabase Data API exposed schemas, and turns on RLS, in the Supabase dashboard; no destructive SQL on the live DB (CLAUDE.md).",
+  "High risk: outside check = the owner lists the live DB's schemas after a full test run and confirms game is untouched.",
+]
+
+[[entry]]
+id = 9
+type = "story"
+title = "The worker runs on Render with a cursor, idempotent writes and a health route"
+description = "Turns the tracer's worker into the always-on Render service: a job loop that later jobs plug into, the indexer reading logs to head minus confirmations with a per-contract IndexerCursor and upserts keyed by (chainId, txHash, logIndex), a rebuild-from-deploy-block command, and a health route reporting indexer lag; on Render it runs on the game schema and indexes the tracer contract, which entry 10 relies on."
+verify = "Killing and restarting the worker mid-sync on Render produces no duplicate or missing indexed rows, and its health route reports a lag under the confirmation depth."
+covers = ["R4"]
+after = [8]
+hitl = true
+risk = "medium"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-14-indexer-is-one-in-repo-worker-with-a-cursor-and-idempotent-writes"]
+notes = ["hitl steps: the owner creates the Render account and service and enters its env secrets."]
+
+[[entry]]
+id = 10
+type = "story"
+title = "The app deploys to Vercel with the tracer page working on 46630"
+description = "Deploys the Next app to Vercel with preview and production environments, server env secrets in Vercel only, and the tracer page talking to 46630 and the game schema through the hosted worker."
+verify = "On the Vercel production URL, a fresh email login gets a 7702 smart account, runs the tracer action, and within a minute sees the row the Render worker indexed."
+covers = ["R8"]
+after = [9]
+hitl = true
+risk = "medium"
+notes = ["hitl steps: the owner creates the Vercel project, links the repo, enters its env secrets, and adds the Vercel domains to the Privy app's allowed origins."]
+
+[[entry]]
+id = 11
+type = "story"
+title = "The server verifies every Privy token and keeps one User per Privy DID"
+description = "Verifies the Privy access token (ES256, local verification key) on every API call and keeps a User row keyed by Privy DID holding its on-chain account address (the embedded wallet's own address under 7702, or the 4337 smart-account address from entry 12 for external wallets), with linking a second address only through an explicit link step."
+verify = "API tests with a recorded-fixture token pass, a tampered or expired token gets a 401 with the standard error shape, and two logins with one DID leave one User row."
+covers = ["R2"]
+after = [9]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-8-wallet-and-identity"]
+notes = ["High risk: outside check = the security review in the gate (DECISIONS #2) on the auth path."]
+
+[[entry]]
+id = 12
+type = "story"
+title = "GameWallet has a local-node test adapter and the external-wallet fallback"
+description = "Adds to the GameWallet port a viem wallet-client adapter on the Hardhat local node for tests and, per spike 2's answer, the ERC-4337 smart-account adapter for external wallets that refuse 7702, both behind the same port the tracer uses; the fallback's smart-account address is the identity entry 11 stores."
+verify = "A test sends the tracer call through the test adapter on a local node, and on 46630 an external wallet that refuses 7702 completes the tracer action through the fallback."
+covers = ["R2"]
+after = [2, 6, 7]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 13
+type = "story"
+title = "Governance base: UUPS modules behind a Safe-proposed 1-hour timelock, one role per key"
+description = "Adds the shared upgradeable base (UUPS, ERC-7201 storage, PAUSER held by the Safe) and the Ignition module that wires a TimelockController (1 hour, Safe as proposer and canceller, open executor) as upgrade admin and parameter setter, with the single-role server keys granted only through it and their configVariable entries, using spike 3's Safe path."
+verify = "Contract tests show a parameter change and an upgrade succeed only after the delay when proposed by the Safe, revert from any other caller, the Safe can pause and cancel but not set a parameter, and each role key can do only its one role."
+covers = ["R1"]
+after = [3, 7]
+hitl = false
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-3-upgradeable-modules-behind-a-safe-proposed-timelock"]
+notes = ["High risk: outside check = the adversarial review in the gate (DECISIONS #2) on the admin paths, and the testnet drill in entry 15."]
+
+[[entry]]
+id = 14
+type = "story"
+title = "The gate runs the OpenZeppelin upgrade-safety validator"
+description = "Adds the approved OpenZeppelin upgrade-safety validator (DECISIONS #24, dev only) and runs it in the gate on the contracts' build output against the last deployed layout."
+verify = "The gate fails on a planted storage-layout break in an upgradeable contract and passes once it is removed."
+covers = ["R6"]
+after = [13]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 15
+type = "story"
+title = "The governance base is deployed and verified on 46630 and passes a live drill"
+description = "Deploys the governance base through Ignition to 46630, verifies every contract on Blockscout, regenerates the chain module, and runs the drill: a Safe-proposed parameter change executes after 1 hour, a direct call reverts, a pause works, a cancel works."
+verify = "The drill's tx hashes on 46630 show propose, 1-hour wait, execute, revert, pause and cancel, and every deployed contract shows verified source on Blockscout."
+covers = ["R1", "R8"]
+after = [14]
+hitl = true
+risk = "high"
+notes = [
+  "hitl steps: the owner OKs the deploy to 46630 (CLAUDE.md); two Safe signers sign the drill transactions.",
+  "High risk: outside check = the owner and one other Safe signer confirm the drill on the explorer.",
+]
+
+[[entry]]
+id = 16
+type = "story"
+title = "Randomness service: commitments, reveals and timeout no-ops for every module"
+description = "Delivers the shared AD-6 service from spike 5's answer: the upgradeable Randomness contract behind the timelock, the RANDOMNESS_SIGNER commitment route for logged-in players (EIP-712, bound to player and on-chain nonce), the revealer job in the worker, the RevealLog after reveal, the timeout no-op and a late-reveal alert."
+verify = "On a Hardhat local node a test registers, reveals and settles a request through a test module, and a request left 10 minutes unrevealed is closed by a stranger as a no-op; on 46630 the Blockscout-verified service reveals a request within the spike's p99, and a request left unrevealed for 10 minutes is closed by a stranger as a no-op."
+covers = ["R3"]
+after = [5, 11, 15]
+hitl = true
+risk = "high"
+references = ["_bmad-output/initiative-petverse-mvp1/architecture-petverse/architecture-petverse.md#ad-6-commitreveal-randomness-bound-per-request-no-chain-entropy"]
+notes = [
+  "hitl steps: the owner OKs the Randomness deploy to 46630, funds the RANDOMNESS_SIGNER key with test ETH, enters it in Render's secrets, and the Safe grants the role through the timelock.",
+  "High risk: outside check = the adversarial review in the gate on signer binding and replay, and the owner confirms one live reveal on the explorer.",
+]
+
+[[entry]]
+id = 17
+type = "story"
+title = "Refactor sweep"
+description = "Cleans up what the epic's plans and deferred review findings list, with scope set when it starts; cleanup only, any pushed-out scope is a new entry."
+verify = "The gate passes and every deferred finding recorded in this epic's plans is closed or moved to a named entry."
+covers = []
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+hitl = false
+risk = "low"

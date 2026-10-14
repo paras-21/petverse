@@ -1,0 +1,148 @@
+# tickets.toml — the epics of initiative-petverse-mvp1 in build order. tickets.py reads it.
+# The order of the tables is the build order; `id` names an epic for good and is never reused.
+# `after` says what each epic needs and from which epic; the entries that wait on it carry the `after` at inception.
+
+[[epic]]
+id = 1
+slug = "epic-platform"
+title = "Platform baseline, governance and spikes"
+covers = ["CAP-30"]
+
+[[epic]]
+id = 2
+slug = "epic-pet-life"
+title = "Log in, hatch and keep a pet alive"
+covers = ["CAP-1", "CAP-3", "CAP-4", "CAP-5", "CAP-6"]
+after = [
+  { epic = 1, needs = "tracer path (login, 7702 smart account, sponsored call, indexer, generated chain module), governance base, Randomness service, Privy server auth, schema-per-environment" },
+  { epic = 1, needs = "spike answers: wallet modes on 46630 and commit–reveal worker" },
+]
+
+[[epic]]
+id = 3
+slug = "epic-pot"
+title = "Points, pot share and claim"
+covers = ["CAP-7", "CAP-8", "CAP-9"]
+after = [
+  { epic = 2, needs = "PetCore with per-pet points, sleep/wake/bury hooks and the AD-16 status port" },
+  { epic = 1, needs = "spike answer: per-owner two-level pot accumulator invariant" },
+]
+
+[[epic]]
+id = 4
+slug = "epic-petv"
+title = "PETV token, trade tax, burns and Gold vault"
+covers = ["CAP-22", "CAP-24"]
+after = [
+  { epic = 3, needs = "PotFunder to receive the trade-tax pot share" },
+  { epic = 2, needs = "PetCore accrued-Gold counter to pay through GoldVault.creditFromGame" },
+]
+
+[[epic]]
+id = 5
+slug = "epic-store-pass"
+title = "Store, Season Pass, faucet and sponsored actions"
+covers = ["CAP-2", "CAP-23"]
+after = [
+  { epic = 4, needs = "PETV, its faucet allocation and the burn path" },
+  { epic = 3, needs = "PotFunder for PotConverter output" },
+  { epic = 2, needs = "voucher signer and the items the store sells first (food, eggs, shield on PetCore)" },
+  { epic = 1, needs = "spike 2 answer: Gas Manager custom-rules webhook on 46630" },
+]
+
+[[epic]]
+id = 6
+slug = "epic-battle"
+title = "Battles: attack, duel, 2v2, wager and dice"
+covers = ["CAP-10", "CAP-11", "CAP-12"]
+after = [
+  { epic = 3, needs = "settle-before-change on point transfers between buckets" },
+  { epic = 4, needs = "PETV stakes and burns for wager and dice" },
+  { epic = 5, needs = "SeasonPass.isActive for the 10-minute cooldown and bought shields" },
+]
+
+[[epic]]
+id = 7
+slug = "epic-cosmetics-market"
+title = "Cosmetics and market"
+covers = ["CAP-18", "CAP-25"]
+after = [
+  { epic = 5, needs = "Store item registry and PotConverter for the market fee pot share" },
+  { epic = 2, needs = "Cosmetics ERC-1155 base with soulbound badges" },
+]
+
+[[epic]]
+id = 8
+slug = "epic-social"
+title = "Co-Pet, guilds and Guild War"
+covers = ["CAP-14", "CAP-15"]
+after = [
+  { epic = 6, needs = "2v2 matches for the Guild War series" },
+  { epic = 3, needs = "per-bucket accounting for the Co-Pet bucket and the seasonPool stream for Guild War prizes" },
+  { epic = 4, needs = "GoldVault reserve and daily cap for Guild War Gold" },
+]
+
+[[epic]]
+id = 9
+slug = "epic-play-hub"
+title = "Play hub: wheel, streak, monsters, expeditions, Death Match, Boss Raid"
+covers = ["CAP-13", "CAP-19", "CAP-20", "CAP-21"]
+after = [
+  { epic = 6, needs = "battle engine and the Play tab shell" },
+  { epic = 7, needs = "cosmetic prizes (wheel, raid) and the soulbound egg-shard" },
+  { epic = 8, needs = "Co-Pet two-owner approvals for Death Match entry" },
+]
+
+[[epic]]
+id = 10
+slug = "epic-seasons"
+title = "Seasons and leaderboard"
+covers = ["CAP-26"]
+after = [
+  { epic = 5, needs = "on-chain season boundaries in SeasonPass" },
+  { epic = 7, needs = "the soulbound season trophy item" },
+  { epic = 9, needs = "Death Match Hall of Fame data and raid results for the trophies stream" },
+]
+
+[[epic]]
+id = 11
+slug = "epic-growth"
+title = "Evolution and breeding"
+covers = ["CAP-16", "CAP-17"]
+after = [
+  { epic = 10, needs = "season trophies for Mythic" },
+  { epic = 8, needs = "Co-Pet two-owner approvals for breeding" },
+  { epic = 9, needs = "expedition counts for the Explorer path" },
+]
+
+[[epic]]
+id = 12
+slug = "epic-alerts"
+title = "Alerts in app, by web push and on Telegram"
+covers = ["CAP-27"]
+after = [
+  { epic = 6, needs = "PetRobbed events" },
+  { epic = 8, needs = "Co-Pet request events" },
+]
+
+[[epic]]
+id = 13
+slug = "epic-anti-bot"
+title = "Anti-bot flags, payout holds and counter-metrics"
+covers = ["CAP-29"]
+after = [
+  { epic = 3, needs = "claims and the small-pot epoch builder to exclude flagged pets" },
+  { epic = 5, needs = "gas webhook and faucet to refuse flagged accounts" },
+  { epic = 6, needs = "PetRobbed projections for the robbed-new-player churn metric" },
+]
+
+[[epic]]
+id = 14
+slug = "epic-launch"
+title = "Fairness views, operations and testnet launch"
+covers = ["CAP-28"]
+after = [
+  { epic = 11, needs = "every game module deployed, so every random result and money number can be checked" },
+  { epic = 12, needs = "alert delivery for the ops alarms" },
+  { epic = 13, needs = "counter-metrics in MetricDaily" },
+]

@@ -36,3 +36,7 @@ says which one it supersedes. Agents read this file before proposing anything th
 | 29 | 2026-10-14 | owner | Co-Pet leave: the leaver's half of unclaimed pot is paid out first, then the pet becomes the other owner's normal pet. No sale, no money between players | Fits #14 |
 | 30 | 2026-10-14 | owner | Testnet Safe is 2-of-3 team signers. If the Safe web UI does not support 46630, use Safe Protocol Kit / CLI | One lost key is not fatal |
 | 31 | 2026-10-14 | owner | Owner accepts recommended defaults for planning choices; Claude records each and reports it | Fewer questions |
+| 32 | 2026-10-14 | owner | Approved deps: `@safe-global/protocol-kit`, `@openzeppelin/merkle-tree` | Safe spike and Merkle payouts |
+| 33 | 2026-10-14 | owner | Tests may create and DROP only their own `test_<run>` schemas on the project Supabase DB; never `dev`/`prod` or any other schema | Narrow exception to the no-destructive-SQL rule |
+| 34 | 2026-10-14 | owner | External wallet for the ERC-4337 fallback test = MetaMask | Most common wallet |
+| 35 | 2026-10-14 | owner | Testnet Safe: spike uses 3 fresh test keys; owner plus 2 teammates replace them before the testnet governance deploy (human task) | Real signers named later |
