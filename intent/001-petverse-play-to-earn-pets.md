@@ -1,6 +1,6 @@
 # Intent: Petverse, a cute pet game where play earns a share of real ETH
 
-Author: Paras. Status: review.
+Author: Paras. Status: accepted (2026-10-14, by Paras: "LETS START").
 
 ## Problem
 
