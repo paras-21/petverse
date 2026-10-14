@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction C: Premium</title>
+<style>
+/* ===== Direction C: PREMIUM ("Night garden") =====
+   bg          #0E1513   deep green-black
+   surface     #161F1C   cards
+   surface-2   #1D2925   raised / hover
+   line        #2B3833   hairlines
+   ivory       #F2EDE2   primary text
+   muted       #98A39D   secondary text
+   brass       #C8A35A   accent: primary button, ETH, key numbers
+   brass-deep  #8E7238   brass border / pressed
+   sage        #8FB39A   positive, timer
+   rose        #E0907C   alert / robbed
+   Type: serif display (Iowan Old Style, Palatino Linotype, Georgia) for names and numbers;
+         small letter-spaced system sans caps for labels; system sans for body.
+   Shape: 6px corners, 1px hairlines, no drop shadows, generous space. Quiet, value-first.
+*/
+:root{--bg:#0E1513;--s1:#161F1C;--s2:#1D2925;--line:#2B3833;--iv:#F2EDE2;--mu:#98A39D;--br:#C8A35A;--brd:#8E7238;--sg:#8FB39A;--ro:#E0907C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--iv);font-family:-apple-system,"Segoe UI",system-ui,"Helvetica Neue",sans-serif;padding:48px 32px 80px}
+.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-variant-numeric:lining-nums tabular-nums}
+.cap{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu)}
+.rationale{max-width:860px;margin:0 auto 44px;font-size:15px;line-height:1.7;color:var(--mu)}
+.rationale h1{font-weight:400;font-size:36px;color:var(--iv);margin-bottom:10px}
+.rationale b{color:var(--iv);font-weight:500}
+.label{margin:0 0 14px 2px}
+.row{display:flex;gap:56px;justify-content:center;flex-wrap:wrap;margin-bottom:64px}
+
+.phone{width:390px;height:844px;border-radius:50px;background:var(--bg);border:9px solid #26302C;outline:1px solid #3A4642;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-size:13px;position:relative;z-index:2}
+.pscroll{flex:1;display:flex;flex-direction:column;gap:14px;padding:0 20px}
+
+.stage{position:relative;overflow:hidden}
+.stage img{position:absolute;top:0;display:block}
+.stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,21,19,.55) 0%,rgba(14,21,19,0) 30%,rgba(14,21,19,0) 62%,var(--bg) 100%)}
+.stage.p{margin:-44px -20px 0;aspect-ratio:545/420}
+.stage.p img{width:183.49%;left:-77.06%;margin-top:-47%}
+.stage.d{aspect-ratio:920/430;border-radius:6px}
+.stage.d img{width:108.7%;left:-4.89%;margin-top:-24%}
+.over{position:absolute;left:20px;right:20px;bottom:6px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end}
+.nm{font-size:40px;font-weight:400;line-height:1}
+.sub{font-size:13px;color:var(--mu);margin-top:6px}
+.timer{border:1px solid rgba(143,179,154,.5);color:var(--sg);border-radius:6px;padding:6px 10px;font-size:12.5px;background:rgba(14,21,19,.6);white-space:nowrap}
+.pot{border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px;background:var(--s1)}
+.big{font-size:34px;line-height:1.05;color:var(--br)}
+.mid{font-size:22px;line-height:1.1}
+.split{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:6px}
+.split>div{padding:12px 16px}
+.split>div+div{border-left:1px solid var(--line)}
+.alert{display:flex;align-items:center;gap:12px;border-left:2px solid var(--ro);padding:6px 0 6px 14px;font-size:14px}
+.alert p{flex:1;line-height:1.4;color:var(--mu)}
+.alert b{color:var(--iv);font-weight:500}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border-radius:6px;font-size:14px;font-weight:500;padding:12px 16px;letter-spacing:.02em;white-space:nowrap}
+.btn.brass{background:var(--br);color:#17120A}
+.btn.line{border:1px solid var(--brd);color:var(--br)}
+.btn.rose{border:1px solid var(--ro);color:var(--ro);padding:8px 14px}
+.btn.off{border:1px solid var(--line);color:var(--mu)}
+.btn.off b{color:var(--iv);font-weight:500}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabbar{height:82px;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:12px 8px 24px;background:var(--bg)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.tab i{font-style:normal;font-size:17px;line-height:20px}
+.tab.on{color:var(--br)}
+.tab.on::after{content:"";width:4px;height:4px;border-radius:50%;background:var(--br)}
+
+/* claim variant */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--s2);border-top:1px solid var(--brd);border-radius:18px 18px 0 0;padding:22px 22px 34px;display:flex;flex-direction:column;gap:14px;z-index:5}
+.scrim{position:absolute;inset:0;background:rgba(5,9,8,.62);z-index:4}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:-8px auto 4px}
+.rowkv{display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.rowkv span:first-child{color:var(--mu)}
+
+.browser{width:1280px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid #33403B;background:var(--bg)}
+.bbar{height:38px;background:#121a17;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line)}
+.bbar span{width:11px;height:11px;border-radius:50%;background:#2E3A35}
+.url{margin-left:18px;background:var(--s1);border-radius:6px;padding:4px 14px;font-size:12px;color:var(--mu);width:360px}
+.desk{display:grid;grid-template-columns:232px 1fr 360px;min-height:700px}
+.side{border-right:1px solid var(--line);padding:30px 20px;display:flex;flex-direction:column;gap:4px}
+.logo{font-size:24px;padding:0 10px 30px}
+.nav{display:flex;align-items:center;gap:14px;padding:11px 10px;font-size:14px;color:var(--mu);border-radius:6px}
+.nav i{font-style:normal;width:18px;text-align:center}
+.nav.on{color:var(--iv);background:var(--s1);box-shadow:inset 2px 0 0 var(--br)}
+.main{padding:30px 32px;display:flex;flex-direction:column;gap:22px}
+.rail{border-left:1px solid var(--line);padding:30px 28px;display:flex;flex-direction:column;gap:22px}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <h1 class="serif">C. Premium: Night garden</h1>
+  <p>A <b>deep green-black room</b> where the bright daytime pets glow like a lit display case, with <b>brass</b> used only for money and the one main action. Serif numbers, thin hairlines, small letter-spaced labels and lots of space make the ETH pot feel real and trustworthy. This is for players who treat the pet as a <i>collectible that earns</i>. It is calm and sure of itself, with no shouting.</p>
+</div>
+
+<div class="row">
+  <div>
+    <div class="label cap">Phone · home (default)</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/33.png" alt="Mochi and friends">
+          <div class="over"><div><div class="nm serif">Mochi</div><div class="sub">Bunny · Level 6 · Adult</div></div><span class="timer">♥ Hungry in 2d 14h</span></div></div>
+        <div class="alert"><p><b>Biscuit</b> stole 240 points. Revenge?</p><span class="btn rose">Revenge</span></div>
+        <div class="pot">
+          <div><div class="cap">Your share of the pot</div><div class="big serif" style="margin-top:6px">0.018 ETH</div></div>
+          <span class="btn line" style="padding:8px 14px">Claim</span>
+          <div class="sub" style="margin:0">Pot holds 4.21 ETH</div>
+        </div>
+        <div class="split">
+          <div><div class="cap">Points</div><div class="mid serif" style="margin-top:4px">12,480</div></div>
+          <div><div class="cap">Daily wheel</div><div class="mid serif" style="margin-top:4px;color:var(--sg)">Ready</div></div>
+        </div>
+        <div class="acts">
+          <span class="btn brass">Spin the wheel</span>
+          <span class="btn off">Next attack in <b>12m</b></span>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>⌂</i>Home</div><div class="tab"><i>⚔</i>Battle</div><div class="tab"><i>◎</i>Play</div><div class="tab"><i>◇</i>Shop</div><div class="tab"><i>⚑</i>Guild</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label cap">Phone · state: claiming your share</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/33.png" alt="Mochi and friends">
+          <div class="over"><div><div class="nm serif">Mochi</div><div class="sub">Bunny · Level 6 · Adult</div></div><span class="timer">♥ Hungry in 2d 14h</span></div></div>
+        <div class="pot">
+          <div><div class="cap">Your share of the pot</div><div class="big serif" style="margin-top:6px">0.018 ETH</div></div>
+        </div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="cap">Claim your share</div>
+        <div class="big serif" style="font-size:44px">0.018 ETH</div>
+        <div>
+          <div class="rowkv"><span>Points used</span><span class="serif">12,480 → 0</span></div>
+          <div class="rowkv"><span>Mochi keeps</span><span>Level 6, cosmetics, streak</span></div>
+          <div class="rowkv"><span>Arrives in</span><span>About a minute</span></div>
+        </div>
+        <p style="font-size:13px;color:var(--mu);line-height:1.5">Your points go back to 0 and start growing again. Your share of the pot changes every hour as other players earn.</p>
+        <span class="btn brass" style="padding:15px">Claim 0.018 ETH</span>
+        <span class="btn" style="color:var(--mu)">Not now, keep growing</span>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>⌂</i>Home</div><div class="tab"><i>⚔</i>Battle</div><div class="tab"><i>◎</i>Play</div><div class="tab"><i>◇</i>Shop</div><div class="tab"><i>⚑</i>Guild</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="label cap" style="max-width:1280px;margin:0 auto 14px">Desktop 1280 · home with sidebar nav</div>
+<div class="browser">
+  <div class="bbar"><span></span><span></span><span></span><div class="url">petverse.app/home</div></div>
+  <div class="desk">
+    <aside class="side">
+      <div class="logo serif">Petverse</div>
+      <div class="nav on"><i>⌂</i>Home</div><div class="nav"><i>⚔</i>Battle</div><div class="nav"><i>◎</i>Play</div><div class="nav"><i>◇</i>Shop</div><div class="nav"><i>⚑</i>Guild</div>
+      <div style="margin-top:auto;padding:0 10px" class="cap">Season 1 · week 3</div>
+    </aside>
+    <main class="main">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div><div class="nm serif" style="font-size:52px">Mochi</div><div class="sub">Bunny · Level 6 · Adult · Guardian path</div></div>
+        <div style="display:flex;gap:10px;align-items:center"><span class="timer" style="padding:9px 12px">♥ Hungry in 2d 14h</span><span class="btn line">Feed Mochi</span></div>
+      </div>
+      <div class="stage d"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/33.png" alt="Mochi and friends"></div>
+      <div class="acts" style="grid-template-columns:1fr 1fr 1fr">
+        <span class="btn brass">Spin the wheel · ready</span>
+        <span class="btn off">Next attack in <b>12m</b></span>
+        <span class="btn line">Dress Mochi</span>
+      </div>
+    </main>
+    <aside class="rail">
+      <div>
+        <div class="cap">ETH pot</div>
+        <div class="serif" style="font-size:44px;margin-top:6px">4.21 ETH</div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="cap">Your share</div>
+          <div class="big serif" style="margin-top:6px">0.018 ETH</div>
+        </div>
+        <span class="btn brass" style="width:100%;margin-top:16px">Claim 0.018 ETH</span>
+        <div class="sub">Claiming resets your points to 0.</div>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:18px">
+        <div class="cap">Points</div>
+        <div class="mid serif" style="font-size:30px;margin-top:6px">12,480</div>
+        <div class="sub">+120 today</div>
+      </div>
+      <div class="alert" style="border-top:0"><p><b>Biscuit</b> stole 240 points. Revenge?</p><span class="btn rose">Revenge</span></div>
+    </aside>
+  </div>
+</div>
+
+</body>
+</html>

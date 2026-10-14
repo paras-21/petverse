@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Petverse Directions</title>
+<style>
+/* index page: neutral so the 4 directions stand out
+   bg #F4F4F2  text #222  muted #6B6B6B  line #DDDDD8 */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F4F4F2;color:#222;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;padding:28px 24px 60px}
+h1{font-size:22px;margin-bottom:4px}
+.lead{color:#6B6B6B;font-size:14px;margin-bottom:22px;max-width:900px;line-height:1.5}
+.grid{display:flex;gap:20px;overflow-x:auto;padding-bottom:16px}
+.col{flex:0 0 auto}
+.col h2{font-size:16px;margin-bottom:2px}
+.col p{font-size:12.5px;color:#6B6B6B;margin-bottom:8px;max-width:420px;line-height:1.4}
+.col a{color:#222}
+/* iframe is 1400 x 2100 and scaled to 0.3 */
+.frame{width:420px;height:630px;overflow:hidden;border:1px solid #DDDDD8;border-radius:8px;background:#fff}
+.frame iframe{width:1400px;height:2100px;border:0;transform:scale(.3);transform-origin:0 0}
+</style>
+</head>
+<body>
+<h1>Petverse: 4 design directions for the pet home screen</h1>
+<p class="lead">Same screen, same content (Mochi, a level 6 adult bunny), and the same 3D pets in every direction. Each frame shows a phone home, a phone state variant and the 1280 desktop. Click a name to open it full size.</p>
+<div class="grid">
+  <div class="col"><h2><a href="direction-cozy.html">A. Cozy: Sunday picnic</a></h2><p>Warm paper, cocoa, sage and peach. Arched storybook stage and soft pills. Calm, care-first.</p><div class="frame"><iframe src="direction-cozy.html" title="Cozy"></iframe></div></div>
+  <div class="col"><h2><a href="direction-bold.html">B. Bold: Arcade cabinet</a></h2><p>Navy borders, hard shadows, monospace caps, yellow, red and teal. Dense and competitive.</p><div class="frame"><iframe src="direction-bold.html" title="Bold"></iframe></div></div>
+  <div class="col"><h2><a href="direction-premium.html">C. Premium: Night garden</a></h2><p>Green-black with brass, serif numbers and hairlines. Quiet, collectible, value-first.</p><div class="frame"><iframe src="direction-premium.html" title="Premium"></iframe></div></div>
+  <div class="col"><h2><a href="direction-candy.html">D. Candy: Sticker book</a></h2><p>Bubblegum stickers, blob stage, glossy pills, emoji. Loud, playful and social.</p><div class="frame"><iframe src="direction-candy.html" title="Candy"></iframe></div></div>
+</div>
+</body>
+</html>

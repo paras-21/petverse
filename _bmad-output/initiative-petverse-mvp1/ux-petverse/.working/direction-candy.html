@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction D: Candy</title>
+<style>
+/* ===== Direction D: CANDY ("Sticker book") =====
+   bg          #FFEAF3   bubblegum blush
+   dots        #FFD3E6   polka dots
+   ink         #3A1F2B   cherry-brown text (no navy, no purple)
+   white       #FFFFFF   sticker border / cards
+   pink        #FF5FA2   brand, active tab
+   pink-deep   #D93D80   pink shadow
+   sky         #3DBDF5   ETH pot
+   sky-deep    #1E95CC
+   lemon       #FFDF3D   primary action (spin)
+   lemon-deep  #E0B400
+   lime        #74D44F   points / feed
+   lime-deep   #4FA92F
+   orange      #FF8A3D   alert / revenge
+   orange-deep #D9661C
+   cool        #D9D2D6   cooldown fill
+   Type: heavy rounded (Arial Rounded MT Bold, ui-rounded, Trebuchet MS) everywhere; numbers extra large.
+   Shape: blob stage, fat pills, 4px white sticker outlines, coloured "candy" bottom shadows, small tilts.
+*/
+:root{--bg:#FFEAF3;--dot:#FFD3E6;--ink:#3A1F2B;--pk:#FF5FA2;--pkd:#D93D80;--sk:#3DBDF5;--skd:#1E95CC;--le:#FFDF3D;--led:#E0B400;--li:#74D44F;--lid:#4FA92F;--or:#FF8A3D;--ord:#D9661C;--co:#D9D2D6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 3px,transparent 3.5px);background-size:28px 28px;color:var(--ink);font-family:"Arial Rounded MT Bold",ui-rounded,"SF Pro Rounded","Trebuchet MS","Segoe UI",sans-serif;font-weight:700;padding:40px 32px 80px}
+.rationale{max-width:880px;margin:0 auto 40px;background:#fff;border-radius:28px;padding:22px 26px;box-shadow:0 6px 0 var(--pk);font-size:15px;line-height:1.6;font-weight:400;font-family:"Trebuchet MS","Segoe UI",sans-serif}
+.rationale h1{font-family:"Arial Rounded MT Bold",ui-rounded,sans-serif;font-size:32px;color:var(--pk);margin-bottom:6px}
+.label{display:inline-block;background:var(--pk);color:#fff;border-radius:999px;padding:5px 14px;font-size:13px;margin:0 0 14px;transform:rotate(-2deg)}
+.row{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+
+.phone{width:390px;height:844px;border-radius:54px;background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:22px 22px;border:10px solid #fff;box-shadow:0 0 0 4px var(--pk),0 18px 0 4px var(--pkd);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px}
+.pscroll{flex:1;padding:0 16px;display:flex;flex-direction:column;gap:12px}
+
+.hdr{display:flex;align-items:center;gap:10px}
+.nm{font-size:34px;line-height:1;color:var(--pk);text-shadow:3px 3px 0 #fff}
+.badge{background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;box-shadow:0 3px 0 var(--pk);transform:rotate(-3deg);display:inline-block}
+.timer{margin-left:auto;background:var(--li);color:#fff;border:3px solid #fff;border-radius:999px;padding:6px 12px;font-size:14px;box-shadow:0 4px 0 var(--lid);transform:rotate(2deg);white-space:nowrap}
+.stage{position:relative;overflow:hidden;border:5px solid #fff;box-shadow:0 7px 0 var(--pk);background:#A9D4FA}
+.stage img{position:absolute;top:0;display:block}
+.stage.p{aspect-ratio:545/340;border-radius:46% 54% 42% 58% / 38% 40% 60% 62%}
+.stage.p img{width:183.49%;left:-77.06%;margin-top:-55.05%}
+.stage.d{aspect-ratio:920/400;border-radius:44% 56% 40% 60% / 30% 34% 66% 70%}
+.stage.d img{width:108.7%;left:-4.89%;margin-top:-28.26%}
+.tag{position:absolute;transform:translateX(-50%) rotate(-4deg);background:var(--pk);color:#fff;border:3px solid #fff;border-radius:999px;padding:2px 12px;font-size:14px}
+.stage.p .tag{left:78%;top:16%}
+.stage.d .tag{left:87.9%;top:16%}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blob{border:4px solid #fff;border-radius:26px;padding:10px 14px;color:#fff}
+.blob .k{font-size:12px;opacity:.95}
+.blob .v{font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.blob .v small{font-size:14px}
+.blob .s{font-size:12px}
+.blob.pts{background:var(--li);box-shadow:0 6px 0 var(--lid);transform:rotate(-1.5deg)}
+.blob.pot{background:var(--sk);box-shadow:0 6px 0 var(--skd);transform:rotate(1.5deg)}
+.alert{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:6px 6px 6px 16px;box-shadow:0 5px 0 var(--or);font-size:14px}
+.alert p{flex:1;line-height:1.25}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;border:4px solid #fff;border-radius:999px;font-size:16px;padding:12px 16px;white-space:nowrap;position:relative;color:var(--ink)}
+.btn::before{content:"";position:absolute;left:14%;right:14%;top:4px;height:6px;border-radius:999px;background:rgba(255,255,255,.55)}
+.btn.le{background:var(--le);box-shadow:0 6px 0 var(--led)}
+.btn.or{background:var(--or);color:#fff;box-shadow:0 4px 0 var(--ord);padding:8px 14px;font-size:14px;border-width:3px}
+.btn.li{background:var(--li);color:#fff;box-shadow:0 6px 0 var(--lid)}
+.btn.pk{background:var(--pk);color:#fff;box-shadow:0 6px 0 var(--pkd)}
+.btn.off{background:var(--co);color:#7A6A72;box-shadow:0 2px 0 #B9AFB4;font-size:14px}
+.btn.off::before{display:none}
+.btn.off b{color:var(--ink)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.duo .btn,.full{width:100%}
+.tabbar{margin:0 12px 22px;height:70px;background:#fff;border-radius:999px;display:flex;justify-content:space-around;align-items:center;padding:0 6px;box-shadow:0 5px 0 var(--pk)}
+.tab{display:flex;flex-direction:column;align-items:center;font-size:10px;gap:1px;width:58px;padding:5px 0;border-radius:999px}
+.tab i{font-style:normal;font-size:20px;line-height:24px}
+.tab.on{background:var(--pk);color:#fff}
+
+/* hungry variant */
+.hungry .timer{background:var(--or);box-shadow:0 4px 0 var(--ord)}
+.hungry .stage{box-shadow:0 7px 0 var(--or)}
+.bubble{position:absolute;left:22%;top:12%;background:#fff;border-radius:20px;padding:6px 12px;font-size:13px;transform:rotate(-5deg)}
+.bubble::after{content:"";position:absolute;right:16px;bottom:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
+.feedcard{background:#fff;border-radius:28px;padding:14px;box-shadow:0 6px 0 var(--or);display:flex;flex-direction:column;gap:10px}
+.bar{height:16px;border-radius:999px;background:#FFE1CC;border:3px solid #fff;box-shadow:0 0 0 2px var(--or);overflow:hidden}
+.bar span{display:block;height:100%;width:6%;background:var(--or);border-radius:999px}
+
+.browser{width:1280px;margin:0 auto;border-radius:28px;overflow:hidden;border:6px solid #fff;box-shadow:0 0 0 4px var(--pk),0 14px 0 4px var(--pkd);background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:24px 24px}
+.bbar{height:42px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 18px}
+.bbar span{width:13px;height:13px;border-radius:50%}
+.url{margin-left:18px;background:var(--bg);border-radius:999px;padding:5px 16px;font-size:12px;width:360px;font-weight:400}
+.topnav{display:flex;align-items:center;gap:8px;padding:16px 26px}
+.logo{font-size:28px;color:var(--pk);text-shadow:3px 3px 0 #fff;margin-right:22px}
+.pill{background:#fff;border-radius:999px;padding:10px 18px;font-size:15px;box-shadow:0 4px 0 #F2B8D1}
+.pill.on{background:var(--pk);color:#fff;box-shadow:0 4px 0 var(--pkd)}
+.desk{display:grid;grid-template-columns:1fr 370px;gap:24px;padding:4px 26px 30px}
+.dl,.dr{display:flex;flex-direction:column;gap:16px}
+.desk .blob .v{font-size:36px}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <h1>D. Candy: Sticker book</h1>
+  Every surface is a <b>sticker</b>: a thick white outline, a candy-coloured shadow, a slight tilt, a blob-shaped stage and fat glossy pill buttons. Each colour has a job (lemon = do it, lime = points and care, sky = ETH, orange = trouble), and big rounded numbers make the screen feel like a toy. This is for the <i>casual, social, share-a-screenshot</i> player who comes for cute pets and stays for friends. It is the most playful and most "mobile game" of the four.
+</div>
+
+<div class="row">
+  <div>
+    <div class="label">Phone · home (default)</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="hdr">
+          <div><div class="nm">Mochi</div><span class="badge">🐰 Bunny · Lv 6 · Adult</span></div>
+          <span class="timer">♥ 2d 14h</span>
+        </div>
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/21.png" alt="Mochi and friends"><span class="tag">Mochi</span></div>
+        <div class="nums">
+          <div class="blob pts"><div class="k">Points</div><div class="v">12,480</div></div>
+          <div class="blob pot"><div class="k">Pot 4.21 ETH</div><div class="v">0.018 <small>ETH</small></div><div class="s">is your share!</div></div>
+        </div>
+        <div class="alert"><p>😾 <b>Biscuit</b> stole 240 points. Revenge?</p><span class="btn or">Revenge!</span></div>
+        <div class="duo">
+          <span class="btn le">🎡 Spin wheel</span>
+          <span class="btn off">Attack in <b>12m</b></span>
+        </div>
+        <span class="btn li full">🥕 Feed Mochi</span>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>🏠</i>Home</div><div class="tab"><i>⚔️</i>Battle</div><div class="tab"><i>🎲</i>Play</div><div class="tab"><i>🛍️</i>Shop</div><div class="tab"><i>🛡️</i>Guild</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label" style="background:var(--or)">Phone · state: Mochi is hungry</div>
+    <div class="phone hungry">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="hdr">
+          <div><div class="nm">Mochi</div><span class="badge">🐰 Bunny · Lv 6 · Adult</span></div>
+          <span class="timer">♥ 3h left!</span>
+        </div>
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/21.png" alt="Mochi is hungry"><span class="tag">Mochi</span><span class="bubble">I'm hungry…</span></div>
+        <div class="feedcard">
+          <div style="font-size:17px">Mochi falls asleep in 3h</div>
+          <div class="bar"><span></span></div>
+          <div style="font-size:13px;font-weight:400;font-family:'Trebuchet MS',sans-serif;line-height:1.4">Asleep pets earn no points and can be robbed. One meal keeps Mochi awake for 3 more days.</div>
+          <span class="btn li full">🥕 Feed now · +20 points</span>
+          <div style="font-size:12px;text-align:center;font-weight:400">You have 2 free meals</div>
+        </div>
+        <div class="nums">
+          <div class="blob pts"><div class="k">Points</div><div class="v">12,480</div></div>
+          <div class="blob pot"><div class="k">Pot 4.21 ETH</div><div class="v">0.018 <small>ETH</small></div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>🏠</i>Home</div><div class="tab"><i>⚔️</i>Battle</div><div class="tab"><i>🎲</i>Play</div><div class="tab"><i>🛍️</i>Shop</div><div class="tab"><i>🛡️</i>Guild</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1280px;margin:0 auto"><span class="label">Desktop 1280 · home with top nav</span></div>
+<div class="browser">
+  <div class="bbar"><span style="background:var(--pk)"></span><span style="background:var(--le)"></span><span style="background:var(--li)"></span><div class="url">petverse.app/home</div></div>
+  <div class="topnav">
+    <div class="logo">Petverse</div>
+    <span class="pill on">🏠 Home</span><span class="pill">⚔️ Battle</span><span class="pill">🎲 Play</span><span class="pill">🛍️ Shop</span><span class="pill">🛡️ Guild</span>
+    <span class="pill" style="margin-left:auto;box-shadow:0 4px 0 var(--lid)">🔥 Day 5 streak</span>
+  </div>
+  <div class="desk">
+    <div class="dl">
+      <div class="hdr">
+        <div><div class="nm" style="font-size:46px">Mochi</div><span class="badge">🐰 Bunny · Lv 6 · Adult</span></div>
+        <span class="timer" style="font-size:16px">♥ Hungry in 2d 14h</span>
+        <span class="btn li">🥕 Feed</span>
+      </div>
+      <div class="stage d"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/21.png" alt="Mochi and friends"><span class="tag">Mochi</span></div>
+      <div class="duo" style="grid-template-columns:1fr 1fr 1fr">
+        <span class="btn le">🎡 Spin wheel · ready</span>
+        <span class="btn off">Next attack in <b>12m</b></span>
+        <span class="btn pk">🎀 Dress up</span>
+      </div>
+    </div>
+    <div class="dr">
+      <div class="alert"><p>😾 <b>Biscuit</b> stole 240 points. Revenge?</p><span class="btn or">Revenge!</span></div>
+      <div class="blob pts"><div class="k">Your points</div><div class="v">12,480</div><div class="s">+120 today</div></div>
+      <div class="blob pot"><div class="k">ETH pot</div><div class="v">4.21 <small>ETH</small></div><div class="s">Your share = 0.018 ETH</div>
+        <span class="btn le full" style="margin-top:10px">Claim 0.018 ETH</span><div class="s" style="margin-top:8px">Claiming resets your points to 0.</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

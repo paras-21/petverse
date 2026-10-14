@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;700;800;900&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Petverse: battle</title>
+<style>
+/* ===== Key screen: BATTLE (attack list -> automatic fight -> result) =====
+   Illustrates (spine + PRD):
+   - EXPERIENCE.md > Flows > Returning player's day: attack + revenge (PRD UJ-2)
+   - EXPERIENCE.md > State Patterns: cooldown shown inside the disabled button; shielded and asleep target rows; won / lost result
+   - EXPERIENCE.md > Voice: gentle but clear loss copy ("Pudding kept their points. Try again in 30m")
+   - DESIGN.md > Component Patterns: target row (reward + chance before you tap), revenge row, nameplate + health bar, hit label, result card, segmented tabs, bottom pill tab bar / desktop pill top nav
+   - DESIGN.md > Accessibility: big readable numbers for points and reward
+   - PRD FR-18, FR-19 (~5% steal, 1 per 30 min), FR-21 revenge skips cooldown, FR-22 30-min shield, FR-43 pass 10-min, 4.10 level = 1 + floor(sqrt(points/100)), similar level = +/-2
+   Style source: .working/direction-candy.html (tokens copied exactly). Light mode only.
+*/
+/* ---- Candy "Sticker book" tokens: copied 1:1 from .working/direction-candy.html ---- */
+:root{--bg:#FFEAF3;--dot:#FFD3E6;--ink:#3A1F2B;--pk:#FF5FA2;--pkd:#D93D80;--sk:#3DBDF5;--skd:#1E95CC;--le:#FFDF3D;--led:#E0B400;--li:#74D44F;--lid:#4FA92F;--or:#FF8A3D;--ord:#D9661C;--co:#D9D2D6;--soft:#7A6A72}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 3px,transparent 3.5px);background-size:28px 28px;color:var(--ink);font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,"SF Pro Rounded","Trebuchet MS","Segoe UI",sans-serif;font-weight:700;padding:40px 32px 80px}
+.rationale{max-width:880px;margin:0 auto 40px;background:#fff;border-radius:28px;padding:22px 26px;box-shadow:0 6px 0 var(--pk);font-size:15px;line-height:1.6;font-weight:400;font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif}
+.rationale h1{font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,sans-serif;font-size:32px;color:var(--pkd);margin-bottom:6px}
+.label{display:inline-block;background:var(--pk);color:var(--ink);border-radius:999px;padding:5px 14px;font-size:13px;margin:0 0 14px;transform:rotate(-2deg)}
+.label.or{background:var(--or)}.label.li{background:var(--li)}.label.sk{background:var(--sk)}
+.row{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+
+/* phone frame */
+.phone{width:390px;height:844px;border-radius:54px;background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:22px 22px;border:10px solid #fff;box-shadow:0 0 0 4px var(--pk),0 18px 0 4px var(--pkd);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:42px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px}
+.status .sig{display:flex;gap:3px;align-items:flex-end}.status .sig i{display:block;width:4px;background:var(--ink);border-radius:2px}
+.pscroll{flex:1;min-height:0;padding:0 16px;display:flex;flex-direction:column;gap:12px}
+
+/* type + header */
+.hdr{display:flex;align-items:center;gap:10px}
+.nm{font-size:34px;line-height:1;color:var(--pkd);text-shadow:3px 3px 0 #fff}
+.badge{background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;box-shadow:0 3px 0 var(--pk);transform:rotate(-3deg);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.timer{margin-left:auto;background:var(--li);color:var(--ink);border:3px solid #fff;border-radius:999px;padding:6px 12px;font-size:14px;box-shadow:0 4px 0 var(--lid);transform:rotate(2deg);white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.txt{font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif;font-weight:400;font-size:14px;line-height:1.4}
+.small{font-size:12px}
+.muted{color:var(--soft)}
+.av{width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 var(--pk);overflow:hidden;flex:none;margin-left:auto;background:#A9D4FA}
+
+/* image crop helper: shows region (x,y,w,h) of a 1000px-wide pet render */
+.crop{position:relative;overflow:hidden;aspect-ratio:var(--w)/var(--h);background:#A9D4FA}
+.crop>img{position:absolute;top:0;display:block;max-width:none;left:calc(-100% * var(--x) / var(--w));width:calc(100% * 1000 / var(--w));margin-top:calc(-100% * var(--y) / var(--w))}
+/* named crops */
+.c-bunny{--x:790;--y:425;--w:130;--h:130}
+.c-cat{--x:612;--y:425;--w:130;--h:130}
+.c-pup{--x:265;--y:425;--w:130;--h:130}
+.c-drako{--x:443;--y:410;--w:130;--h:130}
+.c-blob{--x:75;--y:420;--w:170;--h:170}
+
+/* stage (blob) */
+.stage{position:relative;overflow:hidden;border:5px solid #fff;box-shadow:0 7px 0 var(--pk);background:#A9D4FA}
+.blobshape{border-radius:46% 54% 42% 58% / 38% 40% 60% 62%}
+.blobshape2{border-radius:44% 56% 40% 60% / 30% 34% 66% 70%}
+.tag{position:absolute;transform:translateX(-50%) rotate(-4deg);background:var(--pk);color:var(--ink);border:3px solid #fff;border-radius:999px;padding:2px 12px;font-size:14px;white-space:nowrap}
+
+/* number blobs */
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blob{border:4px solid #fff;border-radius:26px;padding:10px 14px;color:var(--ink)}
+.blob .k{font-size:12px;opacity:.95}
+.blob .v{font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.blob .v small{font-size:14px}
+.blob .s{font-size:12px}
+.blob.pts{background:var(--li);box-shadow:0 6px 0 var(--lid);transform:rotate(-1.5deg)}
+.blob.pot{background:var(--sk);box-shadow:0 6px 0 var(--skd);transform:rotate(1.5deg)}
+
+/* money: dollars first, token small underneath */
+.usd{font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.tok{font-size:11px;color:var(--soft);margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* alert */
+.alert{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:6px 6px 6px 12px;box-shadow:0 5px 0 var(--or);font-size:14px}
+.alert p{flex:1;line-height:1.25}
+
+/* pill buttons */
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;border:4px solid #fff;border-radius:999px;font-size:16px;padding:12px 16px;white-space:nowrap;position:relative;color:var(--ink)}
+.btn::before{content:"";position:absolute;left:14%;right:14%;top:4px;height:6px;border-radius:999px;background:rgba(255,255,255,.55)}
+.btn.le{background:var(--le);box-shadow:0 6px 0 var(--led)}
+.btn.or{background:var(--or);color:var(--ink);box-shadow:0 4px 0 var(--ord);padding:8px 14px;font-size:14px;border-width:3px}
+.btn.li{background:var(--li);color:var(--ink);box-shadow:0 6px 0 var(--lid)}
+.btn.pk{background:var(--pk);color:var(--ink);box-shadow:0 6px 0 var(--pkd)}
+.btn.sk{background:var(--sk);color:var(--ink);box-shadow:0 6px 0 var(--skd)}
+.btn.wh{background:#fff;box-shadow:0 5px 0 #F2B8D1}
+.btn.off{background:var(--co);color:var(--soft);box-shadow:0 2px 0 #B9AFB4;font-size:14px}
+.btn.off::before{display:none}
+.btn.off b{color:var(--ink)}
+.btn.sm{padding:7px 12px;font-size:13px;border-width:3px}
+.btn.sm::before{top:3px;height:4px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.duo .btn,.full{width:100%}
+
+/* sticker card + status pill */
+.card{background:#fff;border-radius:28px;padding:14px;box-shadow:0 6px 0 var(--c,var(--pk))}
+.card.le{--c:var(--led)}.card.li{--c:var(--li)}.card.sk{--c:var(--sk)}.card.or{--c:var(--or)}.card.pk{--c:var(--pk)}
+.spill{display:inline-flex;align-items:center;gap:4px;border:3px solid #fff;border-radius:999px;padding:3px 10px;font-size:12px;color:var(--ink);white-space:nowrap}
+.spill.le{background:var(--le);color:var(--ink);box-shadow:0 3px 0 var(--led)}
+.spill.li{background:var(--li);box-shadow:0 3px 0 var(--lid)}
+.spill.sk{background:var(--sk);box-shadow:0 3px 0 var(--skd)}
+.spill.or{background:var(--or);box-shadow:0 3px 0 var(--ord)}
+.spill.pk{background:var(--pk);box-shadow:0 3px 0 var(--pkd)}
+.spill.co{background:var(--co);color:var(--soft);box-shadow:0 2px 0 #B9AFB4}
+.itile{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;flex:none;border:3px solid #fff;color:var(--ink)}
+.itile svg{width:28px;height:28px}
+.itile.le{background:var(--le);color:var(--ink);box-shadow:0 4px 0 var(--led)}
+.itile.li{background:var(--li);box-shadow:0 4px 0 var(--lid)}
+.itile.sk{background:var(--sk);box-shadow:0 4px 0 var(--skd)}
+.itile.or{background:var(--or);box-shadow:0 4px 0 var(--ord)}
+.itile.pk{background:var(--pk);box-shadow:0 4px 0 var(--pkd)}
+
+/* segmented tabs */
+.seg{display:flex;background:#fff;border-radius:999px;padding:5px;box-shadow:0 4px 0 #F2B8D1;gap:4px}
+.seg span{flex:1;text-align:center;border-radius:999px;padding:8px 0;font-size:14px}
+.seg span small{display:block;font-size:10px;opacity:.85;margin-top:1px;white-space:nowrap}
+.seg span.on{background:var(--pk);color:var(--ink);box-shadow:0 3px 0 var(--pkd)}
+
+/* bottom tab bar (phone) */
+.tabbar{margin:0 12px 22px;height:70px;flex:none;background:#fff;border-radius:999px;display:flex;justify-content:space-around;align-items:center;padding:0 6px;box-shadow:0 5px 0 var(--pk)}
+.tab{display:flex;flex-direction:column;align-items:center;font-size:10px;gap:2px;width:58px;padding:6px 0 5px;border-radius:999px;--hole:#fff}
+.tab svg{width:24px;height:24px}
+.tab.on{background:var(--pk);color:var(--ink);--hole:var(--pk)}
+
+/* icons */
+svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
+.btn.le svg.i,.spill.le svg.i,.itile.le svg{--hole:var(--le)}
+.btn.li svg.i,.spill.li svg.i,.itile.li svg{--hole:var(--li)}
+.btn.pk svg.i,.itile.pk svg{--hole:var(--pk)}
+.btn.or svg.i,.itile.or svg{--hole:var(--or)}
+.itile.sk svg{--hole:var(--sk)}
+
+/* bottom sheet over phone */
+.scrim{position:absolute;inset:0;background:rgba(58,31,43,.38);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:38px 38px 0 0;padding:14px 20px 34px;z-index:6;display:flex;flex-direction:column;gap:12px;box-shadow:0 -6px 0 var(--pk)}
+.grab{width:54px;height:6px;border-radius:9px;background:var(--co);margin:0 auto 4px}
+
+/* desktop browser frame */
+.browser{width:1280px;margin:0 auto;border-radius:28px;overflow:hidden;border:6px solid #fff;box-shadow:0 0 0 4px var(--pk),0 14px 0 4px var(--pkd);background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:24px 24px}
+.bbar{height:42px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 18px}
+.bbar span{width:13px;height:13px;border-radius:50%}
+.url{margin-left:18px;background:var(--bg);border-radius:999px;padding:5px 16px;font-size:12px;width:360px;font-weight:400}
+.topnav{display:flex;align-items:center;gap:8px;padding:16px 26px}
+.logo{font-size:28px;color:var(--pkd);text-shadow:3px 3px 0 #fff;margin-right:22px}
+.pill{background:#fff;border-radius:999px;padding:10px 18px;font-size:15px;box-shadow:0 4px 0 #F2B8D1;display:inline-flex;align-items:center;gap:6px;--hole:#fff}
+.pill.on{background:var(--pk);color:var(--ink);box-shadow:0 4px 0 var(--pkd);--hole:var(--pk)}
+.pill svg{width:20px;height:20px}
+.pill .av{width:34px;height:34px;margin:-6px -12px -6px 0;box-shadow:none;border-width:2px}
+.desk{display:grid;grid-template-columns:1fr 370px;gap:24px;padding:4px 26px 30px}
+.dl,.dr{display:flex;flex-direction:column;gap:16px}
+
+/* ---- screen-specific ---- */
+.ttl{display:flex;align-items:center;gap:10px}
+.ttl .nm{font-size:32px}
+.me{display:flex;align-items:center;gap:10px;background:#fff;border-radius:26px;padding:8px 12px 8px 8px;box-shadow:0 5px 0 var(--li)}
+.me .pts{font-size:22px;color:var(--ink);text-decoration:underline;text-decoration-color:var(--li);text-decoration-thickness:4px;text-underline-offset:4px;line-height:1}
+.ready{margin-left:auto}
+.list{display:flex;flex-direction:column;gap:10px}
+.trow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:26px;padding:8px 10px 8px 8px;box-shadow:0 5px 0 #F2B8D1}
+.trow .pav{width:54px;height:54px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--dot);overflow:hidden;flex:none;position:relative}
+.trow .pav .crop{width:100%}
+.trow .who{flex:1;min-width:0}
+.trow .n1{font-size:15px;display:flex;align-items:center;gap:6px}
+.trow .n1 small{font-size:11px;background:var(--bg);border-radius:999px;padding:2px 7px;color:var(--soft)}
+.trow .n2{font-size:12px;color:var(--soft);font-weight:400;font-family:"Nunito","Trebuchet MS",sans-serif}
+.trow .odds{font-size:14px;margin-top:2px;white-space:nowrap}
+.trow .odds b{color:var(--ink);font-size:16px;background:var(--li);border-radius:999px;padding:0 8px}
+.trow.rev{box-shadow:0 5px 0 var(--or);background:#FFF4EC}
+.trow.rev .odds b{color:var(--ink);background:var(--or)}
+.trow.dim{opacity:.75}
+.ovl{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--sk);color:var(--ink);display:grid;place-items:center;border:2px solid #fff}
+.ovl svg{width:13px;height:13px}
+.sec{font-size:13px;color:var(--soft);display:flex;justify-content:space-between;padding:0 4px}
+
+/* fight */
+.arena{border-radius:44% 56% 40% 60% / 30% 34% 66% 70%}
+.fight{position:relative}
+.plate{position:absolute;background:#fff;border-radius:18px;padding:6px 10px;box-shadow:0 4px 0 var(--pk);width:160px;z-index:2;font-size:14px}
+.plate .lv{font-size:11px;color:var(--soft)}
+.hp{height:12px;border-radius:9px;background:#FFE1EC;margin-top:4px;overflow:hidden;border:2px solid #fff;box-shadow:0 0 0 2px var(--dot)}
+.hp span{display:block;height:100%;border-radius:9px;background:var(--li)}
+.hp span.low{background:var(--or)}
+.hpn{font-size:11px;text-align:right;margin-top:2px;color:var(--soft)}
+.hit{position:absolute;z-index:3;border:3px solid #fff;border-radius:999px;padding:4px 12px;font-size:17px;color:var(--ink);white-space:nowrap}
+.hit.a{background:var(--or);box-shadow:0 4px 0 var(--ord);transform:rotate(-8deg)}
+.hit.b{background:var(--sk);box-shadow:0 4px 0 var(--skd);transform:rotate(6deg)}
+.hit.c{background:var(--pk);box-shadow:0 4px 0 var(--pkd);transform:rotate(-4deg);font-size:20px}
+.say{background:#fff;border-radius:24px;padding:12px 16px;box-shadow:0 5px 0 var(--pk);font-size:16px;line-height:1.3}
+.rnd{display:flex;justify-content:space-between;align-items:center}
+
+/* result */
+.res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.big{font-size:56px;line-height:1;color:var(--ink)}
+.won{background:var(--li);border:5px solid #fff;border-radius:32px;padding:14px 26px 12px;box-shadow:0 7px 0 var(--lid);transform:rotate(-2deg)}
+.won .k{font-size:14px;color:var(--ink)}
+.rpet{width:200px;border-radius:50%;border:5px solid #fff;box-shadow:0 7px 0 var(--pk);overflow:hidden}
+.lost .rpet{box-shadow:0 7px 0 var(--or)}
+.headline{font-size:28px;line-height:1.1}
+.confetti{position:absolute;width:24px;height:24px}
+</style>
+</head>
+<body>
+<!-- Custom chunky rounded icon set (sticker style). Shapes use currentColor; cut-outs use var(--hole). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11.2 12 3.8l8.5 7.4V19a2.5 2.5 0 0 1-2.5 2.5h-3.2v-5.2a2.8 2.8 0 0 0-5.6 0v5.2H6A2.5 2.5 0 0 1 3.5 19z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-battle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M5 4.5 16.5 16M19 4.5 7.5 16"/><path d="M13.5 19.5l6-6M4.5 13.5l6 6"/></g></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="6.5" fill="currentColor"/><path d="M7.5 10.2v4.6M5.2 12.5h4.6" stroke="var(--hole)" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="11" r="1.5" fill="var(--hole)"/><circle cx="18.5" cy="14" r="1.5" fill="var(--hole)"/></symbol>
+<symbol id="i-shop" viewBox="0 0 24 24"><path d="M8 9V7a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4.5 8.5h15l-1 10.5a2.6 2.6 0 0 1-2.6 2.4H8.1A2.6 2.6 0 0 1 5.5 19z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="14.5" r="2" fill="var(--hole)"/></symbol>
+<symbol id="i-guild" viewBox="0 0 24 24"><path d="M5 4.5h14V13c0 4-3.4 6.6-7 8-3.6-1.4-7-4-7-8z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 8.2l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="var(--hole)"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5S3.5 15.4 3.5 9.3A4.6 4.6 0 0 1 12 6.8a4.6 4.6 0 0 1 8.5 2.5c0 6.1-8.5 11.2-8.5 11.2z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-heart-o" viewBox="0 0 24 24"><path d="M12 20S4 15.2 4 9.5A4.4 4.4 0 0 1 12 7.1a4.4 4.4 0 0 1 8 2.4C20 15.2 12 20 12 20z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-carrot" viewBox="0 0 24 24"><path d="M14.5 9.5 4 20c-.6.6-.1 1.1.5.6L15 11.5" fill="none"/><path d="M15.8 8.2c-1.6-1.6-4-1.2-5.4.6L3.6 19.3c-.6.9.2 1.7 1.1 1.1l10.5-6.8c1.8-1.4 2.2-3.8.6-5.4z" fill="currentColor"/><path d="M15.5 8.5 19 3.5M15.5 8.5l5-1.5M15.5 8.5l.8-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 19.5 5.5V12c0 4.6-3.4 7.7-7.5 9.2C7.9 19.7 4.5 16.6 4.5 12V5.5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.6 12l2.4 2.4 4.4-4.6" fill="none" stroke="var(--hole)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12.5" r="9" fill="currentColor"/><path d="M12 12.5V5.5M12 12.5l6.3 3.4M12 12.5l-6.3 3.4" stroke="var(--hole)" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12.5" r="2.2" fill="var(--hole)"/><path d="M9.8 1.8h4.4L12 5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+<symbol id="i-monster" viewBox="0 0 24 24"><path d="M6.5 7.5 5 3.5l4 2.4M17.5 7.5 19 3.5l-4 2.4" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 14a8 8 0 0 1 16 0v5.2c0 1.4-1.6 1.9-2.6 1l-1.1-1-1.4 1.3a1.3 1.3 0 0 1-1.8 0L12 19.3l-1.1 1.2a1.3 1.3 0 0 1-1.8 0l-1.4-1.3-1.1 1c-1 .9-2.6.4-2.6-1z" fill="currentColor"/><circle cx="9.2" cy="13" r="1.8" fill="var(--hole)"/><circle cx="14.8" cy="13" r="1.8" fill="var(--hole)"/></symbol>
+<symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M15.8 8.2 13.4 13.4 8.2 15.8l2.4-5.2z" fill="var(--hole)" stroke="var(--hole)" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5.5" fill="currentColor"/><circle cx="8.3" cy="8.3" r="1.9" fill="var(--hole)"/><circle cx="12" cy="12" r="1.9" fill="var(--hole)"/><circle cx="15.7" cy="15.7" r="1.9" fill="var(--hole)"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21.5c-4.2 0-7-2.8-7-6.6 0-3.4 2.4-5.4 3.6-7.6.4 1.6 1.2 2.6 2.2 3C10.6 7 12.4 4.2 14.6 2.5c-.3 3 1.3 4.6 2.6 6.3 1.2 1.6 1.8 3.2 1.8 5.7 0 4.2-2.8 7-7 7z" fill="currentColor"/><path d="M12 19.2c-1.7 0-2.8-1.1-2.8-2.6 0-1.6 1.4-2.6 2.2-4 .9 1.4 3.4 2.3 3.4 4 0 1.5-1.1 2.6-2.8 2.6z" fill="var(--hole)"/></symbol>
+<symbol id="i-crown" viewBox="0 0 24 24"><path d="M3.5 8.5 8 12l4-6.5 4 6.5 4.5-3.5-1.6 10H5.1z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="14.8" r="1.6" fill="var(--hole)"/></symbol>
+<symbol id="i-egg" viewBox="0 0 24 24"><path d="M12 2.5c3.8 0 7 6.2 7 11.2a7 7 0 0 1-14 0C5 8.7 8.2 2.5 12 2.5z" fill="currentColor"/><circle cx="9.5" cy="10" r="1.6" fill="var(--hole)"/><circle cx="14.6" cy="14.5" r="2" fill="var(--hole)"/><circle cx="10" cy="17" r="1.2" fill="var(--hole)"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2.5 5 13.5h6l-1.5 8 8.5-11h-6z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M12 7v5.3l3.4 2" fill="none" stroke="var(--hole)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="4" fill="currentColor"/><path d="M6 9l6 4 6-4" fill="none" stroke="var(--hole)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M16.2 9.2A4.8 4.8 0 1 0 16.8 13h-4.3" fill="none" stroke="var(--hole)" stroke-width="2.6" stroke-linecap="round"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4.5 7.5 15.5 4c1-.3 1.8.3 1.8 1.3V7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><rect x="2.5" y="7" width="19" height="13" rx="4" fill="currentColor"/><rect x="14.5" y="11.2" width="7" height="4.6" rx="2.3" fill="var(--hole)"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M10 2.5c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7zM18.5 14c.3 2.4 1.1 3.2 3.5 3.5-2.4.3-3.2 1.1-3.5 3.5-.3-2.4-1.1-3.2-3.5-3.5 2.4-.3 3.2-1.1 3.5-3.5z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.5" y="9" width="17" height="12" rx="3" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="4.5" rx="2" fill="currentColor"/><path d="M12 6.5V21" stroke="var(--hole)" stroke-width="2.4"/><path d="M12 6.5C10.5 3 7 3 7 5.2 7 6.5 9.5 6.5 12 6.5zM12 6.5c1.5-3.5 5-3.5 5-1.3 0 1.3-2.5 1.3-5 1.3z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3.5h10v5.5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5.5H4.5c0 3 1.2 4.5 3 4.8M17 5.5h2.5c0 3-1.2 4.5-3 4.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 14v3.5M8 20.5h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="i-potion" viewBox="0 0 24 24"><path d="M9.5 2.8h5M10.2 3v5.2L5.4 16a3.6 3.6 0 0 0 3.1 5.4h7a3.6 3.6 0 0 0 3.1-5.4l-4.8-7.8V3" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="16.5" r="1.6" fill="var(--hole)"/><circle cx="14" cy="14.2" r="1.1" fill="var(--hole)"/></symbol>
+<symbol id="i-shirt" viewBox="0 0 24 24"><path d="M8.5 3.5 3 6.5l2 4.2 2.2-1V20.5h9.6V9.7l2.2 1 2-4.2-5.5-3a3.5 3.5 0 0 1-7 0z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.6"/><rect x="4.5" y="10" width="15" height="11" rx="3.5" fill="currentColor"/><circle cx="12" cy="15.5" r="1.8" fill="var(--hole)"/></symbol>
+<symbol id="i-revenge" viewBox="0 0 24 24"><path d="M9 4.5 4 9.5l5 5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 9.5H14a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M12 6.8v10.4M14.6 9c-.6-.8-1.6-1.2-2.7-1.2-1.6 0-2.6.8-2.6 2s1 1.6 2.7 2c1.7.4 2.8.9 2.8 2.2s-1.2 2.1-2.8 2.1c-1.2 0-2.3-.5-2.9-1.4" fill="none" stroke="var(--hole)" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-diamond" viewBox="0 0 24 24"><path d="M12 2.5 19 12l-7 9.5L5 12z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 6v12" stroke="var(--hole)" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></symbol>
+<symbol id="i-zzz" viewBox="0 0 24 24"><path d="M3.5 10.5h6l-6 8h6M13 4h5l-5 6.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.6" fill="currentColor"/><circle cx="16.5" cy="9" r="3" fill="currentColor"/><path d="M2.5 19.5c0-3.6 2.7-6 6-6s6 2.4 6 6zM13.8 14c.8-.6 1.8-1 2.8-1 2.8 0 4.9 2 4.9 5.2h-6.2" fill="currentColor"/></symbol>
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M9 11.5V4.8a1.8 1.8 0 0 1 3.6 0v5.4l4.6.9c1.5.3 2.4 1.7 2.1 3.2l-.9 4.4a3 3 0 0 1-3 2.3h-4.6c-1 0-1.9-.5-2.4-1.3L4.9 15a1.6 1.6 0 0 1 2.5-2z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+</defs>
+</svg>
+
+<div class="rationale">
+  <h1>Key screens 2: Battle</h1>
+  The Battle tab lists pets near your level. Every row says what you can win and how likely it is <i>before</i> you tap ("Win +620 · 54% chance"). A revenge row sits on top when someone robbed you; it skips the wait. The fight plays by itself: two pets, two health bars, playful hit labels. The result card shows the points in big type. <b>Alternate state:</b> a loss, said gently, with the wait shown on the disabled button. The desktop frame shows the list while the 30-minute wait is running.
+</div>
+
+<div class="row">
+  <!-- 1. Attack list, ready -->
+  <div>
+    <div class="label">Phone · Battle tab, attack ready</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
+      <div class="pscroll">
+        <div class="ttl"><div class="nm">Battle</div><div class="av"><div class="crop c-bunny"><img src="img/33.png" alt="Mochi"></div></div></div>
+        <div class="seg"><span class="on">Attack<small>1 every 30m</small></span><span>Duel<small>5 left · rank 1,204</small></span><span>2v2<small>5 left today</small></span></div>
+        <div class="me">
+          <div class="pav" style="width:46px;height:46px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 0 0 2px var(--dot)"><div class="crop c-bunny"><img src="img/33.png" alt="Mochi"></div></div>
+          <div><div style="font-size:14px">Mochi · Lv 12</div><div class="pts">12,480 <span style="font-size:12px">points</span></div></div>
+          <span class="spill li ready"><svg class="i"><use href="#i-bolt"/></svg> 1 attack ready</span>
+        </div>
+        <div class="list">
+          <div class="trow rev">
+            <div class="pav"><div class="crop c-pup"><img src="img/21.png" alt="Biscuit"></div></div>
+            <div class="who"><div class="n1" style="display:block;line-height:1.15">Biscuit stole<br>624 points</div><div class="odds"><b>Win +550</b> · 58%</div></div>
+            <span class="btn or sm" style="flex-direction:column;gap:0;line-height:1.1;padding:6px 12px"><span style="display:flex;align-items:center;gap:4px"><svg class="i"><use href="#i-revenge"/></svg>Revenge</span><span style="font-size:10px">no wait</span></span>
+          </div>
+          <div class="sec"><span>Pets near your level</span><span>Lv 10 to 14</span></div>
+          <div class="trow">
+            <div class="pav"><div class="crop c-cat"><img src="img/33.png" alt="Pudding"></div></div>
+            <div class="who"><div class="n1">Pudding <small>Lv 12</small></div><div class="n2">12,400 points</div><div class="odds"><b>Win +620</b> · 54% chance</div></div>
+            <span class="btn le sm">Attack</span>
+          </div>
+          <div class="trow">
+            <div class="pav"><div class="crop c-blob"><img src="img/22.png" alt="Bun"></div></div>
+            <div class="who"><div class="n1">Bun <small>Lv 13</small></div><div class="n2">15,200 points</div><div class="odds"><b>Win +760</b> · 41% chance</div></div>
+            <span class="btn le sm">Attack</span>
+          </div>
+          <div class="trow">
+            <div class="pav"><div class="crop c-pup"><img src="img/22.png" alt="Pebble"></div><span class="ovl" style="background:var(--soft)"><svg class="i"><use href="#i-zzz"/></svg></span></div>
+            <div class="who"><div class="n1">Pebble <small>Lv 11</small></div><div class="n2">Asleep · 10,400 points</div><div class="odds"><b>Win +520</b> · 80% chance</div></div>
+            <span class="btn le sm">Attack</span>
+          </div>
+          <div class="trow dim">
+            <div class="pav"><div class="crop c-drako"><img src="img/21.png" alt="Tofu"></div><span class="ovl"><svg class="i"><use href="#i-shield"/></svg></span></div>
+            <div class="who"><div class="n1">Tofu <small>Lv 12</small></div><div class="n2">Shielded · 13,600 points</div><div class="odds muted">Safe for now</div></div>
+            <span class="btn off sm"><svg class="i"><use href="#i-shield"/></svg> <b>22m</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="tabbar"><div class="tab"><svg><use href="#i-home"/></svg>Home</div><div class="tab on"><svg><use href="#i-battle"/></svg>Battle</div><div class="tab"><svg><use href="#i-play"/></svg>Play</div><div class="tab"><svg><use href="#i-shop"/></svg>Shop</div><div class="tab"><svg><use href="#i-guild"/></svg>Guild</div></div>
+    </div>
+  </div>
+
+  <!-- 2. Automatic fight -->
+  <div>
+    <div class="label sk">Phone · the fight plays by itself</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
+      <div class="pscroll">
+        <div class="rnd"><span class="spill pk">Round 3 of 5</span><span class="spill sk"><svg class="i"><use href="#i-bolt"/></svg> Auto battle</span></div>
+        <div class="plate" style="position:relative;width:190px">Pudding <span class="lv">Lv 12</span><div class="hp"><span class="low" style="width:34%"></span></div><div class="hpn">34 / 100</div></div>
+        <div class="fight">
+          <div class="stage arena crop" style="--x:600;--y:360;--w:345;--h:265"><img src="img/33.png" alt="Pudding the cat and Mochi the bunny facing off"></div>
+          <span class="hit a" style="left:18px;top:40px">Bonk! −18</span>
+          <span class="hit c" style="left:60px;top:150px">Crit! −32</span>
+          <span class="hit b" style="right:14px;top:22px">Dodge!</span>
+        </div>
+        <div class="plate" style="position:relative;width:190px;align-self:flex-end;box-shadow:0 4px 0 var(--li)">Mochi <span class="lv">Lv 12 · you</span><div class="hp"><span style="width:72%"></span></div><div class="hpn">72 / 100</div></div>
+        <div class="say">Mochi used <b style="color:var(--pkd)">Carrot Kick!</b><br><span class="txt">It's a big hit. Pudding looks dizzy.</span></div>
+        <p class="txt small muted" style="text-align:center">Stats plus a little luck decide. Nothing to tap.</p>
+        <span class="btn wh full" style="justify-content:center;padding-left:16px">Skip to result <svg class="i"><use href="#i-arrow"/></svg></span>
+      </div>
+      <div class="tabbar"><div class="tab"><svg><use href="#i-home"/></svg>Home</div><div class="tab on"><svg><use href="#i-battle"/></svg>Battle</div><div class="tab"><svg><use href="#i-play"/></svg>Play</div><div class="tab"><svg><use href="#i-shop"/></svg>Shop</div><div class="tab"><svg><use href="#i-guild"/></svg>Guild</div></div>
+    </div>
+  </div>
+
+  <!-- 3. Result: won -->
+  <div>
+    <div class="label li">Phone · result: you won</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
+      <div class="pscroll res" style="padding-top:10px">
+        <svg class="confetti" style="left:40px;top:90px;color:var(--le)"><use href="#i-star"/></svg>
+        <svg class="confetti" style="right:46px;top:120px;color:var(--pk)"><use href="#i-sparkle"/></svg>
+        <svg class="confetti" style="left:60px;top:300px;color:var(--sk)"><use href="#i-sparkle"/></svg>
+        <svg class="confetti" style="right:60px;top:290px;color:var(--li)"><use href="#i-heart"/></svg>
+        <div class="nm" style="font-size:40px">You won!</div>
+        <div class="rpet"><div class="crop c-bunny"><img src="img/33.png" alt="Mochi"></div></div>
+        <div class="won"><div class="big">+620</div><div class="k">points</div></div>
+        <div class="headline" style="margin-top:6px">Mochi beat Pudding</div>
+        <p class="txt">Mochi now has <b>13,100 points</b>. Pudding gets a 30-minute shield.</p>
+        <div class="card sk" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 14px"><span class="itile sk"><svg class="i"><use href="#i-coin"/></svg></span><div><div class="small muted">Your share of the pot now</div><div class="usd">$44.19</div><div class="tok">0.0189 ETH</div></div></div>
+        <div class="duo" style="width:100%;margin-top:6px">
+          <span class="btn pk"><svg class="i"><use href="#i-sparkle"/></svg> Share</span>
+          <span class="btn off">Next in <b>30m</b></span>
+        </div>
+        <span class="btn wh full" style="justify-content:center;padding-left:16px">Back to Battle</span>
+      </div>
+      <div class="tabbar"><div class="tab"><svg><use href="#i-home"/></svg>Home</div><div class="tab on"><svg><use href="#i-battle"/></svg>Battle</div><div class="tab"><svg><use href="#i-play"/></svg>Play</div><div class="tab"><svg><use href="#i-shop"/></svg>Shop</div><div class="tab"><svg><use href="#i-guild"/></svg>Guild</div></div>
+    </div>
+  </div>
+
+  <!-- 4. Result: lost (alt state) -->
+  <div>
+    <div class="label or">Alt state · result: you lost</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
+      <div class="pscroll res lost" style="padding-top:10px">
+        <div class="nm" style="font-size:40px;color:var(--ord)">So close!</div>
+        <div class="rpet"><div class="crop c-cat"><img src="img/33.png" alt="Pudding"></div></div>
+        <div class="headline">Pudding kept their points.</div>
+        <p class="txt">Mochi lost no points. Mochi just needs a short rest.</p>
+        <span class="btn off full" style="font-size:16px"><svg class="i"><use href="#i-clock"/></svg> Try again in <b>30m</b></span>
+        <div class="card le" style="text-align:left;display:flex;gap:12px;align-items:center;width:100%">
+          <span class="itile le"><svg class="i"><use href="#i-star"/></svg></span>
+          <p class="txt"><b>Tip:</b> pets with a 60% chance or more are easier wins. Feeding Mochi keeps it strong.</p>
+        </div>
+        <span class="btn wh full" style="justify-content:center;padding-left:16px">Back to Battle</span>
+      </div>
+      <div class="tabbar"><div class="tab"><svg><use href="#i-home"/></svg>Home</div><div class="tab on"><svg><use href="#i-battle"/></svg>Battle</div><div class="tab"><svg><use href="#i-play"/></svg>Play</div><div class="tab"><svg><use href="#i-shop"/></svg>Shop</div><div class="tab"><svg><use href="#i-guild"/></svg>Guild</div></div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1280px;margin:0 auto"><span class="label">Desktop 1280 · Battle tab, next attack in 12m (cooldown state)</span></div>
+<div class="browser">
+  <div class="bbar"><span style="background:var(--pk)"></span><span style="background:var(--le)"></span><span style="background:var(--li)"></span><div class="url">petverse.app/battle</div></div>
+  <div class="topnav"><div class="logo">Petverse</div><span class="pill"><svg><use href="#i-home"/></svg>Home</span><span class="pill on"><svg><use href="#i-battle"/></svg>Battle</span><span class="pill"><svg><use href="#i-play"/></svg>Play</span><span class="pill"><svg><use href="#i-shop"/></svg>Shop</span><span class="pill"><svg><use href="#i-guild"/></svg>Guild</span><span class="pill" style="margin-left:auto;box-shadow:0 4px 0 var(--lid)"><svg class="i"><use href="#i-flame"/></svg> Day 5 streak</span><span class="pill">Mochi <span class="av"><span class="crop c-bunny" style="display:block"><img src="img/33.png" alt=""></span></span></span></div>
+  <div class="desk" style="grid-template-columns:1fr 380px">
+    <div class="dl">
+      <div class="ttl"><div class="nm" style="font-size:44px">Battle</div><div class="seg" style="width:360px;margin-left:24px"><span class="on">Attack<small>1 every 30m</small></span><span>Duel<small>5 left · rank 1,204</small></span><span>2v2<small>5 left today</small></span></div></div>
+      <div class="list">
+        <div class="trow rev">
+          <div class="pav"><div class="crop c-pup"><img src="img/21.png" alt="Biscuit"></div></div>
+          <div class="who"><div class="n1">Biscuit stole 624 points <small>Lv 11</small></div><div class="n2">8m ago · revenge skips the 30-minute wait, once</div></div>
+          <div class="odds" style="margin-right:12px"><b>Win +550</b> · 58% chance</div>
+          <span class="btn or"><svg class="i"><use href="#i-revenge"/></svg> Revenge, no wait</span>
+        </div>
+        <div class="sec"><span>Pets near your level (Lv 10 to 14)</span><span>Sorted by best chance</span></div>
+        <div class="trow"><div class="pav"><div class="crop c-pup"><img src="img/22.png" alt="Pebble"></div><span class="ovl" style="background:var(--soft)"><svg class="i"><use href="#i-zzz"/></svg></span></div><div class="who"><div class="n1">Pebble <small>Lv 11</small></div><div class="n2">Asleep · 10,400 points</div></div><div class="odds" style="margin-right:12px"><b>Win +520</b> · 80% chance</div><span class="btn off">Attack in <b>12m</b></span></div>
+        <div class="trow"><div class="pav"><div class="crop c-drako"><img src="img/26.png" alt="Mango"></div></div><div class="who"><div class="n1">Mango <small>Lv 10</small></div><div class="n2">9,800 points</div></div><div class="odds" style="margin-right:12px"><b>Win +490</b> · 61% chance</div><span class="btn off">Attack in <b>12m</b></span></div>
+        <div class="trow"><div class="pav"><div class="crop c-cat"><img src="img/33.png" alt="Pudding"></div></div><div class="who"><div class="n1">Pudding <small>Lv 12</small></div><div class="n2">12,400 points</div></div><div class="odds" style="margin-right:12px"><b>Win +620</b> · 54% chance</div><span class="btn off">Attack in <b>12m</b></span></div>
+        <div class="trow"><div class="pav"><div class="crop c-blob"><img src="img/22.png" alt="Bun"></div></div><div class="who"><div class="n1">Bun <small>Lv 13</small></div><div class="n2">15,200 points</div></div><div class="odds" style="margin-right:12px"><b>Win +760</b> · 41% chance</div><span class="btn off">Attack in <b>12m</b></span></div>
+        <div class="trow dim"><div class="pav"><div class="crop c-drako"><img src="img/21.png" alt="Tofu"></div><span class="ovl"><svg class="i"><use href="#i-shield"/></svg></span></div><div class="who"><div class="n1">Tofu <small>Lv 12</small></div><div class="n2">Shielded · 13,600 points</div></div><div class="odds muted" style="margin-right:12px">Safe for now</div><span class="btn off"><svg class="i"><use href="#i-shield"/></svg> <b>22m</b></span></div>
+      </div>
+    </div>
+    <div class="dr">
+      <div class="card li" style="display:flex;gap:12px;align-items:center">
+        <div class="rpet" style="width:84px;box-shadow:0 4px 0 var(--li)"><div class="crop c-bunny"><img src="img/33.png" alt="Mochi"></div></div>
+        <div><div style="font-size:20px">Mochi · Lv 12</div><div style="font-size:34px;color:var(--ink);text-decoration:underline;text-decoration-color:var(--li);text-decoration-thickness:4px;text-underline-offset:4px;line-height:1.05">12,480</div><div class="small muted">points</div></div>
+      </div>
+      <span class="btn off full" style="font-size:18px;padding:16px"><svg class="i"><use href="#i-clock"/></svg> Next attack in <b>12m</b></span>
+      <div class="duo">
+        <div class="card pk" style="padding:12px"><div style="display:flex;align-items:center;gap:6px;font-size:17px"><svg class="i" style="color:var(--pk)"><use href="#i-trophy"/></svg> Duel</div><div style="font-size:28px;line-height:1.1;margin-top:4px">5 <span class="small">left today</span></div><div class="small muted">Rank 1,204</div><span class="btn pk sm full" style="margin-top:8px">Find a duel</span></div>
+        <div class="card sk" style="padding:12px"><div style="display:flex;align-items:center;gap:6px;font-size:17px"><svg class="i" style="color:var(--sk)"><use href="#i-users"/></svg> 2v2</div><div style="font-size:28px;line-height:1.1;margin-top:4px">5 <span class="small">left today</span></div><div class="small muted">Friend or random</div><span class="btn sk sm full" style="margin-top:8px">Team up</span></div>
+      </div>
+      <div class="card">
+        <div style="font-size:18px;margin-bottom:8px">How attacks work</div>
+        <p class="txt">Win and you take about 5% of their points. One attack every 30 minutes. Revenge skips the wait. Robbed pets get a 30-minute shield.</p>
+        <div class="spill pk" style="margin-top:10px"><svg class="i"><use href="#i-star"/></svg> Season Pass: attack every 10 min</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

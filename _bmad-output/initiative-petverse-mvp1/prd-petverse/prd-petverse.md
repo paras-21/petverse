@@ -12,7 +12,7 @@ updated: 2026-10-14
 This PRD is for the owner and for the next BMad steps (UX, architecture, spec, tickets). It turns the accepted
 `intent/001-petverse-play-to-earn-pets.md` into requirements for **release 1 on Robinhood Chain testnet**. Every
 answer the owner gave is logged in `.memlog.md` next to this file. Decisions made before this PRD live in
-`docs/DECISIONS.md` (#1–13) and are not repeated in full. Technical choices go in `addendum.md`, not here. Open items are in §9.
+`docs/DECISIONS.md` (#1–25) and are not repeated in full. Technical choices go in `addendum.md`, not here. Open items are in §9.
 
 ## 1. Vision
 
@@ -60,7 +60,7 @@ real money is at risk.
     cooldown → pet gets a short shield.
 
 - **UJ-3. Neglect, sleep and death.**
-  - **Path:** not fed for 3 days → pet **sleeps** (earns nothing, can be robbed) → player returns and **wakes it for
+  - **Path:** not fed for 3 days → pet **sleeps** (earns nothing, gets no pot share, can be robbed) → player returns and **wakes it for
     free** but loses points, more the longer it slept.
   - **Edge case:** asleep for 7 days → pet **dies**: NFT burned, points gone, unclaimed ETH returns to the pot.
   - **Resolution:** player keeps a **Tombstone** badge and gets a **free new egg**.
@@ -71,12 +71,12 @@ real money is at risk.
     Together bonus → the friend joins their **guild** → on Sunday the guild plays its **Guild War**, a best-of-5 series
     of 2v2 matches.
   - **Climax:** they win the deciding 2v2 together and the guild shares a Gold prize.
-  - **Resolution:** both come back daily to keep the shared streak alive. **Edge case:** one friend wants to sell the
-    Co-Pet; it needs both to approve, so the other declines.
+  - **Resolution:** both come back daily to keep the shared streak alive. **Edge case:** one friend wants to stop; they
+    leave the Co-Pet (FR-30). Pets cannot be sold in release 1.
 
 - **UJ-5. Spending and risking $PETV.**
   - **Entry state:** a player holding test $PETV from the faucet and from claims.
-  - **Path:** opens the **store**, sees "Food $1 = 240 PETV", buys food and an Elder item → stakes some $PETV in the
+  - **Path:** opens the **store**, sees "Food $1 = 312 PETV", buys food and an Elder item → stakes some $PETV in the
     **Gold vault** → enters a **wager battle**, staking $PETV.
   - **Climax:** wins the wager and takes the pot minus the 5% that is burned; sees the burn counter tick up.
   - **Resolution:** sends the pet on a **Bold expedition** with the rest; it fails and the stake is burned.
@@ -120,7 +120,7 @@ real money is at risk.
 - **FR-6** Hatching the first egg mints a pet NFT for free (one of 10 species, random coat). *(UJ-1)*
 - **FR-7** Feeding resets a feed timer and gives a few points. Food is free (earned) or bought in the store.
 - **FR-8** Status follows the timer: fed → hungry → asleep after 3 days → dead after 7 more days. *(UJ-3)*
-- **FR-9** An asleep pet earns no points and can be robbed.
+- **FR-9** An asleep pet earns no points, gets no pot share until it is woken, and can be robbed.
 - **FR-10** Waking is free but costs 10% of points per day asleep (day 1: 10% … day 7: 70%). *(UJ-3)*
 - **FR-11** A dead pet's NFT is burned, its points removed, and its unclaimed ETH returned to the pot. *(UJ-3)*
 - **FR-12** On death the owner gets a Tombstone badge and a free new egg. *(UJ-3)*
@@ -129,10 +129,11 @@ real money is at risk.
 ### 4.3 Points and the ETH pot
 
 - **FR-14** Home shows the pot size and the player's live share. *(UJ-1)*
-- **FR-15** The ETH pot has two parts. **Main pot (85%):** a pet's share = its *effective points* ÷ all effective
-  points, where effective points grow more slowly than raw points at high totals (FR-52). **Small pot (15%):** shared
-  by the bottom half of living pets by points (FR-51). Anyone can check both on-chain.
-- **FR-16** Claiming pays the share in ETH and resets the pet's points to 0. *(UJ-2)*
+- **FR-15** The ETH pot has two parts. **Main pot (85%):** an owner's share = their *effective points* ÷ all effective
+  points, where effective points grow more slowly than raw points at high totals (FR-52); the owner's share is split
+  across their pets by points. **Small pot (15%):** shared by the bottom half of awake living pets by points (FR-51).
+  Asleep pets count in neither pot until woken. Anyone can check both on-chain.
+- **FR-16** Claiming pays the share in ETH and resets the pet's pot-share points to 0; its level and lifetime points stay. *(UJ-2)*
 - **FR-17** The pot is filled by the $PETV trade tax, store sales, Season Pass sales and fees.
 
 ### 4.4 Battles
@@ -154,9 +155,11 @@ real money is at risk.
 
 - **FR-28** **Co-Pet:** two friends own one pet; both can feed and play; caring on the same day gives a Together bonus;
   the streak only grows if both show up; rewards split 50/50.
-- **FR-29** Co-Pet selling, breeding and Death Match need both owners to approve. Max 3 Co-Pets per player.
-- **FR-30** Splitting a Co-Pet: one owner buys the other out, or the pet returns to its creator and the other keeps a
-  memory badge.
+- **FR-29** Co-Pet breeding and Death Match need both owners to approve. Max 3 Co-Pets per player. *(Co-Pet selling
+  removed: no pet or Co-Pet selling in release 1, `DECISIONS` #14.)*
+- **FR-30** Ending a Co-Pet: either owner can leave or end it; the pet returns to its creator and the other keeps a
+  memory badge. *(Buy-out removed: it is a sale, `DECISIONS` #14.)* [ASSUMPTION] If the creator leaves, the pet stays
+  with the other owner; no money changes hands.
 - **FR-31** **Guilds** of up to 10 players.
 - **FR-32** **Guild War:** a weekly series of 2v2 matches, guild against guild.
 
@@ -178,13 +181,14 @@ real money is at risk.
 
 ### 4.8 Token, store and pass
 
-- **FR-41** **$PETV** launches on testnet through our own bonding curve that behaves like Pons (curve, graduation to a
-  pool, creator tax to our splitter), because Pons is mainnet only. Mainnet uses real Pons with the highest tax it allows.
+- **FR-41** **$PETV** launches on testnet through our own bonding curve that behaves like Pons (curve, graduation to our
+  own Uniswap v2-style pool on testnet, creator tax to our splitter), because Pons is mainnet only. Mainnet uses real Pons with the highest tax it allows.
 - **FR-42** **Store:** items are priced in dollars and paid in $PETV (food \$1, eggs \$2.99–\$9.99, shields, evolution
   items, cosmetics). The token amount follows the token price.
 - **FR-43** **Season Pass** (\$7.99 per season): +25% points, faster attacks, more free gas, a reward track and a season skin.
 - **FR-44** **Gold:** stake $PETV into a vault to get Gold shares; the vault grows from game spending; swapping back
-  costs 2%; Gold is also earned from monsters and living pets; a dead pet's Gold returns to the vault.
+  costs 2%; Gold is also earned from monsters and living pets, paid from a funded reserve with a daily payout cap, never newly
+  minted, so stakers are not diluted (`DECISIONS` #16); a dead pet's Gold returns to the vault.
 - **FR-45** Burns: store spending is burned at 70% / 50% / 30% as market cap passes $1M and $10M (30-minute
   average); 5% of each wager and dice pot; the full stake of a failed Bold expedition; half of the market fee.
 
@@ -196,9 +200,10 @@ real money is at risk.
 - **FR-48** **Daily wheel:** one free spin a day. *(UJ-2)*
 - **FR-49** **Login streak** reward for days in a row. *(UJ-1)*
 - **FR-50** **Monsters (PvE):** pets fight AI monsters to earn Gold and points; automatic like other battles.
-- **FR-51** **Small pot:** 15% of the ETH pot is shared by the bottom half of living pets by points.
+- **FR-51** **Small pot:** 15% of the ETH pot is shared by the bottom half of awake living pets by points.
 - **FR-52** **Effective points:** each extra point counts a little less at high totals, so a few whales cannot take
-  most of the main pot. The exact curve is set in architecture and pinned by tests.
+  most of the main pot. The curve is applied per owner to the sum of all their pets' points, so splitting points
+  across many pets gives no gain (`DECISIONS` #17). The exact curve is set in architecture and pinned by tests.
 - **FR-53** **Boss Raid:** up to 2 players fight the season boss together, automatically; the boss's health is shared
   across all raids in the season; players earn points and Gold for damage, and the top raid teams get a cosmetic.
 
@@ -212,7 +217,7 @@ value is current.
 
 | Term | Default rule |
 |---|---|
-| Level | From points: level = 1 + floor(sqrt(points ÷ 100)). Shown on the pet. |
+| Level | From lifetime points (all points ever earned): level = 1 + floor(sqrt(lifetime points ÷ 100)). Never drops; claiming ETH resets only the pot-share points (FR-16). Shown on the pet. |
 | Similar level (attacks, duels) | Target level within ±2 of the attacker's. |
 | Rank | Elo-style rating starting at 1,000; +/−16 per duel at even odds. Resets each season. |
 | Good care | Fed at least once in each 24-hour window. |
@@ -251,22 +256,23 @@ value is current.
 
 | Item | Default rule |
 |---|---|
-| FR-41 Testnet $PETV | 1B fixed supply. Our curve graduates at 4.2 test ETH (Pons's value); 5% trade tax on curve and pool. |
+| FR-41 Testnet $PETV | 1B fixed supply. Our curve graduates at 4.2 test ETH (Pons's value) into our own Uniswap v2-style pool on 46630; 5% trade tax on curve and pool. |
 | Tax split | Of the 5% tax: 2% ETH pot, 1% burn, 1% liquidity, 1% team. |
 | Store income | Burn share by stage (FR-45); of the rest: 50% ETH pot, 50% team. |
 | Season Pass income | 30% ETH pot, 20% season pool, 50% team. |
 | Market fee (FR-46) | 5%: half burned, half to the ETH pot. |
 | FR-42 Store prices | Food $1, shield (8h) $1, egg $2.99 (common) to $9.99 (rare odds), Elder item $3, Mythic item $5, cosmetics $1–$20. |
 | FR-43 Season Pass | 10-minute attack cooldown (vs 30); 20 free gas actions a day (vs 10). |
-| FR-44 Gold | Living pet earns 10 Gold a day; vault swap-back fee 2%. |
-| Test funds | New players get test ETH and test $PETV from our faucet at sign-up and once a day, so casual players can keep playing after the 10 free actions. |
+| FR-44 Gold | Living pet earns 10 Gold a day; vault swap-back fee 2%. Game-earned Gold is paid from a funded reserve with a daily payout cap; none is minted. |
+| Test funds | New players get test ETH and test $PETV from our faucet, so casual players can keep playing after the 10 free actions: at sign-up 0.01 test ETH + 3,120 PETV ($10); once a day 0.002 test ETH + 624 PETV ($2). |
+| Asleep pets | No share of either pot until woken (FR-9). |
 
 **Anti-bot (counter-metric)**
 
 | Rule | Default |
 |---|---|
 | One free starter egg | Per verified login (email or Google) or per wallet with history; not per new empty wallet. |
-| Small pot | Only pets older than 7 days count for the small pot. |
+| Small pot | Only awake pets older than 7 days count for the small pot. |
 | Flags | Many accounts from one device or funding wallet, or perfectly regular timing, flag an account for review; flagged accounts are excluded from pot payouts until cleared. |
 
 ## 5. Non-Functional Requirements
@@ -329,3 +335,4 @@ None of these blocks the testnet build. Each has an owner and the point at which
 | 6 | How tests use the one hosted database without touching real data (separate schema) | Architecture | First database unit |
 | 7 | Exact effective-points curve (FR-52) | Architecture | Contract unit for the pot |
 | 8 | Rule for the edge where a pet dies at exactly 7 days asleep vs a wake on day 7 (FR-10) | Architecture | Contract unit for life cycle |
+| 9 | How a Co-Pet's points count in the per-owner curve (FR-52, `DECISIONS` #17): half to each owner? | Architecture | Contract unit for the pot |

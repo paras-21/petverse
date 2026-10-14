@@ -1,0 +1,232 @@
+<title>Petverse Themes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one arcade "cabinet" column of theme cards, live previews scaled to fit, favourites first. Single dark look by choice. */
+:root {
+  --bg: #12142b;
+  --panel: #1c1f3d;
+  --ink: #f4f1ff;
+  --muted: #a8acd6;
+  --line: #3a3f78;
+  --act: #ffd23f;
+  --hot: #ff4f7b;
+  --gain: #3ee0c4;
+  --display: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  --body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 40px; }
+header { display: grid; gap: 14px; max-width: 70ch; }
+.eyebrow { font-family: var(--display); font-size: 10px; letter-spacing: .12em; color: var(--gain); text-transform: uppercase; }
+h1 { font-family: var(--display); font-size: clamp(22px, 4vw, 38px); line-height: 1.3; margin: 0; text-wrap: balance; text-shadow: 4px 4px 0 var(--hot); }
+header p { margin: 0; color: var(--muted); font-size: 17px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { border: 2px solid var(--line); background: var(--panel); padding: 4px 10px; font-weight: 700; font-size: 13px; }
+.chip b { color: var(--act); }
+h2 { font-family: var(--display); font-size: 13px; letter-spacing: .08em; margin: 0; color: var(--act); text-transform: uppercase; }
+.group { display: grid; gap: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 24px; }
+.card {
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--line);
+  display: grid;
+  min-width: 0;
+}
+.card.fav { box-shadow: 6px 6px 0 var(--hot); }
+.card-head { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; padding: 14px 16px 10px; flex-wrap: wrap; }
+.card h3 { margin: 0; font-size: 20px; font-weight: 800; }
+.num { font-family: var(--display); font-size: 10px; color: var(--muted); }
+.tag { font-family: var(--display); font-size: 9px; background: var(--hot); color: #fff; padding: 4px 6px; }
+.card p { margin: 0; padding: 0 16px 12px; color: var(--muted); font-size: 15px; }
+.frame { position: relative; overflow: hidden; border-top: 3px solid var(--ink); background: #0b0c1a; aspect-ratio: 16 / 11; max-width: 100%; }
+.frame iframe { position: absolute; top: 0; left: 0; width: 1440px; height: 990px; border: 0; transform-origin: 0 0; pointer-events: none; }
+.open {
+  display: flex; justify-content: center; align-items: center;
+  font-family: var(--display); font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: #12142b; background: var(--act); text-decoration: none;
+  border-top: 3px solid var(--ink); padding: 14px;
+}
+.open:hover { background: var(--gain); }
+.open:focus-visible { outline: 3px solid var(--hot); outline-offset: -6px; }
+footer { color: var(--muted); font-size: 14px; max-width: 70ch; }
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: transform .15s ease, box-shadow .15s ease; }
+  .card:hover { transform: translate(-2px, -2px); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Petverse · UI direction · Oct 2026</div>
+    <h1>Pick the look of Petverse</h1>
+    <p>Ten styles for the same pet home screen. The 3D pets stay the same in every one; only the buttons, colours and type around them change. Each preview shows a phone screen, a second phone state and the desktop layout.</p>
+    <div class="legend">
+      <span class="chip"><b>★ Chosen</b> Candy sticker book</span>
+      <span class="chip">8 key screens drawn in Candy</span>
+      <span class="chip">Example data: pet Mochi, pot $9,843</span>
+    </div>
+  </header>
+
+  <section class="group" aria-labelledby="chosen">
+    <h2 id="chosen">Chosen: Candy sticker book · key screens</h2>
+    <div class="grid">
+      <article class="card fav">
+        <div class="card-head"><h3>Landing and egg hatch</h3><span class="tag">★ Candy</span></div>
+        <p>Landing page, login sheet, tap the egg, Mochi hatches, tutorial step 1 of 4.</p>
+        <div class="frame"><iframe src="key-landing-hatch.html" title="Landing and egg hatch preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-landing-hatch.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Battle</h3><span class="tag">★ Candy</span></div>
+        <p>Revenge row, attack list with win chance and reward, automatic fight, win and loss results.</p>
+        <div class="frame"><iframe src="key-battle.html" title="Battle preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-battle.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Play hub</h3><span class="tag">★ Candy</span></div>
+        <p>Wheel, monsters, expeditions, dice, Death Match with 3 lives, Boss Raid, plus a wheel result.</p>
+        <div class="frame"><iframe src="key-play-hub.html" title="Play hub preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-play-hub.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Shop and claim</h3><span class="tag">★ Candy</span></div>
+        <p>Store with try-on, Season Pass, Market, and the claim sheet with points going back to 0.</p>
+        <div class="frame"><iframe src="key-shop-claim.html" title="Shop and claim preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-shop-claim.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Home and Co-Pet</h3><span class="tag">★ Candy</span></div>
+        <p>Home with Mochi, a Co-Pet shared with a friend, and the invite state.</p>
+        <div class="frame"><iframe src="key-home-copet.html" title="Home and Co-Pet preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-home-copet.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Guild</h3><span class="tag">★ Candy</span></div>
+        <p>Guild on War day, live war board, and the not-in-a-guild-yet state.</p>
+        <div class="frame"><iframe src="key-guild.html" title="Guild preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-guild.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Sleep and death</h3><span class="tag">★ Candy</span></div>
+        <p>Mochi very hungry, sleep and death warnings, plus push and Telegram alerts.</p>
+        <div class="frame"><iframe src="key-sleep-death.html" title="Sleep and death preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-sleep-death.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Death Match</h3><span class="tag">★ Candy</span></div>
+        <p>Enter with a warning, 3 lives, "Leave safely?" on the last life, leaderboard and Hall of Fame.</p>
+        <div class="frame"><iframe src="key-death-match.html" title="Death Match preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="key-death-match.html">Open full size</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="fav">
+    <h2 id="fav">Earlier shortlist</h2>
+    <div class="grid">
+      <article class="card fav">
+        <div class="card-head"><h3>Original Bold</h3><span class="tag">★ Shortlist</span></div>
+        <p>Arcade cabinet: navy borders, hard shadows, yellow to act, red for danger, teal for gains.</p>
+        <div class="frame"><iframe src="direction-bold.html" title="Original Bold preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="direction-bold.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Neon Night</h3><span class="tag">★ Shortlist</span></div>
+        <p>Dark arcade with glowing cyan edges, hot-pink shadows and soft scanlines.</p>
+        <div class="frame"><iframe src="theme-bold-neon-night.html" title="Neon Night preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-neon-night.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Sunset Brawl</h3><span class="tag">★ Shortlist</span></div>
+        <p>Fighting-game energy: orange, magenta and indigo bands, slanted heavy buttons.</p>
+        <div class="frame"><iframe src="theme-bold-sunset-brawl.html" title="Sunset Brawl preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-sunset-brawl.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Jungle Quest</h3><span class="tag">★ Shortlist</span></div>
+        <p>Adventure game: deep green leaves, wood-plank tabs, parchment panels, gold coins.</p>
+        <div class="frame"><iframe src="theme-bold-jungle-quest.html" title="Jungle Quest preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-jungle-quest.html">Open full size</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="more">
+    <h2 id="more">More bold styles</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h3>Ice Arena</h3><span class="num">Bold</span></div>
+        <p>Clean esports: frosty white and ice blue, cut corners, scoreboard numbers.</p>
+        <div class="frame"><iframe src="theme-bold-ice-arena.html" title="Ice Arena preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-ice-arena.html">Open full size</a>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Candy Fighter</h3><span class="num">Bold</span></div>
+        <p>Bubblegum polka dots with thick plum outlines and sticker tags, still chunky.</p>
+        <div class="frame"><iframe src="theme-bold-candy-fighter.html" title="Candy Fighter preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-candy-fighter.html">Open full size</a>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Retro Console</h3><span class="num">Bold</span></div>
+        <p>Handheld 8-bit: four olive greens inside a grey console shell, pixel corners.</p>
+        <div class="frame"><iframe src="theme-bold-retro-console.html" title="Retro Console preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="theme-bold-retro-console.html">Open full size</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="other">
+    <h2 id="other">Other directions</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h3>Cozy</h3><span class="num">Soft</span></div>
+        <p>Sunday picnic: warm paper, sage and peach, storybook pet stage, soft pill buttons.</p>
+        <div class="frame"><iframe src="direction-cozy.html" title="Cozy preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="direction-cozy.html">Open full size</a>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Premium</h3><span class="num">Calm</span></div>
+        <p>Night garden: green-black with brass only on money and the main action.</p>
+        <div class="frame"><iframe src="direction-premium.html" title="Premium preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="direction-premium.html">Open full size</a>
+      </article>
+      <article class="card fav">
+        <div class="card-head"><h3>Candy</h3><span class="tag">★ Chosen</span></div>
+        <p>Sticker book: bubblegum dots, white-outlined sticker cards, blob-shaped stage.</p>
+        <div class="frame"><iframe src="direction-candy.html" title="Candy preview" loading="lazy" tabindex="-1"></iframe></div>
+        <a class="open" href="direction-candy.html">Open full size</a>
+      </article>
+    </div>
+  </section>
+
+  <footer>Mockups only. Dollar amounts are examples at about $2,340 per ETH. Petverse runs on Robinhood Chain testnet first.</footer>
+</div>
+
+<script>
+  // scale each 1440px-wide preview to fit its card
+  function fit() {
+    document.querySelectorAll('.frame').forEach(function (f) {
+      var k = f.clientWidth / 1440;
+      var ifr = f.querySelector('iframe');
+      if (ifr) ifr.style.transform = 'scale(' + k + ')';
+    });
+  }
+  window.addEventListener('resize', fit);
+  fit();
+</script>

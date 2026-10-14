@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction A: Cozy</title>
+<style>
+/* ===== Direction A: COZY ("Sunday picnic") =====
+   paper bg      #FBF5EA   page cream
+   card          #FFFDF8   warm white card
+   ink           #4A3426   cocoa brown text
+   ink-soft      #8A7464   muted brown
+   line          #EADFCC   soft beige hairline
+   sage          #6F9A6B   primary action (feed, spin)
+   sage-deep     #4F7A4C   pressed / text on sage tint
+   sage-tint     #E6F0DF
+   peach         #F2A383   warm accent (timer heart, alert)
+   peach-tint    #FCE9DF
+   butter        #F6D88A   pot / ETH highlight
+   butter-tint   #FBF1D4
+   dusk          #5D6B8A   asleep overlay tint
+   Type: rounded sans (ui-rounded, SF Pro Rounded, Nunito, Segoe UI) body; Georgia italic for the pet's name.
+   Shape: 22px cards, full pill buttons, soft long shadows. Airy density.
+*/
+:root{--paper:#FBF5EA;--card:#FFFDF8;--ink:#4A3426;--soft:#8A7464;--line:#EADFCC;--sage:#6F9A6B;--sage2:#4F7A4C;--sageT:#E6F0DF;--peach:#F2A383;--peachT:#FCE9DF;--butter:#F6D88A;--butterT:#FBF1D4;--dusk:#5D6B8A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:ui-rounded,"SF Pro Rounded","Nunito","Varela Round","Segoe UI",system-ui,sans-serif;padding:40px 32px 80px}
+.rationale{max-width:900px;margin:0 auto 36px;font-size:15px;line-height:1.6;color:var(--soft)}
+.rationale h1{font-family:Georgia,"Iowan Old Style",serif;font-style:italic;font-weight:400;font-size:34px;color:var(--ink);margin-bottom:8px}
+.rationale b{color:var(--ink)}
+.label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 12px 4px}
+.row{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+.serif{font-family:Georgia,"Iowan Old Style",serif;font-style:italic;font-weight:400}
+
+/* phone frame */
+.phone{width:390px;height:844px;border-radius:52px;background:var(--paper);border:10px solid #3B2A1F;box-shadow:0 30px 60px -20px rgba(74,52,38,.35);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px;font-weight:600}
+.pscroll{flex:1;padding:4px 18px 0;display:flex;flex-direction:column;gap:12px}
+
+/* shared parts */
+.top{display:flex;justify-content:space-between;align-items:flex-end}
+.name{font-size:30px;line-height:1}
+.sub{font-size:13px;color:var(--soft);margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.chip.timer{background:var(--peachT);color:#B5583A}
+.stage{position:relative;overflow:hidden;border-radius:120px 120px 24px 24px;border:6px solid var(--card);box-shadow:0 14px 30px -14px rgba(74,52,38,.35)}
+.stage img{position:absolute;top:0;display:block}
+.stage.p{aspect-ratio:545/340}
+.stage.p img{width:183.49%;left:-77.06%;margin-top:-55.05%}
+.stage.d{aspect-ratio:920/400;border-radius:200px 200px 28px 28px}
+.stage.d img{width:108.7%;left:-4.89%;margin-top:-28.26%}
+.tag{position:absolute;transform:translateX(-50%);background:var(--card);padding:4px 12px;border-radius:999px;font-size:13px;box-shadow:0 4px 10px rgba(74,52,38,.2)}
+.tag::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--card)}
+.stage.p .tag{left:81.5%;top:6%}
+.stage.d .tag{left:87.9%;top:16%}
+.card{background:var(--card);border-radius:22px;padding:14px 16px;box-shadow:0 8px 24px -16px rgba(74,52,38,.3)}
+.money{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.k{font-size:12px;color:var(--soft)}
+.v{font-size:24px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.v small{font-size:13px;font-weight:600;color:var(--soft)}
+.pot{background:var(--butterT)}
+.pot .share{font-size:13px;color:#8A6A1F;margin-top:2px}
+.alert{display:flex;align-items:center;gap:12px;background:var(--peachT);border-radius:22px;padding:12px 12px 12px 16px;font-size:14px}
+.alert p{flex:1;line-height:1.35}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:0;border-radius:999px;font:inherit;font-weight:700;font-size:15px;padding:13px 18px;cursor:pointer}
+.btn.sage{background:var(--sage);color:#fff;box-shadow:0 6px 0 -2px var(--sage2)}
+.btn.peach{background:var(--peach);color:#fff;padding:9px 16px;font-size:14px}
+.btn.ghost{background:var(--sageT);color:var(--sage2)}
+.btn.wait{white-space:nowrap;font-size:14px;background:#F1EBDF;color:var(--soft);font-weight:600}
+.btn.wait b{color:var(--ink)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions .btn{width:100%}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--sage);display:inline-block}
+.tabbar{height:84px;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px 6px 24px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--soft);width:62px}
+.tab i{font-style:normal;font-size:20px;line-height:24px;width:44px;text-align:center;border-radius:999px}
+.tab.on{color:var(--ink);font-weight:700}
+.tab.on i{background:var(--sageT)}
+
+/* asleep variant */
+.asleep .stage img{filter:saturate(.55) brightness(.62) hue-rotate(-12deg)}
+.asleep .stage::after{content:"z z z";position:absolute;right:30%;top:22%;color:#fff;font-size:24px;letter-spacing:4px;font-family:Georgia,serif;font-style:italic}
+.sleepcard{background:#E7E9F1;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.sleepcard p{font-size:15px;line-height:1.4;color:#3C4560}
+.btn.dusk{background:var(--dusk);color:#fff}
+
+/* desktop frame */
+.browser{width:1280px;border-radius:14px;overflow:hidden;background:var(--paper);box-shadow:0 30px 70px -24px rgba(74,52,38,.35);border:1px solid var(--line)}
+.bbar{height:40px;background:#F1E8D8;display:flex;align-items:center;gap:8px;padding:0 16px}
+.bbar span{width:12px;height:12px;border-radius:50%;background:#E0CDB4}
+.url{margin-left:20px;background:var(--card);border-radius:999px;padding:5px 16px;font-size:12px;color:var(--soft);width:360px}
+.desk{display:grid;grid-template-columns:220px 1fr 340px;min-height:660px}
+.side{padding:28px 18px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.logo{font-family:Georgia,serif;font-style:italic;font-size:26px;padding:0 12px 22px}
+.nav{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:999px;font-size:15px;color:var(--soft)}
+.nav i{font-style:normal;width:22px;text-align:center}
+.nav.on{background:var(--sageT);color:var(--ink);font-weight:700}
+.side .foot{margin-top:auto;font-size:12px;color:var(--soft);padding:0 12px;line-height:1.5}
+.main{padding:28px 32px;display:flex;flex-direction:column;gap:18px}
+.main .name{font-size:44px}
+.rail{padding:28px 28px 28px 0;display:flex;flex-direction:column;gap:14px}
+.rail .v{font-size:30px}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <h1>A. Cozy: Sunday picnic</h1>
+  <p><b>Warm paper, cocoa ink, sage and peach</b>, with a rounded sans and Georgia italic for pet names. The pet sits in an arched window like a storybook page, and the money numbers stay calm and soft. This is for players who come back to <i>care</i> first: low pressure, airy spacing, and full pill buttons that feel gentle, not urgent.</p>
+</div>
+
+<div class="row">
+  <div>
+    <div class="label">Phone · home (default)</div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="top">
+          <div><div class="name serif">Mochi</div><div class="sub">Bunny · Level 6 · Adult</div></div>
+          <span class="chip timer">♥ Hungry in 2d 14h</span>
+        </div>
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/26.png" alt="Mochi and friends on the hill"><span class="tag serif">Mochi</span></div>
+        <div class="money">
+          <div class="card"><div class="k">Your points</div><div class="v">12,480</div></div>
+          <div class="card pot"><div class="k">ETH pot · 4.21 ETH</div><div class="v">0.018 <small>ETH</small></div><div class="share">your share right now</div></div>
+        </div>
+        <div class="alert"><p><b>Biscuit</b> stole 240 points. Revenge?</p><button class="btn peach">Revenge</button></div>
+        <div class="actions">
+          <button class="btn sage"><span class="dot" style="background:#fff"></span> Spin the wheel</button>
+          <button class="btn wait">Next attack in <b>12m</b></button>
+        </div>
+        <button class="btn ghost" style="width:100%">Feed Mochi</button>
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center;font-size:14px"><span>♥ Day 5 streak</span><span class="k">Day 6 tomorrow</span></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>⌂</i>Home</div><div class="tab"><i>⚔</i>Battle</div><div class="tab"><i>◎</i>Play</div><div class="tab"><i>◈</i>Shop</div><div class="tab"><i>⚑</i>Guild</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label">Phone · state: Mochi is asleep</div>
+    <div class="phone asleep">
+      <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="pscroll">
+        <div class="top">
+          <div><div class="name serif">Mochi</div><div class="sub">Bunny · Level 6 · Adult</div></div>
+          <span class="chip" style="background:#E7E9F1;color:#3C4560">☾ Asleep 1 day</span>
+        </div>
+        <div class="stage p"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/26.png" alt="Mochi asleep"><span class="tag serif">Mochi</span></div>
+        <div class="sleepcard">
+          <p><b>Mochi is asleep.</b> Asleep pets earn nothing and can be robbed.</p>
+          <button class="btn dusk" style="width:100%">Wake Mochi (−10% points)</button>
+          <p style="font-size:12px;color:#6B7390">Free to wake. Each day asleep costs 10% more.</p>
+        </div>
+        <div class="money">
+          <div class="card"><div class="k">Your points</div><div class="v">12,480</div></div>
+          <div class="card pot"><div class="k">ETH pot · 4.21 ETH</div><div class="v">0.018 <small>ETH</small></div><div class="share">your share right now</div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><i>⌂</i>Home</div><div class="tab"><i>⚔</i>Battle</div><div class="tab"><i>◎</i>Play</div><div class="tab"><i>◈</i>Shop</div><div class="tab"><i>⚑</i>Guild</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="label" style="max-width:1280px;margin:0 auto 12px">Desktop 1280 · home with sidebar nav</div>
+<div class="browser" style="margin:0 auto">
+  <div class="bbar"><span></span><span></span><span></span><div class="url">petverse.app/home</div></div>
+  <div class="desk">
+    <aside class="side">
+      <div class="logo">Petverse</div>
+      <div class="nav on"><i>⌂</i>Home</div><div class="nav"><i>⚔</i>Battle</div><div class="nav"><i>◎</i>Play</div><div class="nav"><i>◈</i>Shop</div><div class="nav"><i>⚑</i>Guild</div>
+      <div class="foot">Day 5 streak ♥<br>Come back tomorrow for day 6.</div>
+    </aside>
+    <main class="main">
+      <div class="top">
+        <div><div class="name serif">Mochi</div><div class="sub" style="font-size:15px">Bunny · Level 6 · Adult</div></div>
+        <div style="display:flex;gap:10px;align-items:center"><span class="chip timer">♥ Hungry in 2d 14h</span><button class="btn ghost">Feed Mochi</button></div>
+      </div>
+      <div class="stage d"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/26.png" alt="Mochi and friends on the hill"><span class="tag serif">Mochi</span></div>
+      <div class="actions" style="grid-template-columns:1fr 1fr 1fr">
+        <button class="btn sage">Spin the wheel · ready</button>
+        <button class="btn wait">Next attack in <b>12m</b></button>
+        <button class="btn ghost">Play with Mochi</button>
+      </div>
+    </main>
+    <aside class="rail">
+      <div class="alert"><p><b>Biscuit</b> stole 240 points. Revenge?</p><button class="btn peach">Revenge</button></div>
+      <div class="card"><div class="k">Your points</div><div class="v">12,480</div><div class="k" style="margin-top:6px">+120 today from care and play</div></div>
+      <div class="card pot"><div class="k">ETH pot</div><div class="v">4.21 <small>ETH</small></div><div class="share">Your share = <b>0.018 ETH</b></div><button class="btn sage" style="width:100%;margin-top:12px">Claim 0.018 ETH</button><div class="k" style="margin-top:8px">Claiming resets your points to 0.</div></div>
+      <div class="card"><div class="k">Daily wheel</div><div style="font-size:15px;margin-top:4px">One free spin is waiting for you.</div></div>
+    </aside>
+  </div>
+</div>
+
+</body>
+</html>
