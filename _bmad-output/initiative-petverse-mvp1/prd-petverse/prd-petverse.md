@@ -121,7 +121,8 @@ real money is at risk.
 - **FR-7** Feeding resets a feed timer and gives a few points. Food is free (earned) or bought in the store.
 - **FR-8** Status follows the timer: fed → hungry → asleep after 3 days → dead after 7 more days. *(UJ-3)*
 - **FR-9** An asleep pet earns no points, gets no pot share until it is woken, and can be robbed.
-- **FR-10** Waking is free but costs 10% of points per day asleep (day 1: 10% … day 7: 70%). *(UJ-3)*
+- **FR-10** Waking is free in money but costs 10% of pot points per day asleep (day 1: 10% … day 7: 70%); level and
+  lifetime points stay. *(UJ-3; `DECISIONS` #27)*
 - **FR-11** A dead pet's NFT is burned, its points removed, and its unclaimed ETH returned to the pot. *(UJ-3)*
 - **FR-12** On death the owner gets a Tombstone badge and a free new egg. *(UJ-3)*
 - **FR-13** New pets cannot be attacked for their first 3 days. *(UJ-1)*
@@ -157,9 +158,10 @@ real money is at risk.
   the streak only grows if both show up; rewards split 50/50.
 - **FR-29** Co-Pet breeding and Death Match need both owners to approve. Max 3 Co-Pets per player. *(Co-Pet selling
   removed: no pet or Co-Pet selling in release 1, `DECISIONS` #14.)*
-- **FR-30** Ending a Co-Pet: either owner can leave or end it; the pet returns to its creator and the other keeps a
-  memory badge. *(Buy-out removed: it is a sale, `DECISIONS` #14.)* [ASSUMPTION] If the creator leaves, the pet stays
-  with the other owner; no money changes hands.
+- **FR-30** Leaving a Co-Pet: either owner can leave (or end) it. The leaver's half of the pet's unclaimed pot is paid
+  to the leaver first; then the pet becomes the other owner's normal pet (with the other half still claimable) and the
+  leaver keeps a memory badge. No sale and no money between players. *(Buy-out removed: it is a sale, `DECISIONS` #14;
+  leave rule `DECISIONS` #29.)*
 - **FR-31** **Guilds** of up to 10 players.
 - **FR-32** **Guild War:** a weekly series of 2v2 matches, guild against guild.
 
@@ -200,7 +202,8 @@ real money is at risk.
 - **FR-48** **Daily wheel:** one free spin a day. *(UJ-2)*
 - **FR-49** **Login streak** reward for days in a row. *(UJ-1)*
 - **FR-50** **Monsters (PvE):** pets fight AI monsters to earn Gold and points; automatic like other battles.
-- **FR-51** **Small pot:** 15% of the ETH pot is shared by the bottom half of awake living pets by points.
+- **FR-51** **Small pot:** 15% of the ETH pot is shared only by awake living pets in the bottom half by points
+  (`DECISIONS` #28).
 - **FR-52** **Effective points:** each extra point counts a little less at high totals, so a few whales cannot take
   most of the main pot. The curve is applied per owner to the sum of all their pets' points, so splitting points
   across many pets gives no gain (`DECISIONS` #17). The exact curve is set in architecture and pinned by tests.
@@ -328,7 +331,7 @@ None of these blocks the testnet build. Each has an owner and the point at which
 | # | Question | Owner | Answer before |
 |---|---|---|---|
 | 1 | Pons's maximum trade tax (`maxCreatorTaxBps`); the getter is not public | Owner (ask Pons) | Mainnet token launch |
-| 2 | Multisig: which product, how many signers, how long the rule-change delay | Owner | First contract deploy |
+| 2 | Multisig: which product, how many signers, how long the rule-change delay. **Resolved:** Safe 2-of-3 on testnet, Protocol Kit / CLI if the web UI lacks 46630 (`DECISIONS` #30); delay N1 | Owner | — |
 | 3 | Randomness signer: key storage and how often commitments are published | Architecture | First contract deploy |
 | 4 | Which countries we launch in; geo-blocking and age checks | Owner + lawyer | Mainnet |
 | 5 | Name for Gold | Owner | UX step |

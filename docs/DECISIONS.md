@@ -31,3 +31,8 @@ says which one it supersedes. Agents read this file before proposing anything th
 | 24 | 2026-10-14 | owner | Approved deps: `@privy-io/react-auth`, `@privy-io/node`, `@alchemy/wallet-apis`, `viem` (root app), `web-push`, OZ upgrade-safety validator (dev-only, runs in tests and gate) | Needed for login, gas, contracts, alerts |
 | 25 | 2026-10-14 | owner | Testnet owner numbers N1–N13 accepted as listed in `_bmad-output/initiative-petverse-mvp1/architecture-petverse/owner-numbers.md` (timelock 1h, K 10,000, weekly small pot, PETV split 40/20/15/15/10, faucet amounts, etc.) | Testnet defaults; all timelocked |
 | 26 | 2026-10-14 | owner | Daily game-Gold payout cap (N14) = 0.1% of the Gold reserve per day (about 150k PETV) | Reserve lasts years |
+| 27 | 2026-10-14 | owner | Waking is free in money but costs 10% of points per day asleep (PRD FR-10). Clarifies #18 | Care has a real cost; matches PRD and mocks |
+| 28 | 2026-10-14 | owner | Small pot (15%) is shared only by awake living pets in the bottom half by points | Consistent with #15 |
+| 29 | 2026-10-14 | owner | Co-Pet leave: the leaver's half of unclaimed pot is paid out first, then the pet becomes the other owner's normal pet. No sale, no money between players | Fits #14 |
+| 30 | 2026-10-14 | owner | Testnet Safe is 2-of-3 team signers. If the Safe web UI does not support 46630, use Safe Protocol Kit / CLI | One lost key is not fatal |
+| 31 | 2026-10-14 | owner | Owner accepts recommended defaults for planning choices; Claude records each and reports it | Fewer questions |

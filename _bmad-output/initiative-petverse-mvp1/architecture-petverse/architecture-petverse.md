@@ -73,7 +73,7 @@ whose full input is published.
 | #15 Asleep pets get no pot share until woken | docs/DECISIONS.md | AD-4, AD-16 |
 | #16 Game Gold paid from a funded reserve with a daily payout cap; no minting of vault shares | docs/DECISIONS.md | AD-2, AD-9, GoldVault (AD-24) |
 | #17 Effective-points curve per owner (sum of a wallet's pets), not per pet | docs/DECISIONS.md | AD-4 |
-| #18 Wake is free (feed). Supersedes paid revive in #6 | docs/DECISIONS.md | AD-16 |
+| #18 Wake is free (feed). Supersedes paid revive in #6; point cost clarified by #27 | docs/DECISIONS.md | AD-16 |
 | #19 10 sponsored actions/day, 20 with Season Pass | docs/DECISIONS.md | AD-7 |
 | #20 No Gladiator pet type; Death Match = any adult pet, 3 lives | docs/DECISIONS.md | AD-18 |
 | #21 Next app on Vercel; always-on worker on Render | docs/DECISIONS.md | Structural Seed |
@@ -81,6 +81,11 @@ whose full input is published.
 | #23 EIP-7702 on the Privy embedded wallet; external wallets that refuse 7702 use ERC-4337 | docs/DECISIONS.md | AD-8 |
 | #24 Approved deps: `@privy-io/react-auth`, `@privy-io/node`, `@alchemy/wallet-apis`, `viem` (root app), `web-push`, OZ upgrade-safety validator (dev) | docs/DECISIONS.md | AD-3, Stack |
 | #25 Owner numbers N1–N13 (testnet defaults) | docs/DECISIONS.md, owner-numbers.md | AD-3, AD-4, AD-5, AD-6, AD-9, AD-10, AD-15, AD-18 |
+| #26 Daily game-Gold payout cap N14 = 0.1% of the Gold reserve per day | docs/DECISIONS.md | AD-24 |
+| #27 Wake is free in money but costs 10% of pot points per day asleep (FR-10); clarifies #18 | docs/DECISIONS.md | AD-16, AD-4, AD-18 |
+| #28 Small pot = awake living pets in the bottom half by points | docs/DECISIONS.md | AD-5 |
+| #29 Co-Pet leave: leaver's half of unclaimed pot paid first, then the pet is the other owner's normal pet; no sale, no money between players | docs/DECISIONS.md | AD-17, AD-4, AD-22 |
+| #30 Testnet Safe is 2-of-3 team signers; Safe Protocol Kit / CLI if the Safe web UI lacks 46630 | docs/DECISIONS.md | AD-3 |
 
 ## Invariants & Rules
 
@@ -138,7 +143,7 @@ flowchart TB
 
 ### AD-3: Upgradeable modules behind a Safe-proposed timelock
 
-- **Binds:** every contract; NFR-1; DECISIONS #11.
+- **Binds:** every contract; NFR-1; DECISIONS #11, #30.
 - **Prevents:** a single key changing rules or swapping logic, units choosing different admin or storage patterns, and
   upgrades that corrupt storage.
 - **Rule:**
@@ -147,6 +152,9 @@ flowchart TB
   - The upgrade admin and every parameter setter is one OZ `TimelockController`. Its proposer and canceller is a Safe
     (Safe contracts are canonical on 46630 and 4663); executor is open. Delay: 1 hour on testnet, 48 hours hinted for
     mainnet (N1).
+  - Testnet Safe: 2-of-3 team signers (DECISIONS #30), so one lost key is not fatal. If the Safe{Wallet} web UI does not
+    list 46630, signers propose, sign and execute through Safe Protocol Kit / Safe CLI against the canonical contracts;
+    the deploy runbook covers both paths. Mainnet signer count and key storage are decided with mainnet work.
   - The Safe holds `PAUSER`: it can pause a module or suspend a signer role instantly, but cannot change parameters,
     upgrade, or move funds.
   - Each server key holds exactly one role (`RANDOMNESS_SIGNER`, `QUOTE_SIGNER`, `VOUCHER_SIGNER`, `EPOCH_POSTER`,
@@ -183,7 +191,8 @@ flowchart TB
     pending up to the sleep stay its own. Asleep is time-based (`sleepAt`), so removal is done by
     `PetCore.sleep(petId)`, callable by anyone once `now ≥ sleepAt` and also run inside `touch`. Each keeper tick runs
     `sleep` for every due pet, then `bury` (AD-16), then `PotFunder.flush()`; so no flush pays a pet past its `sleepAt`
-    while the keeper is live. Tests pin: a flush after `sleep` adds nothing to that pet; wake re-adds its points.
+    while the keeper is live. Tests pin: a flush after `sleep` adds nothing to that pet;
+    wake re-adds its points after the AD-16 wake cut.
   - Recycled ETH (a buried pet's owed + pending) stays inside PetCore and goes 100% to the main accumulator, after the
     pet's points are out of its bucket. `flush()` is never used for recycled ETH.
   - Claim order: settle, pay `ethOwed + pending` (split 50/50 for a Co-Pet), set the pet's points and `rewardDebt` to
@@ -194,7 +203,7 @@ flowchart TB
 
 ### AD-5: Ranked and bottom-half payouts go through one epoch Merkle distributor
 
-- **Binds:** FR-15, FR-32, FR-36, FR-47, FR-51, FR-53; §4.10 anti-bot "older than 7 days".
+- **Binds:** FR-15, FR-32, FR-36, FR-47, FR-51, FR-53; §4.10 anti-bot "older than 7 days"; DECISIONS #15, #28.
 - **Prevents:** O(n) sorts on-chain, units choosing different snapshots, and roots that pay more than was funded.
 - **Rule:**
   - One `EpochDistributor` contract with named streams: `smallPot` (ETH), `seasonPool` (season bonus, Guild War Gold
@@ -204,7 +213,11 @@ flowchart TB
     builds leaves keyed by `petId` (or `guildId` → member addresses for Guild War) and posts
     `(stream, epoch, root, datasetHash, total)` via `EPOCH_POSTER`. The contract rejects `total` above what the stream
     received plus rollover.
-  - Small pot leaves: living pets, older than 7 days, not on hold or flagged, bottom half by raw points, equal shares.
+  - Small pot leaves (DECISIONS #28): pets **awake** at the snapshot block, older than 7 days, not on hold or flagged;
+    the bottom half of that set by raw points; equal shares. Awake at the snapshot block = the AD-16 status port says
+    not asleep and not dead at that block's timestamp (`snapshotTs < sleepAt`, using `sleepAt` as of that block),
+    whether or not `sleep(petId)` was called. Asleep and dead pets are dropped before the bottom-half cut, so they
+    neither get a share nor move the cut line. Tests pin a pet with `sleepAt == snapshotTs` as excluded.
     Guild War rosters and results are part of the published dataset.
   - Testnet epochs (N3–N5): `smallPot` weekly, ending Sunday 00:00 UTC; `seasonPool` and `trophies` one season (12
     weeks); Guild War prize weekly (Sunday).
@@ -362,13 +375,20 @@ sequenceDiagram
 
 ### AD-16: Life cycle comes from one timestamp
 
-- **Binds:** FR-7–13, FR-25; DECISIONS #13, #15, #18; PRD open question 8.
+- **Binds:** FR-7–13, FR-25; DECISIONS #13, #15, #18, #27; PRD open question 8.
 - **Prevents:** different status answers at the boundaries in contract, worker and UI, modules acting on a dead
   pet, and asleep pets earning.
 - **Rule:**
   - PetCore stores `sleepAt` (last feed + 3 days); `deathAt = sleepAt + 7 days`. Asleep iff `sleepAt ≤ now < deathAt`;
-    dead iff `now ≥ deathAt` (the boundary is dead). Wake = a normal feed while `now < deathAt`; it is free and costs no
-    points (DECISIONS #18).
+    dead iff `now ≥ deathAt` (the boundary is dead). Wake = a normal feed while `now < deathAt`; it costs no money
+    (DECISIONS #18) but cuts pot points (DECISIONS #27).
+  - Wake point loss: `daysAsleep = floor((now − sleepAt) ÷ 1 day) + 1` (1..7); the pet loses
+    `points × min(daysAsleep × wakeLossBps, 10,000) ÷ 10,000` pot points; `wakeLossBps` is a timelocked parameter,
+    1,000 (10%) on testnet (AD-18). Level, lifetime points, items and lives are untouched. The UI states the loss first.
+  - Wake order (AD-4): run `sleep` first if not done, which settles the bucket and the pet as of the sleep, so the
+    pre-sleep share is already in `ethOwed`; then cut the out-of-bucket points; then settle the bucket, add the reduced
+    points, recompute `eff` and reset debts. The cut never touches `ethOwed`: ETH earned before sleep stays claimable.
+    Lost points are destroyed, not moved. Tests pin day 1 = 10%, day 7 = 70%, and `ethOwed` unchanged by a wake.
   - Pot share follows status, not the timestamp alone: `sleep(petId)` (anyone, once `now ≥ sleepAt`; also inside
     `touch`) takes the pet's points out of its bucket; wake puts them back (AD-4). The status port reports asleep from
     `sleepAt`; the `asleep` flag only says whether the points were already taken out.
@@ -381,14 +401,25 @@ sequenceDiagram
 
 ### AD-17: Co-Pet ownership is on-chain
 
-- **Binds:** FR-25, FR-28–30; DECISIONS #14, #17.
+- **Binds:** FR-25, FR-28–30; DECISIONS #14, #17, #29.
 - **Prevents:** a second owner who exists only in the DB, replayed approvals, and Co-Pet sales.
 - **Rule:** PetCore holds `coOwner` per pet. Both owners may care and play; claims pay 50/50. A Co-Pet has its own pot
   bucket (AD-4). Actions needing both owners (Death Match entry, breeding) need an on-chain approval
-  `(petId, action, nonce, expiry)` from each, used once and voided by any ownership change. Either owner can leave or
-  end a Co-Pet with no payment: the pet goes back to its creator (or stays with the other owner if the creator leaves)
-  and moves into that owner's bucket; the leaver gets a memory badge. No Co-Pet selling or buy-out (DECISIONS #14). At
-  most 3 Co-Pets per player, checked on-chain.
+  `(petId, action, nonce, expiry)` from each, used once and voided by any ownership change. No Co-Pet selling or
+  buy-out (DECISIONS #14). At most 3 Co-Pets per player, checked on-chain.
+- **Leave (DECISIONS #29).** Either owner calls `leaveCoPet(petId)`; "end" is the same call. No price and no payment
+  between players. One transaction, in order:
+  1. `touch` the pet (a dead pet is buried instead, AD-16); settle the Co-Pet bucket and the pet (AD-4).
+  2. Pay the leaver half of the pet's unclaimed ETH (`ethOwed + pending`) to the leaver's pull balance (a
+     `payoutHold` on the leaver holds it); the other half stays in the pet's `ethOwed`. Accrued unpaid Gold splits
+     the same way.
+  3. Take the pet's points out of the Co-Pet bucket and close it; clear `coOwner`; void open approvals.
+  4. The remaining owner is sole owner (PetCore moves the NFT if the leaver held it, the no-payment move in AD-22);
+     settle that owner's per-owner bucket, add the pet's points if awake (an asleep pet joins on wake), recompute
+     `eff`, reset debts. From here it is a normal solo pet under that owner's curve.
+  5. Mint the leaver a soulbound memory badge; decrement both owners' Co-Pet counts.
+  Tests pin: the leaver gets exactly half, the remaining owner's later claim gets the other half, the AD-4 balance
+  invariant holds, and the pet counts in the remaining owner's `eff`.
 
 ### AD-18: Every economy number is a parameter with one home
 
@@ -607,7 +638,7 @@ prisma/schema.prisma   # one schema, writer named per model
 
 | # | Question | Blocks |
 | --- | --- | --- |
-| 1 | Does the Safe{Wallet} UI support testnet 46630? (Contracts are deployed; Protocol Kit or CLI works either way.) Owner checks | first testnet deploy |
+| 1 | Does the Safe{Wallet} UI support testnet 46630? **Resolved with fallback:** 2-of-3 Safe; Protocol Kit / CLI if the UI lacks 46630, DECISIONS #30 (AD-3) | — |
 | 2 | Hosting for the worker and the Next app. **Resolved:** DECISIONS #21 | — |
 | 3 | Graduation venue for the testnet curve. **Resolved:** DECISIONS #22 | — |
 | 4 | Owner numbers. **Resolved:** DECISIONS #25 (owner-numbers.md) | — |

@@ -200,7 +200,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Breed locked | Home pet card | "Breed at Adult" before Adult; "No breeds left · 5 of 5 used" after 5; "Mochi needs good care to breed" when care is low. Co-Pet: "Waiting for Priya to agree". |
 | Co-Pet limit | Home pet switcher "add" egg | At 3 Co-Pets the add egg shows "3 of 3 Co-Pets" and, when pressed, "Leave a Co-Pet to start a new one". Stays focusable. |
 | Co-Pet invite pending / expired | Home pet switcher, invite link | Pending: dashed egg chip "Waiting for Priya" with "Copy link again" and "Cancel invite". Expired or used link: "This invite has ended. Ask your friend for a new one." |
-| Co-Pet left | Home, both owners | Confirm sheet first: "Leave Co-Pet Pudding? Pudding goes back to Sam, who hatched it. You keep a memory badge. No money changes hands." After: the pet leaves your switcher; a memory badge appears in Profile; the other owner gets an in-app alert "Priya left Co-Pet Pudding". If the creator leaves, the pet stays with the other owner (FR-30). |
+| Co-Pet left | Home, both owners | Confirm sheet first: "Leave Co-Pet Pudding? Pudding goes back to Sam, who hatched it. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." After: the pet leaves your switcher; a memory badge appears in Profile; the other owner gets an in-app alert "Priya left Co-Pet Pudding". If the creator leaves, the pet stays with the other owner (FR-30). |
 | Matchmaking | Duel, 2v2 random partner, wager, Boss Raid partner | "Finding a match…" with a plain "Stop looking" text button; nothing is spent while searching; if no match comes, the Empty-state line "No one near your level right now. Try again soon." |
 | Result being revealed | Any battle, dice or wager result (FR-27) | Grey pill "Being revealed · nothing for you to do"; the fight plays once the reveal lands; no countdown for the player because the server reveals. |
 | Push permission denied | Notification settings, after the browser prompt | "Alerts are off in your browser. You can still link Telegram." with steps to turn them on; no repeated prompts. |
@@ -303,7 +303,7 @@ Failure: wake fails → "Couldn't wake Mochi. Try again. No points were taken." 
 5. Sunday: Guild › War, best of 5 2v2 matches; they play the deciding match together.
 6. **Climax:** they win the deciding 2v2; the guild shares a Gold prize.
 
-Edge (PRD, FR-30): Priya wants to stop. She opens the Co-Pet card menu → "Leave Co-Pet" → confirm sheet: "Pudding goes back to Sam, who hatched it. You keep a memory badge. No money changes hands." → Leave. Pudding leaves her switcher; she gets the memory badge; Sam gets an in-app alert. There is no selling and no buy-out (#14).
+Edge (PRD, FR-30): Priya wants to stop. She opens the Co-Pet card menu → "Leave Co-Pet" → confirm sheet: "Pudding goes back to Sam, who hatched it. Your half of Pudding's unclaimed pot share is paid to you first. You keep a memory badge. No sale, no money between players (#29)." → Leave. Pudding leaves her switcher; she gets the memory badge; Sam gets an in-app alert. There is no selling and no buy-out (#14).
 
 Edge: Sam already has 3 Co-Pets → the add egg reads "3 of 3 Co-Pets" → "Leave a Co-Pet to start a new one" (FR-29).
 
