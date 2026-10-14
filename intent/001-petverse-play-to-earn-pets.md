@@ -1,7 +1,7 @@
 # Intent: Petverse, a cute pet game where play earns a share of real ETH
 
-Author: Paras. Status: review (revised 2026-10-14 with Fren Pet's contracts and the database choice; first accepted
-2026-10-14).
+Author: Paras. Status: accepted (2026-10-14, by Paras, after the revision with Fren Pet's contracts and the database
+choice: main plan, all 3 trust measures, server commit–reveal and a 3 + 7 day death timer approved).
 
 ## Problem
 
@@ -119,8 +119,6 @@ Keep Fren Pet's proven base, copy what its contracts get right, and fix what the
 - Pons launchpad: the maximum creator tax (`maxCreatorTaxBps`) and the tax after graduation.
 - Launch type for $PETV: Pons bonding curve or a traditional sale.
 - Which countries we launch in. Drives check 5.
-- Death timer: 3 + 7 days (Fren Pet) or 3 + 4 days. (Fren Pet's live status bands: >16h happy, 12–16h hungry, 8–12h
-  starving, <8h dying.)
 - Name for Gold (the pGOLD-style vault coin). Fren Pet's Gold is an ERC-4626-style vault: stake $FP, get shares.
 - How tests use the one hosted database without touching real data (separate schema).
 
