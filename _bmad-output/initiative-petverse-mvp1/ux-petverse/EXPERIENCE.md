@@ -2,7 +2,7 @@
 title: Petverse experience
 status: final
 created: 2026-10-14
-updated: 2026-10-14
+updated: 2026-10-15
 sources:
   - ../prd-petverse/prd-petverse.md
   - .memlog.md
@@ -12,18 +12,19 @@ sources:
 
 # Petverse — Experience Spine
 
-How Petverse works for release 1 (testnet). Visual identity lives in [DESIGN.md](DESIGN.md); colour tokens are cited by name as `{colors.xxx}` (`{colors.background}`, `{colors.ink}`, `{colors.pink}`, `{colors.lemon}`, `{colors.lime}`, `{colors.sky}`, `{colors.orange}`, `{colors.cooldown}`, `{colors.ink-soft}`; the candy fills and `cooldown` also have `-deep` shadow partners). Mocks are linked at the sections they illustrate; coverage and the conflict rule are in Mock coverage below. Requirement numbers (FR-n), journeys (UJ-n) and decisions (#n, `docs/DECISIONS.md`) are cited, not restated.
+How Petverse works for release 1 (testnet). Visual identity lives in [DESIGN.md](DESIGN.md); colour tokens are cited by name as `{colors.xxx}` (`{colors.background}`, `{colors.ink}`, `{colors.pink}`, `{colors.lemon}`, `{colors.lime}`, `{colors.sky}`, `{colors.orange}`, `{colors.cooldown}`, `{colors.ink-soft}`, `{colors.mint}`; the job fills and `cooldown` also have `-deep` partners; the Night Arcade skin uses `{colors.night-bg}`, `{colors.night-panel}`, `{colors.night-line}`, `{colors.night-dither}`, `{colors.night-mint}`, `{colors.night-pink}`, `{colors.night-text}`). Mocks are linked at the sections they illustrate; coverage and the conflict rule are in Mock coverage below. Requirement numbers (FR-n), journeys (UJ-n) and decisions (#n, `docs/DECISIONS.md`) are cited, not restated.
 
 Example figures used throughout: Mochi the bunny, **level 12**, Adult, 12,480 points. **Level comes from lifetime points and never drops**; a claim resets only the **pot points** (the points that set your pot share). Pot 4.21 ETH = $9,843, Mochi's share 0.018 ETH = $42.08 (1 ETH = $2,338). Mocks use **$1 = 312 PETV**; real token amounts follow the live price. Owner names in Key Flows are illustrative.
 
 ## Foundation
 
 - **Form factor:** web / PWA only (no app stores). Phone browser and desktop browser are **equal** surfaces with two layouts: phone (bottom tab bar) and desktop (top pill nav + right rail).
-- **UI system:** none inherited. The Candy "Sticker book" layer in DESIGN.md is the visual reference ([.working/direction-candy.html](.working/direction-candy.html)); this spine is the behaviour. The other `direction-*` and `theme-bold-*` files in `.working/` are superseded explorations, not references.
+- **UI system:** none inherited. The visual identity is **Pet Press** (DECISIONS #58): squishy 3D jelly pets printed into a comic book, riso-ink paper UI, hard ink outlines and shadows, collectible die-cut cards. DESIGN.md is the visual reference; this spine is the behaviour. The Candy look (`direction-candy.html`) and the other `direction-*` and `theme-bold-*` files in `.working/` are superseded explorations, not references.
+- **Night Arcade skin** (DECISIONS #58): a scoped surface skin, not a dark mode. It applies **only** to these IA surfaces: **Battle** tab (Attack, Duel incl. Ranked / Wager, 2v2), **Wager**, **Fight / Result** (every fight, incl. the onboarding bot battle, Monsters and Guild War matches), the **Death Match** entry warning, run, "Leave safely?" sheet and lobby, and the **Boss Raid** fight. Sheets opened from these surfaces use it too. Everything else (Play hub cards incl. the Death Match and Boss Raid cards, Season page and Hall of Fame, Guild / War board, Home, Shop, Wallet sheet, Avatar menu) stays in the day Pet Press skin. Behaviour, copy, colour jobs and the accessibility floor are the same in both skins.
 - **Colour jobs** (behavioural meaning, so the same colour always means the same thing): `{colors.lemon}` = the main thing to press, `{colors.lime}` = points and care, `{colors.sky}` = ETH, pot and claim, `{colors.orange}` = trouble (hungry, robbed, danger, loss), `{colors.pink}` = brand and active tab, `{colors.cooldown}` = waiting / disabled.
-- **Fixed:** the glossy 3D jelly pets and their stage come from `src/components/three`; only the UI around them is new.
-- **Light mode only** for release 1.
-- **Look rules that affect behaviour:** Baloo 2 (display) + Nunito (body); ink text on every candy fill; coloured reward text only inside a pill or underline; custom chunky SVG icons with text labels, no emoji.
+- **Fixed:** the 3D jelly pets (material, species, palettes) and their stage come from `src/components/three`; only the UI around them is new. Pet Press adds an ink outline and a halftone ground shadow under the pet; no post-processing on the 3D canvas.
+- **Light mode only** for release 1 (Night Arcade is a scoped skin, not a dark mode).
+- **Look rules that affect behaviour:** Bricolage Grotesque (display) + Figtree (body) + Silkscreen (numeric: money, timers, stats, rarity tags only); ink text on every colour fill; no pattern behind text; print textures can be turned off (Print effects setting); coloured reward text only inside a pill or underline; custom chunky SVG icons with text labels, no emoji.
 - **Login:** email, Google or an existing wallet (Privy-style). Every player gets a smart wallet silently: no seed phrase, no gas for sponsored actions (FR-2, FR-3).
 
 ## Information Architecture
@@ -45,7 +46,7 @@ Example figures used throughout: Mochi the bunny, **level 12**, Adult, 12,480 po
 | Season page | Play › Season card, Avatar menu › Season | Weeks left, your rank, leaderboard, season pool bonus, Hall of Fame (FR-47; Death Match Hall of Fame) |
 | **Shop** | Tab 4 | Segmented: **Store** (items + cosmetics with try-on) · **Pass** · **Market** |
 | **Guild** | Tab 5 | Segmented **Guild / War**: your guild (up to 10, invite a friend, members) and the Sunday Guild War. Co-Pet is **not** here (it lives on Home) |
-| Avatar menu | Top-right avatar on every page | Profile, Wallet, Claims, Season, Calm motion, Notifications, How it's fair |
+| Avatar menu | Top-right avatar on every page | Profile, Wallet, Claims, Season, Calm motion, Print effects, Notifications, How it's fair |
 | Wallet sheet | Avatar menu › Wallet, wallet chip, "not enough PETV" links | PETV and ETH balances (dollars first), faucet "Get today’s PETV", Gold vault (stake, swap back), burn counter |
 | How it's fair | Avatar menu, every "Check this result" link | Fairness check sheet for one result; rules page: commit–reveal, public contracts, multisig and time delay, pot readable by anyone (NFR-1, NFR-2, FR-27, #11, #12) |
 | Market buy sheet | Shop › Market › Buy | Review before paying: item, seller, dollar price, token amount, 5% fee |
@@ -59,7 +60,7 @@ Navigation: 5 fixed tabs, always visible. Every tab acts on the pet chosen in th
 
 **DESIGN.md and this spine win on any conflict with a mock, theme file or import.** Known mock drift is listed in Open questions.
 
-Mocked key screens (Candy style, phone + desktop):
+Mocked key screens (phone + desktop). They are restyled to Pet Press (battle and Death Match in Night Arcade) on 2026-10-15; DESIGN.md wins on any conflict.
 
 | Mock | Surfaces |
 |---|---|
@@ -72,9 +73,9 @@ Mocked key screens (Candy style, phone + desktop):
 | [.working/key-sleep-death.html](.working/key-sleep-death.html) | Hungry, asleep + wake, passed away / Tombstone, push and Telegram alerts |
 | [.working/key-death-match.html](.working/key-death-match.html) | Death Match entry warning, run, "Leave safely?" sheet, lobby + Hall of Fame |
 
-`direction-candy.html` is the style source only (its Home frames predate key-home-copet). `share/` is a shareable snapshot for the owner (older copies of the mocks, `petverse-themes.html`, `share/img/`), **not a reference**: build from `.working/` and the spines only.
+`direction-candy.html` is superseded by Pet Press (DECISIONS #58) and is no longer a style source. `share/` is a shareable snapshot for the owner (older copies of the mocks, `petverse-themes.html`, `share/img/`), **not a reference**: build from `.working/` and the spines only.
 
-**Spine-only** (no mock; build from DESIGN.md tokens and this spine): Avatar menu (with Calm motion switch), Wallet sheet (faucet, Gold vault, burn counter), Duel and 2v2 setup and matching, **Duel › Ranked / Wager** switch and wager flow, Monsters fight, Expedition send and return, Dice, Boss Raid fight, onboarding steps 2–4 and closing card, Empty / Loading / Error / Offline states, out-of-free-actions and not-enough-PETV states, **Season card and Season page** (leaderboard, Hall of Fame), **Evolve and Breed buttons and sheets** on the Home pet card, **Co-Pet card menu, Leave Co-Pet sheet and 3-of-3 Co-Pet state**, fairness check sheet and How it's fair page, market buy sheet, notification settings and Telegram linking, focus ring and keyboard states.
+**Spine-only** (no mock; build from DESIGN.md tokens and this spine): Avatar menu (with Calm motion and Print effects switches), Wallet sheet (faucet, Gold vault, burn counter), Duel and 2v2 setup and matching, **Duel › Ranked / Wager** switch and wager flow, Monsters fight, Expedition send and return, Dice, Boss Raid fight, onboarding steps 2–4 and closing card, Empty / Loading / Error / Offline states, out-of-free-actions and not-enough-PETV states, **Season card and Season page** (leaderboard, Hall of Fame), **Evolve and Breed buttons and sheets** on the Home pet card, **Co-Pet card menu, Leave Co-Pet sheet and 3-of-3 Co-Pet state**, fairness check sheet and How it's fair page, market buy sheet, notification settings and Telegram linking, focus ring and keyboard states.
 
 ## Voice and Tone
 
@@ -114,7 +115,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 
 | Component | Use | Behavioural rules |
 |---|---|---|
-| Pill button | Every action | One `{colors.lemon}` main action per view. Full width on phone when it is the main action. At least 44px tall. Press shows the shadow shrinking (sticker pressed). While the action is pending, label changes to a plain verb ("Feeding Mochi…") and the button is not re-pressable. |
+| Pill button | Every action | One `{colors.lemon}` main action per view. Full width on phone when it is the main action. At least 44px tall. Press shows the hard shadow shrinking (pressed state, DESIGN.md). While the action is pending, label changes to a plain verb ("Feeding Mochi…") and the button is not re-pressable. |
 | Cooldown button | Any action on a timer | Replaces the action button in place, shows the remaining wait live ("Attack in **12m**") on a `{colors.cooldown}` fill with a `{colors.ink}` label and clock icon; turns back into the action button at 0 without a reload. Stays a real `<button aria-disabled="true">` **in the tab order** with the name "Attack, available in 12 minutes"; pressing it does nothing but keep the reason on screen. Its text updates on unit change only. |
 | Text button | Calm exits | Always the last item in a sheet; closes it with no side effect. |
 | Sticker card | Explanations, feed card, tips, rails | Static container; tappable only if it has its own button. |
@@ -127,7 +128,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Alert pill | Home, top of Battle | One alert at a time: the newest unread (push and Telegram send the most urgent instead; DECISIONS #43). Robbery alert carries a Revenge button. Dismisses when acted on. |
 | Status pill | Play cards, rows | Live status: "Ready", "2 of 3 left today", "Back in 3h 12m", "This weekend", "Next spin 23h". `{colors.cooldown}` when waiting. |
 | Icon tile | Cards, items, benefits | Decorative; label always present next to it. |
-| Avatar | Top-right on every page | Labelled "Account menu". Opens the Avatar menu (Profile, Wallet, Claims, Season, Calm motion, Notifications, How it's fair). |
+| Avatar | Top-right on every page | Labelled "Account menu". Opens the Avatar menu (Profile, Wallet, Claims, Season, Calm motion, Print effects, Notifications, How it's fair). |
 | Tab bar | Phone | 5 tabs, always visible, active tab `{colors.pink}` plus an ink bar and `aria-current="page"`. Plain links inside `<nav>`, in Tab order. Tapping the active tab scrolls to top. |
 | Top nav | Desktop | Same 5 destinations as the tab bar (plain links, `aria-current="page"`), plus free-actions chip, streak pill, wallet chip, avatar. |
 | Segmented tabs | Battle (Attack / Duel / 2v2; Duel has Ranked / Wager), Shop (Store / Pass / Market), Guild (Guild / War), Season (Leaderboard / Hall of Fame) | Switches view in place; second line shows the limit ("5 left today"). `role="tablist"` with `aria-selected`; arrow keys move between segments. |
@@ -158,7 +159,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Focus ring | Every focusable item | Ink ring on `:focus-visible` (DESIGN `focus-ring`). Focus is never hidden under the tab bar or a sheet (`scroll-padding-bottom` 110px). |
 | Free-actions chip | Top bar, every page | "7 free left"; at 0 "0 free · small fee". Updates after each sponsored action. Announced only when it changes (polite). |
 | Streak pill | Desktop top nav; phone top bar | "Day 4 streak"; opens the Season page. Phone: flame chip in the top bar next to the free-actions chip (#39). |
-| Avatar menu | Avatar | Sheet of rows; each row opens its sheet or page. Calm motion is a three-choice row (Follow device / On / Off, `role="radiogroup"`), default Follow device, stored per player. |
+| Avatar menu | Avatar | Sheet of rows; each row opens its sheet or page. Calm motion is a three-choice row (Follow device / On / Off, `role="radiogroup"`), default Follow device, stored per player. **Print effects** is a switch row (`role="switch"`, `aria-checked`), default **On**, stored per player like Calm motion. Off renders flat colour: no halftone, screentone, misregister, holo foil or dither; ink outlines and hard shadows stay; layout, copy and states do not change. |
 | Wallet sheet | Avatar menu › Wallet, wallet chip, shortfall links | Balances dollars first; "Get today's PETV · $X" at its live dollar value (#47; then a cooldown button with the countdown); Gold vault stake / swap back (stake is a confirm step; "Swapping back costs 2%" shown before); burn counter. |
 | Shortfall note | Any price the player cannot pay (Store, Pass, Market, wager stake, Bold expedition, evolve item, breed) | Replaces a dead button: Buy shows as a cooldown-style "Not enough PETV" and the note says the gap in dollars ("You need $1.40 more", PETV under) with "Get today's PETV" (or "Open Wallet" once used). After topping up, the player returns to the same item. |
 | Burn counter | Wallet sheet, Dice card, wager and Bold expedition results | Shows total burned, dollars first. On a result it ticks up by the amount just burned ("+$0.40 burned"); no animation under Calm motion. Not a live region. |
@@ -172,6 +173,10 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Progress dots | Onboarding | Decorative copy of "Step n of 4"; `aria-hidden`. |
 | Season card / page | Play hub, Avatar menu | Card: "Week 4 of 12", "Your rank #128". Page: your rank row first, then leaderboard (top 100), the season pool line, and a Hall of Fame segment. Ranks reset each season (FR-47). |
 | Wager setup | Battle › Duel › Wager | Stake chips in dollars, danger note before the commit, confirm sheet with stake + "5% of the pot is burned", then matching. |
+| Window panel | Pot, shop egg case, trouble panels, framed sheet content | Titled bar in the panel's **job colour** (`{colors.sky}` pot, `{colors.lemon}` shop, `{colors.pink}` brand, `{colors.orange}` trouble); the title is a real heading; right-side meta (timer, count) is also given in words. Optional close X: a real button named "Close", 44 × 44px target, same effect as the view's text button. Static unless it holds its own buttons. |
+| Egg case | Shop › Store (eggs) | Grid of slots (3 × 3 on phone) on a `{colors.mint}` ground inside a lemon window panel; each slot is a button named with item + dollar price. **Selected:** ring + `aria-pressed="true"`, shows details / try-on; Buy is separate. **Pressed:** hard shadow shrinks. **Sold out:** `{colors.cooldown}` fill plus the words "Sold out", stays focusable (`aria-disabled`) with the reason. **Disabled** (can't afford): shortfall note pattern, never a dead slot. Tab order is reading order. |
+| Collectible card | Pets, eggs, cosmetics (Store, Market, prize card, Profile) | Die-cut card with the item name and a **text tier label** (stars + word, e.g. "Rare"). Rare and better may show holo foil; tier is never shown by holo colour alone. Card tilt is decoration only; holo tilt follows pointer / device only when motion is allowed. **Selected:** ring + check badge, `aria-pressed="true"`. **Pressed:** shadow shrinks. **Disabled / sold out:** cooldown fill + reason in words, stays focusable. |
+| Pot window | Home (pot blob), Claim sheet, Landing teaser | Big-number window: dollar amount large, ETH small under, one plain line saying who shares it, your rank underlined in `{colors.sky}`. On Home, tapping it opens the Claim sheet (same as the pot blob). Accessible name in words ("Prize pot 9,843 dollars, 4.21 ETH"). No live region (it moves with other players). While asleep: "No pot share while asleep" (#15). |
 
 ## State Patterns
 
@@ -190,7 +195,7 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 | Death Match last life | Death Match | At 1 life: sheet "Leave safely?" with streak rewards shown; leaving is the lemon action, continuing is secondary. |
 | Co-Pet needs partner | Home (Co-Pet card), Death Match | Actions needing both owners (breed, Death Match) show "Waiting for Priya to agree" and cannot complete alone. |
 | **Empty** | Battle list, Market, Guild, own items | One sentence + one action: "No pets near your level right now. Try Monsters while you wait." · "No items for sale in this slot yet." · "You're not in a guild yet. Invite a friend." (copy pattern; exact lines per surface at build). |
-| **Loading** | Any surface | Sticker-shaped placeholders tinted `{colors.dot}` on `{colors.background}`, matching the final layout; the blob stage shows the empty scene until the pet loads. Never a blank frame where the pet should be. |
+| **Loading** | Any surface | Panel-shaped placeholders tinted `{colors.dot}` on `{colors.background}`, matching the final layout; the blob stage shows the empty scene until the pet loads. Never a blank frame where the pet should be. |
 | Pending action | Any on-chain action | Button shows a plain verb ("Hatching…", "Claiming $42.08…"); never "Processing tx…". |
 | **Error** | Any action | Says what failed and what to do, keeps the player's place: "Couldn't feed Mochi. Try again." with a retry button. Money actions say nothing was spent when that is true. |
 | Offline | Global | Read-only last-known values with "You're offline." No action queueing (Open question 7); an action that fails to send says "Couldn't send. Nothing was spent." |
@@ -226,11 +231,12 @@ Behavioural. Visual specs live in DESIGN.md › Components under the same names.
 
 ## Accessibility Floor
 
-Behavioural. Visual contrast lives in DESIGN.md › Colors (ink text on every candy fill; coloured reward text only inside a pill or underline).
+Behavioural. Visual contrast lives in DESIGN.md › Colors (ink text on every colour fill, in both the day and Night Arcade skins; coloured reward text only inside a pill or underline).
 
 - **Big readable text for key info:** points, pot, your share, prices, timers and rewards use the large number styles in DESIGN.md › Typography, in `{colors.ink}`. Never shrink them to fit; wrap or stack instead.
-- **Text size floor:** no text under 13px; token amounts and tab labels 14px; body 16px; sizes in `rem`, 200% zoom works, layouts reflow at 320px (DESIGN.md › Typography). Every text and background pair passes AA (DESIGN.md › Colors).
-- **Reduce motion** (`prefers-reduced-motion`) **or the in-app Calm motion switch**: no tilt or wobble animation, no confetti, no spinning wheel (show the prize), no hit-label pops; the fight shows its round log and final health bars without animation; the 3D pet stays in a still pose. Information is never only in motion.
+- **Text size floor:** no text under 13px; token amounts and tab labels 14px; body 16px; the Silkscreen numeric font never under 14px (main money at least 16px), and every Silkscreen amount keeps a plain-text accessible label ("42 dollars 8 cents", "12 minutes"); sizes in `rem`, 200% zoom works, layouts reflow at 320px (DESIGN.md › Typography). Every text and background pair passes AA (DESIGN.md › Colors).
+- **Reduce motion** (`prefers-reduced-motion`) **or the in-app Calm motion switch**: no tilt or wobble animation, no holo tilt, no misregister jitter, no confetti, no spinning wheel (show the prize), no hit-label pops; the fight shows its round log and final health bars without animation; the 3D pet stays in a still pose. Information is never only in motion.
+- **No pattern behind text:** halftone, screentone, dither and holo never sit behind text; text always sits on a solid plate. No information depends on a print texture (Print effects Off removes them all).
 - **Calm motion** (Avatar menu): "Follow device" (default), "On" or "Off", stored per player; On applies every reduce-motion rule above.
 - **Pet idle stops:** the 3D pet's jelly idle runs for at most 5 seconds after load or after any action, then holds a still pose (WCAG 2.2.2). Calm motion Off keeps the idle running.
 - **No flashing:** nothing flashes more than 3 times a second (crit hits, confetti, hatch burst, wheel lights).
@@ -243,7 +249,7 @@ Behavioural. Visual contrast lives in DESIGN.md › Colors (ink text on every ca
   - **Fight:** the arena is `aria-hidden`; the battle text box is `role="log"` (polite), one line per round with both health values. On result, focus moves to the result heading and the result is read once ("You won. Plus 620 points.").
   - **No live region on the pot** (it moves with other players) or on the points blob or timer chip. One polite region announces only the player's own changes, on change: "Plus 20 points. 12,500 points.", "Free actions: 6 left", and timer thresholds (hungry window starts, 1h to sleep, asleep). Countdowns are read on unit change only, never every second.
   - **Timers in words** for assistive tech: "2 days 14 hours until Mochi sleeps", not "2d 14h".
-- **Not colour alone:** danger always has words as well as `{colors.orange}`; rarity uses stars + word; states carry words ("Asleep", "Shielded", "Safe for now"). Full colour-blind-safe palette was **not** selected as a floor.
+- **Not colour alone:** danger always has words as well as `{colors.orange}`; rarity uses stars + a text tier label, never holo colour alone; states carry words ("Asleep", "Shielded", "Safe for now"). Full colour-blind-safe palette was **not** selected as a floor.
 
 ## Key Flows
 
@@ -395,8 +401,8 @@ Copy follows Voice and Tone (dollars first, gentle danger). The one-alert-at-a-t
 From [imports/reference-extract.md](imports/reference-extract.md) (Fren Pet captures and the Petverse prototype).
 
 - **Lifted from Fren Pet:** one heart **timer chip** used on every pet surface; the **cooldown inside the disabled button**; **reward + odds on battle rows** before you tap; a readable battle frame (nameplates, health bars, text box); a **live status pill per mini-game card**; **onboarding by doing** with progress and Skip; the pass sold with **one dollar price and short benefit rows**; **item preview on your pet** before buying; social login with no wallet step up front.
-- **Kept from the Petverse prototype:** the pastel glossy jelly 3D pets and readable cosmetics; the sky-and-hill stage.
-- **Superseded from the prototype keep-list:** pixel font and pixel-frame buttons. Candy's heavy rounded type and glossy pills replace them.
+- **Kept from the Petverse prototype:** the pastel jelly 3D pets and readable cosmetics; the stage (UI stage ground is now `{colors.mint}`).
+- **Superseded from the prototype keep-list:** pixel-frame buttons. The pixel font returns only as the Silkscreen numeric face (money, timers, stats, rarity tags); Pet Press print-cut panels and buttons replace the Candy pills (DECISIONS #58).
 - **Rejected:** crypto jargon ("$FP", "Gold LP", "Delta", "Supply", "Approve", "Processing tx…", wallet addresses on main screens); three-plus currencies on one screen and ETH as "0.000000"; mixed price strings ("Ξ$0.000627 (~$1.5)"); unlabeled stat strips; copy-heavy modals with (i) icons; a punishing hidden claim reset (we state the reset plainly with from → to); harsh death wording ("die forever", "TOD"); a plain-text gacha win with no prize moment; a tiny or missing pet; shop and money screens only reachable as pushed pages (Shop is a tab).
 
 ## Responsive & Platform
@@ -419,7 +425,7 @@ From [imports/reference-extract.md](imports/reference-extract.md) (Fren Pet capt
 6. **Resolved, Notifications** (owner, 2026-10-14): ask push permission after the first feed; Telegram link in Settings; max 3 pushes a day; per-type opt-outs in Settings.
 7. **Resolved, Offline** (owner, 2026-10-14): read-only; any action shows "Couldn't send. Nothing was spent."
 8. **Resolved, Keyboard** (owner, 2026-10-14): standard keys only (Tab / Enter / Esc / arrows); skipped onboarding steps return as small hints.
-9. **Resolved, mock drift** (2026-10-14): Co-Pet Sell removed, wake = feed, no pot share while asleep, pot-points wording, 312 PETV per $1, pink-deep headings and Guild / War fixed in all 8 key mocks. `direction-candy.html` stays a style source only (Lv 6, ETH-first, emoji are not rules).
+9. **Resolved, mock drift** (2026-10-14): Co-Pet Sell removed, wake = feed, no pot share while asleep, pot-points wording, 312 PETV per $1, pink-deep headings and Guild / War fixed in all 8 key mocks. `direction-candy.html` is superseded by Pet Press (#58; 2026-10-15).
 10. **Resolved, Level after a claim** (owner, 2026-10-14): level comes from lifetime points and never drops; a claim resets only pot points.
 11. **Resolved, Login streak on phone** (owner, 2026-10-14): flame chip in the top bar next to the free-actions chip.
 12. **Resolved, Wager** (owner, 2026-10-14): Ranked / Wager switch inside the Duel segment; Battle stays Attack / Duel / 2v2.

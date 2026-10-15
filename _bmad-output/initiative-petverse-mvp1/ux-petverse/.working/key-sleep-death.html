@@ -1,8 +1,10 @@
 <!doctype html>
+<!-- Restyled to Pet Press, DECISIONS #58, 2026-10-15 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;700;800;900&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&family=Silkscreen&display=swap">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Petverse: sleep and death</title>
 <style>
@@ -20,200 +22,220 @@
      and can be robbed, FR-10 wake free but -10% points per day asleep, FR-11 unclaimed ETH back to the pot, FR-12 Tombstone + free egg,
      FR-20 robbed alert in app / push / Telegram
    Numbers: Lv 12 = 12,480 points (PRD 4.10). Day 3 asleep = -30% (keeps 8,736), 4 days left before passing away.
-   Style source: .working/key-battle.html (Candy "Sticker book" tokens, components and icon sprite copied 1:1). Light mode only.
+   Style: Pet Press day theme (DECISIONS #58, brief + theme canvas); was Candy "Sticker book". Icon sprite unchanged. Light mode only.
+   Death and asleep moments stay calm: no misregister, no holo; gentle copy unchanged.
 */
-/* ---- Candy "Sticker book" tokens: copied 1:1 from .working/direction-candy.html ---- */
-:root{--bg:#FFEAF3;--dot:#FFD3E6;--ink:#3A1F2B;--pk:#FF5FA2;--pkd:#D93D80;--sk:#3DBDF5;--skd:#1E95CC;--le:#FFDF3D;--led:#E0B400;--li:#74D44F;--lid:#4FA92F;--or:#FF8A3D;--ord:#D9661C;--co:#D9D2D6;--soft:#7A6A72}
+/* ---- Pet Press day tokens (DECISIONS #58). Token names kept, values changed. ---- */
+:root{--bg:#FFF4F1;--paper:#FFF4F1;--surface:#FFFFFF;--ink:#24131C;--soft:#6B5A63;--pk:#FF4F9A;--pkd:#D93D80;--sk:#3DA9F5;--skd:#1E85CC;--le:#FFD43B;--led:#E0B400;--li:#4CC968;--lid:#3A9E50;--or:#FF7A2F;--ord:#D9661C;--co:#D9D2D6;--cod:#B9AFB4;--mint:#9BE8C8;--dot:#B9AFB4;
+  --le-t:#FFF7CC;--co-t:#F3EFF1;--sk-t:#E3F3FE;--li-t:#EAF8EE;--or-t:#FFEBDD;
+  --line:3px solid var(--ink);--sh:6px 6px 0 var(--ink);--sh-s:4px 4px 0 var(--ink);--sh-p:5px 5px 0 var(--pk);
+  --disp:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;--body:"Figtree","Segoe UI",system-ui,sans-serif;--px:"Silkscreen",ui-monospace,monospace}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);background-image:radial-gradient(var(--dot) 3px,transparent 3.5px);background-size:28px 28px;color:var(--ink);font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,"SF Pro Rounded","Trebuchet MS","Segoe UI",sans-serif;font-weight:700;padding:40px 32px 80px}
-.rationale{max-width:880px;margin:0 auto 40px;background:#fff;border-radius:28px;padding:22px 26px;box-shadow:0 6px 0 var(--pk);font-size:15px;line-height:1.6;font-weight:400;font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif}
-.rationale h1{font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,sans-serif;font-size:32px;color:var(--pkd);margin-bottom:6px}
-.label{display:inline-block;background:var(--pk);color:var(--ink);border-radius:999px;padding:5px 14px;font-size:13px;margin:0 0 14px;transform:rotate(-2deg)}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-weight:600;padding:40px 32px 80px}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+
+/* print textures (all behind the "Print effects" toggle) */
+.ht-shade,.emb,.bigemb{position:relative}
+.ht-shade::after,.emb::after,.bigemb::after,.stage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background-image:radial-gradient(circle,rgba(36,19,28,.55) 1.5px,transparent 1.8px);background-size:7px 7px;-webkit-mask-image:linear-gradient(130deg,transparent 52%,#000 95%);mask-image:linear-gradient(130deg,transparent 52%,#000 95%);border-radius:inherit}
+.misreg{text-shadow:3px 3px 0 var(--pk)}
+.tone{background-image:repeating-linear-gradient(135deg,rgba(36,19,28,.10) 0 1.5px,transparent 1.5px 8px)}
+body.no-print .ht-shade::after,body.no-print .emb::after,body.no-print .bigemb::after,body.no-print .stage::before{display:none}
+body.no-print .misreg,body.no-print .nm,body.no-print .logo,body.no-print .rationale h1{text-shadow:none!important}
+body.no-print .tone{background-image:none}
+.fx{position:fixed;top:12px;right:12px;z-index:100;min-height:44px;padding:8px 14px;font-family:var(--disp);font-weight:800;font-size:15px;color:var(--ink);background:var(--surface);border:var(--line);box-shadow:var(--sh-s);cursor:pointer}
+.fx[aria-pressed="true"]{background:var(--le)}
+.fx:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+
+/* doc chrome */
+.rationale{max-width:880px;margin:0 auto 40px;border:var(--line);box-shadow:var(--sh-p);background:linear-gradient(var(--pk) 0 16px,var(--ink) 16px 19px,var(--surface) 19px);padding:37px 26px 22px;font-size:16px;line-height:1.6;font-weight:400;font-family:var(--body)}
+.rationale h1{font-family:var(--disp);font-weight:800;font-size:32px;letter-spacing:-1px;color:var(--ink);margin-bottom:6px}
+.label{display:inline-block;background:var(--pk);color:var(--ink);border:var(--line);box-shadow:3px 3px 0 var(--ink);padding:4px 12px;font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 16px}
 .label.or{background:var(--or)}.label.li{background:var(--li)}.label.sk{background:var(--sk)}
 .row{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
 
-/* phone frame */
-.phone{width:390px;height:844px;border-radius:54px;background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:22px 22px;border:10px solid #fff;box-shadow:0 0 0 4px var(--pk),0 18px 0 4px var(--pkd);overflow:hidden;position:relative;display:flex;flex-direction:column}
-.status{height:42px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px}
-.status .sig{display:flex;gap:3px;align-items:flex-end}.status .sig i{display:block;width:4px;background:var(--ink);border-radius:2px}
-.pscroll{flex:1;min-height:0;padding:0 16px;display:flex;flex-direction:column;gap:12px}
+/* phone frame (device, so it keeps its rounded corners) */
+.phone{width:390px;height:844px;border-radius:46px;background:var(--paper);border:4px solid var(--ink);box-shadow:8px 8px 0 var(--ink);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:42px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:14px;font-weight:700}
+.status .sig{display:flex;gap:3px;align-items:flex-end}.status .sig i{display:block;width:4px;background:var(--ink);border-radius:0}
+.pscroll{flex:1;min-height:0;overflow:hidden;padding:0 16px 6px;display:flex;flex-direction:column;gap:12px}
 
 /* type + header */
 .hdr{display:flex;align-items:center;gap:10px}
-.nm{font-size:34px;line-height:1;color:var(--pkd);text-shadow:3px 3px 0 #fff}
-.badge{background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;box-shadow:0 3px 0 var(--pk);transform:rotate(-3deg);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.timer{margin-left:auto;background:var(--li);color:var(--ink);border:3px solid #fff;border-radius:999px;padding:6px 12px;font-size:14px;box-shadow:0 4px 0 var(--lid);transform:rotate(2deg);white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-.txt{font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif;font-weight:400;font-size:14px;line-height:1.4}
-.small{font-size:12px}
+.nm{font-family:var(--disp);font-weight:800;font-size:34px;line-height:1;letter-spacing:-1px;color:var(--ink);text-shadow:3px 3px 0 var(--pk)}
+.badge{background:var(--surface);border:var(--line);padding:2px 8px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;margin-top:6px}
+.timer{margin-left:auto;background:var(--li);color:var(--ink);border:var(--line);box-shadow:3px 3px 0 var(--ink);padding:5px 10px;font-family:var(--px);font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;--hole:var(--li)}
+.txt{font-family:var(--body);font-weight:400;font-size:15px;line-height:1.45}
+.small{font-size:13px}
 .muted{color:var(--soft)}
-.av{width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 var(--pk);overflow:hidden;flex:none;margin-left:auto;background:#A9D4FA}
+.av{width:44px;height:44px;border-radius:50%;border:var(--line);overflow:hidden;flex:none;margin-left:auto;background:var(--mint)}
 
 /* image crop helper: shows region (x,y,w,h) of a 1000px-wide pet render */
-.crop{position:relative;overflow:hidden;aspect-ratio:var(--w)/var(--h);background:#A9D4FA}
+.crop{position:relative;overflow:hidden;aspect-ratio:var(--w)/var(--h);background:var(--mint)}
 .crop>img{position:absolute;top:0;display:block;max-width:none;left:calc(-100% * var(--x) / var(--w));width:calc(100% * 1000 / var(--w));margin-top:calc(-100% * var(--y) / var(--w))}
-/* named crops */
 .c-bunny{--x:790;--y:425;--w:130;--h:130}
 .c-cat{--x:612;--y:425;--w:130;--h:130}
 .c-pup{--x:265;--y:425;--w:130;--h:130}
 .c-drako{--x:443;--y:410;--w:130;--h:130}
 .c-blob{--x:75;--y:420;--w:170;--h:170}
 
-/* stage (blob) */
-.stage{position:relative;overflow:hidden;border:5px solid #fff;box-shadow:0 7px 0 var(--pk);background:#A9D4FA}
+/* stage: organic blob shape, ink outline, hard shadow, halftone on the shadow side */
+.stage{position:relative;overflow:hidden;border:4px solid var(--ink);box-shadow:var(--sh);background:var(--mint)}
 .blobshape{border-radius:46% 54% 42% 58% / 38% 40% 60% 62%}
 .blobshape2{border-radius:44% 56% 40% 60% / 30% 34% 66% 70%}
-.tag{position:absolute;transform:translateX(-50%) rotate(-4deg);background:var(--pk);color:var(--ink);border:3px solid #fff;border-radius:999px;padding:2px 12px;font-size:14px;white-space:nowrap}
+.tag{position:absolute;z-index:2;transform:translateX(-50%);background:var(--pk);color:var(--ink);border:var(--line);padding:2px 10px;font-family:var(--disp);font-weight:800;font-size:14px;white-space:nowrap}
 
-/* number blobs */
+/* number windows: label is the title bar */
 .nums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.blob{border:4px solid #fff;border-radius:26px;padding:10px 14px;color:var(--ink)}
-.blob .k{font-size:12px;opacity:.95}
-.blob .v{font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.blob{border:var(--line);background:var(--surface);box-shadow:var(--sh-s);padding:0 0 10px;color:var(--ink)}
+.blob .k{font-family:var(--disp);font-weight:800;font-size:15px;padding:5px 10px;border-bottom:var(--line);margin-bottom:8px}
+.blob .v{font-family:var(--px);font-size:24px;line-height:1.1;padding:0 10px}
 .blob .v small{font-size:14px}
-.blob .s{font-size:12px}
-.blob.pts{background:var(--li);box-shadow:0 6px 0 var(--lid);transform:rotate(-1.5deg)}
-.blob.pot{background:var(--sk);box-shadow:0 6px 0 var(--skd);transform:rotate(1.5deg)}
+.blob .s{font-size:13px;padding:2px 10px 0}
+.blob.pts .k{background:var(--li)}
+.blob.pot .k{background:var(--sk)}
 
 /* money: dollars first, token small underneath */
-.usd{font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
-.tok{font-size:11px;color:var(--soft);margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.usd{font-family:var(--px);font-size:24px;line-height:1.1}
+.tok{font-size:13px;color:var(--soft);margin-top:3px;white-space:nowrap}
 
-/* alert */
-.alert{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:6px 6px 6px 12px;box-shadow:0 5px 0 var(--or);font-size:14px}
-.alert p{flex:1;line-height:1.25}
+/* alert: orange side bar = trouble */
+.alert{display:flex;align-items:center;gap:10px;border:var(--line);background:linear-gradient(90deg,var(--or) 0 10px,var(--ink) 10px 13px,var(--surface) 13px);box-shadow:var(--sh-s);padding:8px 10px 8px 22px;font-size:15px}
+.alert p{flex:1;line-height:1.3}
 
-/* pill buttons */
-.btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;border:4px solid #fff;border-radius:999px;font-size:16px;padding:12px 16px;white-space:nowrap;position:relative;color:var(--ink)}
-.btn::before{content:"";position:absolute;left:14%;right:14%;top:4px;height:6px;border-radius:999px;background:rgba(255,255,255,.55)}
-.btn.le{background:var(--le);box-shadow:0 6px 0 var(--led)}
-.btn.or{background:var(--or);color:var(--ink);box-shadow:0 4px 0 var(--ord);padding:8px 14px;font-size:14px;border-width:3px}
-.btn.li{background:var(--li);color:var(--ink);box-shadow:0 6px 0 var(--lid)}
-.btn.pk{background:var(--pk);color:var(--ink);box-shadow:0 6px 0 var(--pkd)}
-.btn.sk{background:var(--sk);color:var(--ink);box-shadow:0 6px 0 var(--skd)}
-.btn.wh{background:#fff;box-shadow:0 5px 0 #F2B8D1}
-.btn.off{background:var(--co);color:var(--soft);box-shadow:0 2px 0 #B9AFB4;font-size:14px}
-.btn.off::before{display:none}
-.btn.off b{color:var(--ink)}
-.btn.sm{padding:7px 12px;font-size:13px;border-width:3px}
-.btn.sm::before{top:3px;height:4px}
+/* buttons: square print cut, ink outline, hard shadow; no gloss */
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;border:var(--line);border-radius:0;font-family:var(--disp);font-weight:800;font-size:17px;padding:10px 16px;min-height:48px;white-space:nowrap;position:relative;color:var(--ink);background:var(--surface);box-shadow:var(--sh-s);cursor:pointer}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.btn.le{background:var(--le)}
+.btn.or{background:var(--or);font-size:15px}
+.btn.li{background:var(--li)}
+.btn.pk{background:var(--pk)}
+.btn.sk{background:var(--sk)}
+.btn.wh{background:var(--surface);box-shadow:var(--sh-p)}
+.btn.off{background:var(--co);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font-size:15px}
+.btn.sm{padding:6px 12px;font-size:15px;min-height:44px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .duo .btn,.full{width:100%}
 
-/* sticker card + status pill */
-.card{background:#fff;border-radius:28px;padding:14px;box-shadow:0 6px 0 var(--c,var(--pk))}
-.card.le{--c:var(--led)}.card.li{--c:var(--li)}.card.sk{--c:var(--sk)}.card.or{--c:var(--or)}.card.pk{--c:var(--pk)}
-.spill{display:inline-flex;align-items:center;gap:4px;border:3px solid #fff;border-radius:999px;padding:3px 10px;font-size:12px;color:var(--ink);white-space:nowrap}
-.spill.le{background:var(--le);color:var(--ink);box-shadow:0 3px 0 var(--led)}
-.spill.li{background:var(--li);box-shadow:0 3px 0 var(--lid)}
-.spill.sk{background:var(--sk);box-shadow:0 3px 0 var(--skd)}
-.spill.or{background:var(--or);box-shadow:0 3px 0 var(--ord)}
-.spill.pk{background:var(--pk);box-shadow:0 3px 0 var(--pkd)}
-.spill.co{background:var(--co);color:var(--soft);box-shadow:0 2px 0 #B9AFB4}
-.itile{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;flex:none;border:3px solid #fff;color:var(--ink)}
+/* window panel: white body, job-colour title bar, ink line under it */
+.card{--bar:var(--pk);border:var(--line);box-shadow:var(--sh);background:linear-gradient(var(--bar) 0 14px,var(--ink) 14px 17px,var(--surface) 17px);padding:14px;padding-top:30px!important}
+.card.le{--bar:var(--le)}.card.li{--bar:var(--li)}.card.sk{--bar:var(--sk)}.card.or{--bar:var(--or)}.card.pk{--bar:var(--pk)}.card.co{--bar:var(--co)}
+.card:has(>.wt){background:var(--surface);padding-top:0!important}
+.wt{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bar);border-bottom:var(--line);margin:0 -14px 12px;padding:8px 12px;font-family:var(--disp);font-weight:800;font-size:17px;line-height:1.25}
+.spill{display:inline-flex;align-items:center;gap:4px;border:var(--line);padding:2px 8px;font-size:14px;font-weight:700;color:var(--ink);background:var(--surface);white-space:nowrap}
+.spill.le{background:var(--le);--hole:var(--le)}
+.spill.li{background:var(--li);--hole:var(--li)}
+.spill.sk{background:var(--sk);--hole:var(--sk)}
+.spill.or{background:var(--or);--hole:var(--or)}
+.spill.pk{background:var(--pk);--hole:var(--pk)}
+.spill.co{background:var(--co);--hole:var(--co)}
+.itile{width:48px;height:48px;display:grid;place-items:center;flex:none;border:var(--line);color:var(--ink);background:var(--surface);border-radius:0!important}
 .itile svg{width:28px;height:28px}
-.itile.le{background:var(--le);color:var(--ink);box-shadow:0 4px 0 var(--led)}
-.itile.li{background:var(--li);box-shadow:0 4px 0 var(--lid)}
-.itile.sk{background:var(--sk);box-shadow:0 4px 0 var(--skd)}
-.itile.or{background:var(--or);box-shadow:0 4px 0 var(--ord)}
-.itile.pk{background:var(--pk);box-shadow:0 4px 0 var(--pkd)}
+.itile.le{background:var(--le)}.itile.li{background:var(--li)}.itile.sk{background:var(--sk)}.itile.or{background:var(--or)}.itile.pk{background:var(--pk)}.itile.co{background:var(--co)}
 
 /* segmented tabs */
-.seg{display:flex;background:#fff;border-radius:999px;padding:5px;box-shadow:0 4px 0 #F2B8D1;gap:4px}
-.seg span{flex:1;text-align:center;border-radius:999px;padding:8px 0;font-size:14px}
-.seg span small{display:block;font-size:10px;opacity:.85;margin-top:1px;white-space:nowrap}
-.seg span.on{background:var(--pk);color:var(--ink);box-shadow:0 3px 0 var(--pkd)}
+.seg{display:flex;background:var(--surface);border:var(--line);box-shadow:var(--sh-s)}
+.seg span{flex:1;text-align:center;padding:10px 0;min-height:44px;font-family:var(--disp);font-weight:800;font-size:16px}
+.seg span+span{border-left:var(--line)}
+.seg span small{display:block;font-family:var(--body);font-size:13px;margin-top:1px;white-space:nowrap}
+.seg span.on{background:var(--pk)}
 
 /* bottom tab bar (phone) */
-.tabbar{margin:0 12px 22px;height:70px;flex:none;background:#fff;border-radius:999px;display:flex;justify-content:space-around;align-items:center;padding:0 6px;box-shadow:0 5px 0 var(--pk)}
-.tab{display:flex;flex-direction:column;align-items:center;font-size:10px;gap:2px;width:58px;padding:6px 0 5px;border-radius:999px;--hole:#fff}
+.tabbar{height:78px;flex:none;background:var(--surface);border-top:var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 18px 8px}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:14px;gap:2px;min-height:44px;--hole:var(--surface)}
 .tab svg{width:24px;height:24px}
-.tab.on{background:var(--pk);color:var(--ink);--hole:var(--pk)}
+.tab.on{background:var(--pk);--hole:var(--pk);border-left:var(--line);border-right:var(--line);box-shadow:inset 0 -4px 0 var(--ink)}
 
 /* icons */
-svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
-.btn.le svg.i,.spill.le svg.i,.itile.le svg{--hole:var(--le)}
-.btn.li svg.i,.spill.li svg.i,.itile.li svg{--hole:var(--li)}
+svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:var(--surface)}
+.btn.le svg.i,.itile.le svg{--hole:var(--le)}
+.btn.li svg.i,.itile.li svg{--hole:var(--li)}
 .btn.pk svg.i,.itile.pk svg{--hole:var(--pk)}
 .btn.or svg.i,.itile.or svg{--hole:var(--or)}
 .itile.sk svg{--hole:var(--sk)}
+.itile.co svg{--hole:var(--co)}
 
 /* bottom sheet over phone */
-.scrim{position:absolute;inset:0;background:rgba(58,31,43,.38);z-index:5}
-.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:38px 38px 0 0;padding:14px 20px 34px;z-index:6;display:flex;flex-direction:column;gap:12px;box-shadow:0 -6px 0 var(--pk)}
-.grab{width:54px;height:6px;border-radius:9px;background:var(--co);margin:0 auto 4px}
+.scrim{position:absolute;inset:0;background:rgba(36,19,28,.4);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:var(--line);padding:14px 20px 34px;z-index:6;display:flex;flex-direction:column;gap:12px}
+.grab{width:54px;height:6px;background:var(--ink);margin:0 auto 4px}
 
 /* desktop browser frame */
-.browser{width:1280px;margin:0 auto;border-radius:28px;overflow:hidden;border:6px solid #fff;box-shadow:0 0 0 4px var(--pk),0 14px 0 4px var(--pkd);background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 3px);background-size:24px 24px}
-.bbar{height:42px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 18px}
-.bbar span{width:13px;height:13px;border-radius:50%}
-.url{margin-left:18px;background:var(--bg);border-radius:999px;padding:5px 16px;font-size:12px;width:360px;font-weight:400}
-.topnav{display:flex;align-items:center;gap:8px;padding:16px 26px}
-.logo{font-size:28px;color:var(--pkd);text-shadow:3px 3px 0 #fff;margin-right:22px}
-.pill{background:#fff;border-radius:999px;padding:10px 18px;font-size:15px;box-shadow:0 4px 0 #F2B8D1;display:inline-flex;align-items:center;gap:6px;--hole:#fff}
-.pill.on{background:var(--pk);color:var(--ink);box-shadow:0 4px 0 var(--pkd);--hole:var(--pk)}
+.browser{width:1280px;margin:0 auto;overflow:hidden;border:var(--line);box-shadow:8px 8px 0 var(--pk);background:var(--paper)}
+.bbar{height:44px;background:var(--surface);border-bottom:var(--line);display:flex;align-items:center;gap:8px;padding:0 18px}
+.bbar span{width:14px;height:14px;border:2px solid var(--ink)}
+.url{margin-left:18px;background:var(--paper);border:2px solid var(--ink);padding:4px 14px;font-size:13px;width:360px;font-weight:400}
+.topnav{display:flex;align-items:center;gap:10px;padding:18px 26px}
+.logo{font-family:var(--disp);font-weight:800;font-size:30px;letter-spacing:-1px;color:var(--ink);text-shadow:3px 3px 0 var(--pk);margin-right:22px}
+.pill{background:var(--surface);border:var(--line);box-shadow:3px 3px 0 var(--ink);padding:8px 16px;min-height:44px;font-family:var(--disp);font-weight:800;font-size:16px;display:inline-flex;align-items:center;gap:6px;--hole:var(--surface)}
+.pill.on{background:var(--pk);--hole:var(--pk)}
+.pill.li{background:var(--li);--hole:var(--li)}
+.pill.or{background:var(--or);--hole:var(--or)}
 .pill svg{width:20px;height:20px}
-.pill .av{width:34px;height:34px;margin:-6px -12px -6px 0;box-shadow:none;border-width:2px}
+.pill .av{width:34px;height:34px;margin:-6px -12px -6px 0;border-width:2px}
 .desk{display:grid;grid-template-columns:1fr 370px;gap:24px;padding:4px 26px 30px}
-.dl,.dr{display:flex;flex-direction:column;gap:16px}
-
+.dl,.dr{display:flex;flex-direction:column;gap:18px}
+.wt .muted{color:var(--ink)}
 
 /* ---- screen-specific: sleep + death ---- */
-.hungry .timer{background:var(--or);box-shadow:0 4px 0 var(--ord)}
-.hungry .stage{box-shadow:0 7px 0 var(--or)}
-.bubble{position:absolute;left:12%;top:12%;background:#fff;border-radius:20px;padding:6px 12px;font-size:13px;transform:rotate(-5deg);z-index:2}
-.bubble::after{content:"";position:absolute;right:16px;bottom:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fff}
-.bar{height:16px;border-radius:999px;background:#FFE1CC;border:3px solid #fff;box-shadow:0 0 0 2px var(--or);overflow:hidden}
-.bar span{display:block;height:100%;background:var(--or);border-radius:999px}
+.hungry .timer{background:var(--or);--hole:var(--or)}
+.bubble{position:absolute;left:12%;top:12%;z-index:2;background:var(--surface);border:var(--line);padding:5px 10px;font-size:14px;font-weight:700}
+.bubble::after{content:"";position:absolute;right:16px;bottom:-12px;border:9px solid transparent;border-bottom:0;border-top-color:var(--ink)}
+.bar{height:18px;background:var(--surface);border:var(--line)}
+.bar span{display:block;height:100%;background:var(--or)}
 .ph-stage{--x:600;--y:350;--w:370;--h:230}
-.stage .tag{z-index:2}
-/* asleep */
-.timer.zz{background:var(--soft);box-shadow:0 4px 0 #574A51}
-.sleepy{box-shadow:0 7px 0 var(--soft)}
+/* asleep: waiting = cooldown; calm, no misregister */
+.asleep .nm{text-shadow:none}
+.timer.zz{background:var(--co);--hole:var(--co)}
 .sleepy>img{filter:saturate(.45) brightness(.82)}
-.sleepy::after{content:"";position:absolute;inset:0;background:rgba(58,40,96,.30)}
-.zz-i{position:absolute;color:#fff;z-index:2;filter:drop-shadow(0 3px 0 rgba(58,31,43,.35))}
-.moon{position:absolute;z-index:2;width:34px;height:34px;color:var(--le)}
+.sleepy::after{content:"";position:absolute;inset:0;background:rgba(36,19,28,.28)}
+.zz-i{position:absolute;color:var(--surface);z-index:2;filter:drop-shadow(2px 2px 0 var(--ink))}
+.moon{position:absolute;z-index:2;width:34px;height:34px;color:var(--le);filter:drop-shadow(2px 2px 0 var(--ink))}
 .drow{display:flex;gap:5px}
-.drow i{flex:1;height:16px;border-radius:999px;background:var(--bg);border:2px solid #fff;box-shadow:0 0 0 2px var(--dot)}
-.drow i.u{background:var(--or);box-shadow:0 0 0 2px var(--ord)}
-.drow i.x{background:#fff;box-shadow:0 0 0 2px var(--soft);position:relative}
-.dlab{display:flex;justify-content:space-between;font-size:11px;color:var(--soft);margin-top:4px}
-.keep{display:flex;justify-content:space-between;align-items:baseline;background:var(--bg);border-radius:18px;padding:8px 12px}
-.keep b{font-size:22px;color:var(--ink);text-decoration:underline;text-decoration-color:var(--li);text-decoration-thickness:4px;text-underline-offset:4px;font-variant-numeric:tabular-nums}
-.keep s{color:var(--soft);font-size:13px}
-/* passed away */
+.drow i{flex:1;height:18px;background:var(--surface);border:2px solid var(--ink)}
+.drow i.u{background:var(--or)}
+.drow i.x{background:var(--surface);position:relative}
+.dlab{display:flex;justify-content:space-between;font-size:13px;color:var(--soft);margin-top:5px}
+.keep{display:flex;justify-content:space-between;align-items:baseline;background:var(--paper);border:var(--line);padding:8px 12px}
+.keep b{font-family:var(--px);font-weight:400;font-size:22px;color:var(--ink);text-decoration:underline;text-decoration-color:var(--li);text-decoration-thickness:4px;text-underline-offset:5px}
+.keep s{color:var(--soft);font-size:14px}
+/* passed away: calm. No misregister, no holo, no halftone, soft fills */
 .res{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-.calm{background:#F6EFF3}
-.calm .nm{color:var(--ink);text-shadow:3px 3px 0 #fff}
-.mem{width:150px;border-radius:50%;border:5px solid #fff;box-shadow:0 6px 0 var(--co);overflow:hidden;filter:grayscale(.65);opacity:.9}
-.stone{position:relative;background:linear-gradient(#FBF8FA,#EFE7EC);border:5px solid #fff;border-radius:120px 120px 26px 26px;box-shadow:0 7px 0 var(--co),0 0 0 2px #E6DCE1;padding:20px 16px 14px;text-align:center;width:100%}
-.stone .rib{position:absolute;left:50%;top:-14px;transform:translateX(-50%) rotate(-2deg);background:var(--pk);color:var(--ink);border:3px solid #fff;border-radius:999px;padding:3px 14px;font-size:12px;box-shadow:0 3px 0 var(--pkd);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;--hole:var(--pk)}
-.stone .sn{font-size:26px;line-height:1}
+.calm{background:#F7F2F4}
+.calm .nm{color:var(--ink);text-shadow:none!important;letter-spacing:-.5px}
+.calm .btn.le{box-shadow:3px 3px 0 var(--ink)}
+.calm .card{box-shadow:3px 3px 0 var(--ink)}
+.mem{width:150px;border-radius:50%;border:var(--line);box-shadow:4px 4px 0 var(--cod);overflow:hidden;filter:grayscale(.65);opacity:.92}
+.mem .crop{background:var(--co)}
+.stone{position:relative;background:var(--co-t);border:var(--line);border-radius:120px 120px 0 0;box-shadow:4px 4px 0 var(--cod);padding:22px 16px 14px;text-align:center;width:100%}
+.stone .rib{position:absolute;left:50%;top:-16px;transform:translateX(-50%);background:var(--pk);color:var(--ink);border:var(--line);padding:2px 12px;font-family:var(--disp);font-weight:800;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;--hole:var(--pk)}
+.stone .sn{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stats div{background:#fff;border-radius:16px;padding:6px 4px;box-shadow:0 3px 0 #E6DCE1}
-.stats b{display:block;font-size:20px;line-height:1.1}
-.stats span{font-size:11px;color:var(--soft)}
-/* notifications */
-.lock{background:linear-gradient(170deg,#FFC9DF 0%,#FFE8B8 55%,#CDEBFF 100%)}
-.ltime{text-align:center;font-size:58px;line-height:1;color:#fff;text-shadow:0 3px 0 var(--pk)}
-.ldate{text-align:center;font-size:14px;color:#fff;text-shadow:0 2px 0 var(--pkd);margin-bottom:4px}
-.note{display:flex;gap:10px;background:rgba(255,255,255,.92);border-radius:22px;padding:9px 12px;box-shadow:0 4px 0 rgba(217,61,128,.35)}
-.note .ap{width:34px;height:34px;border-radius:11px;background:var(--pk);color:var(--ink);display:grid;place-items:center;flex:none;--hole:var(--pk);border:2px solid #fff}
+.stats div{background:var(--surface);border:2px solid var(--ink);padding:6px 4px}
+.stats b{display:block;font-family:var(--px);font-weight:400;font-size:20px;line-height:1.2}
+.stats span{font-size:13px;color:var(--soft)}
+/* outside alerts: lock screen is a solid plate (no pattern behind text) */
+.lock{background:var(--sk-t)}
+.ltime{text-align:center;font-family:var(--px);font-size:56px;line-height:1;color:var(--ink)}
+.ldate{text-align:center;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.note{display:flex;gap:10px;background:var(--surface);border:var(--line);box-shadow:var(--sh-s);padding:8px 10px}
+.note .ap{width:34px;height:34px;background:var(--pk);color:var(--ink);display:grid;place-items:center;flex:none;--hole:var(--pk);border:2px solid var(--ink)}
 .note .ap svg{width:22px;height:22px}
-.note .t{display:flex;justify-content:space-between;font-size:11px;color:var(--soft)}
-.note .h{font-size:14px;line-height:1.2}
-.note .b{font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif;font-weight:400;font-size:12.5px;line-height:1.3}
-.tg{background:#fff;border-radius:26px;box-shadow:0 5px 0 var(--sk);padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px}
-.tg .th{display:flex;align-items:center;gap:8px;font-size:14px}
-.tg .th .ap{width:30px;height:30px;border-radius:50%;background:var(--sk);color:var(--ink);display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 0 var(--skd);--hole:var(--sk)}
+.note .t{display:flex;justify-content:space-between;font-size:13px;color:var(--soft)}
+.note .h{font-family:var(--disp);font-weight:800;font-size:15px;line-height:1.2}
+.note .b{font-family:var(--body);font-weight:400;font-size:13px;line-height:1.3}
+.tg{background:var(--surface);border:var(--line);box-shadow:var(--sh-p);padding:0 10px 10px;display:flex;flex-direction:column;gap:8px}
+.tg .th{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:800;font-size:15px;background:var(--sk);border-bottom:var(--line);margin:0 -10px;padding:6px 10px}
+.tg .th .muted{color:var(--ink)}
+.tg .th .ap{width:30px;height:30px;background:var(--surface);color:var(--ink);display:grid;place-items:center;border:2px solid var(--ink);--hole:var(--surface)}
 .tg .th .ap svg{width:18px;height:18px}
-.msg{background:#EAF7FE;border-radius:18px 18px 18px 6px;padding:7px 10px;font-family:"Nunito","Trebuchet MS","Segoe UI",sans-serif;font-weight:400;font-size:12.5px;line-height:1.3}
-.msg b{font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,sans-serif}
-.kb{display:flex;gap:6px;margin-top:5px}
-.kb span{flex:1;text-align:center;background:#fff;border-radius:999px;padding:4px 0;font-size:12px;color:var(--ink);box-shadow:0 2px 0 #BFE6FA;font-family:"Baloo 2","Arial Rounded MT Bold",ui-rounded,sans-serif}
+.msg{background:var(--sk-t);border:2px solid var(--ink);padding:7px 10px;font-family:var(--body);font-weight:400;font-size:13px;line-height:1.3}
+.msg b{font-family:var(--disp);font-weight:800}
+.kb{display:flex;gap:6px;margin-top:6px}
+.kb span{flex:1;display:grid;place-items:center;text-align:center;background:var(--surface);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);min-height:44px;font-size:14px;color:var(--ink);font-family:var(--disp);font-weight:800}
 </style>
 </head>
 <body>
+<button type="button" class="fx" id="fx" aria-pressed="true">Print effects: on</button>
 <!-- Custom chunky rounded icon set (sticker style). Shapes use currentColor; cut-outs use var(--hole). -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <defs>
@@ -280,7 +302,7 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
         </div>
         <div class="stage blobshape crop ph-stage"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/21.png" alt="Mochi the bunny looking hungry"><span class="bubble">I'm so hungry...</span><span class="tag" style="left:66%;top:8%">Mochi</span></div>
         <div class="card or" style="display:flex;flex-direction:column;gap:10px">
-          <div style="font-size:17px;line-height:1.25">Mochi is very hungry — 6h left before sleep</div>
+          <div class="wt">Mochi is very hungry — 6h left before sleep</div>
           <div class="bar"><span style="width:8%"></span></div>
           <p class="txt">Asleep pets earn no points, get no pot share and can be robbed. One meal keeps Mochi awake for 3 more days.</p>
           <span class="btn li full" style="font-size:18px"><svg class="i"><use href="#i-carrot"/></svg> Feed Mochi · +20 points</span>
@@ -297,8 +319,8 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
 
   <!-- 2. Asleep day 3 -->
   <div>
-    <div class="label" style="background:var(--soft)">Phone · Home, asleep day 3</div>
-    <div class="phone">
+    <div class="label" style="background:var(--co)">Phone · Home, asleep day 3</div>
+    <div class="phone asleep">
       <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
       <div class="pscroll">
         <div class="hdr">
@@ -309,7 +331,7 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
           <svg class="zz-i" style="right:20px;top:22px;width:40px;height:40px"><use href="#i-zzz"/></svg>
           <svg class="zz-i" style="right:62px;top:56px;width:26px;height:26px"><use href="#i-zzz"/></svg>
           <svg class="moon" style="left:22px;top:18px"><use href="#i-moon"/></svg>
-          <span class="tag" style="left:44%;top:70%;background:var(--soft)">Mochi is asleep</span>
+          <span class="tag" style="left:44%;top:70%;background:var(--co)">Mochi is asleep</span>
         </div>
         <div class="alert" style="padding:10px 14px"><span class="itile or" style="width:38px;height:38px;border-radius:13px"><svg class="i" style="width:22px;height:22px"><use href="#i-zzz"/></svg></span><p>Mochi is asleep. Asleep pets earn no points, get no pot share and can be robbed.</p></div>
         <div class="card li" style="display:flex;flex-direction:column;gap:9px">
@@ -317,8 +339,8 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
           <div class="keep"><span class="small">Mochi keeps</span><span><b>8,736</b> <s>12,480</s></span></div>
           <p class="txt small">Mochi slept 3 days, so Mochi loses 30% of points (3,744). Each day asleep costs 10%; tomorrow it will be −40%.</p>
         </div>
-        <div class="card" style="--c:var(--soft);padding:12px 14px">
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>4 days left</span><span class="muted small" style="font-weight:400">then Mochi passes away</span></div>
+        <div class="card co">
+          <div class="wt"><span>4 days left</span><span class="muted small" style="font-weight:400">then Mochi passes away</span></div>
           <div class="drow"><i class="u"></i><i class="u"></i><i class="u"></i><i></i><i></i><i></i><i></i></div>
           <div class="dlab"><span>Day 1</span><span>Day 3 today</span><span>Day 7</span></div>
         </div>
@@ -329,7 +351,7 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
 
   <!-- 3. Passed away -->
   <div>
-    <div class="label" style="background:var(--ink)">Phone · Mochi passed away</div>
+    <div class="label" style="background:var(--surface)">Phone · Mochi passed away</div>
     <div class="phone calm">
       <div class="status"><span>9:41</span><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:11px;width:20px;margin-left:4px;border-radius:4px"></i></span></div>
       <div class="pscroll res" style="padding-top:6px;gap:10px">
@@ -362,7 +384,7 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
         <div class="ltime">9:41</div>
         <div class="ldate">Tuesday, October 14</div>
         <div class="note"><span class="ap"><svg><use href="#i-carrot"/></svg></span><div style="flex:1"><div class="t"><span>Petverse</span><span>now</span></div><div class="h">Mochi is very hungry</div><div class="b">6h left before sleep. One meal keeps Mochi awake.</div></div></div>
-        <div class="note"><span class="ap" style="background:var(--soft);--hole:var(--soft)"><svg><use href="#i-moon"/></svg></span><div style="flex:1"><div class="t"><span>Petverse</span><span>2h ago</span></div><div class="h">Mochi fell asleep</div><div class="b">Asleep pets get no points or pot share and can be robbed. Feed Mochi to wake, free (−10% points today).</div></div></div>
+        <div class="note"><span class="ap" style="background:var(--co);--hole:var(--co)"><svg><use href="#i-moon"/></svg></span><div style="flex:1"><div class="t"><span>Petverse</span><span>2h ago</span></div><div class="h">Mochi fell asleep</div><div class="b">Asleep pets get no points or pot share and can be robbed. Feed Mochi to wake, free (−10% points today).</div></div></div>
         <div class="note"><span class="ap" style="background:var(--or);--hole:var(--or)"><svg><use href="#i-battle"/></svg></span><div style="flex:1"><div class="t"><span>Petverse</span><span>1h ago</span></div><div class="h">Biscuit robbed Mochi</div><div class="b">Biscuit took 624 points while Mochi slept.</div></div></div>
         <div class="tg">
           <div class="th"><span class="ap"><svg><use href="#i-plane"/></svg></span><div>Petverse bot<div class="small muted" style="font-weight:400">on Telegram</div></div></div>
@@ -371,15 +393,15 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
           <div class="msg"><b>Biscuit robbed Mochi</b>: −624 points.<div class="kb"><span>Open Petverse</span></div></div>
         </div>
       </div>
-      <div style="height:22px;flex:none;display:flex;justify-content:center;align-items:flex-start"><span style="width:130px;height:5px;border-radius:9px;background:#fff"></span></div>
+      <div style="height:22px;flex:none;display:flex;justify-content:center;align-items:flex-start"><span style="width:130px;height:5px;background:var(--ink)"></span></div>
     </div>
   </div>
 </div>
 
-<div style="max-width:1280px;margin:0 auto"><span class="label" style="background:var(--soft)">Desktop 1280 · Home, Mochi asleep day 3</span></div>
-<div class="browser">
+<div style="max-width:1280px;margin:0 auto"><span class="label" style="background:var(--co)">Desktop 1280 · Home, Mochi asleep day 3</span></div>
+<div class="browser asleep">
   <div class="bbar"><span style="background:var(--pk)"></span><span style="background:var(--le)"></span><span style="background:var(--li)"></span><div class="url">petverse.app/home</div></div>
-  <div class="topnav"><div class="logo">Petverse</div><span class="pill on"><svg><use href="#i-home"/></svg>Home</span><span class="pill"><svg><use href="#i-battle"/></svg>Battle</span><span class="pill"><svg><use href="#i-play"/></svg>Play</span><span class="pill"><svg><use href="#i-shop"/></svg>Shop</span><span class="pill"><svg><use href="#i-guild"/></svg>Guild</span><span class="pill" style="margin-left:auto;box-shadow:0 4px 0 var(--or)"><svg class="i" style="color:var(--or)"><use href="#i-bell"/></svg> 2 alerts</span><span class="pill">Mochi <span class="av"><span class="crop c-bunny" style="display:block"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/33.png" alt=""></span></span></span></div>
+  <div class="topnav"><div class="logo">Petverse</div><span class="pill on"><svg><use href="#i-home"/></svg>Home</span><span class="pill"><svg><use href="#i-battle"/></svg>Battle</span><span class="pill"><svg><use href="#i-play"/></svg>Play</span><span class="pill"><svg><use href="#i-shop"/></svg>Shop</span><span class="pill"><svg><use href="#i-guild"/></svg>Guild</span><span class="pill or" style="margin-left:auto"><svg class="i"><use href="#i-bell"/></svg> 2 alerts</span><span class="pill">Mochi <span class="av"><span class="crop c-bunny" style="display:block"><img src="file:///C:/m0/bits/web3-pet-research/cosmetics-preview/33.png" alt=""></span></span></span></div>
   <div class="desk" style="grid-template-columns:1fr 390px">
     <div class="dl">
       <div class="hdr">
@@ -390,23 +412,23 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
         <svg class="zz-i" style="right:80px;top:40px;width:64px;height:64px"><use href="#i-zzz"/></svg>
         <svg class="zz-i" style="right:150px;top:96px;width:40px;height:40px"><use href="#i-zzz"/></svg>
         <svg class="moon" style="left:70px;top:40px;width:52px;height:52px"><use href="#i-moon"/></svg>
-        <span class="tag" style="left:72%;top:80%;background:var(--soft);font-size:16px">Mochi is asleep</span>
+        <span class="tag" style="left:72%;top:80%;background:var(--co);font-size:16px">Mochi is asleep</span>
       </div>
       <div class="duo" style="grid-template-columns:1fr 1fr 1fr">
-        <div class="card" style="--c:var(--soft);display:flex;gap:10px;align-items:center"><span class="itile" style="background:var(--soft);box-shadow:0 4px 0 #574A51;--hole:var(--soft)"><svg><use href="#i-star"/></svg></span><div><div style="font-size:15px">Earning paused</div><div class="txt small muted">No points while asleep</div></div></div>
+        <div class="card co" style="display:flex;gap:10px;align-items:center"><span class="itile co"><svg><use href="#i-star"/></svg></span><div><div style="font-size:15px">Earning paused</div><div class="txt small muted">No points while asleep</div></div></div>
         <div class="card or" style="display:flex;gap:10px;align-items:center"><span class="itile or"><svg><use href="#i-shield"/></svg></span><div><div style="font-size:15px">Open to attacks</div><div class="txt small muted">Asleep pets can be robbed</div></div></div>
         <div class="card li" style="display:flex;gap:10px;align-items:center"><span class="itile li"><svg><use href="#i-carrot"/></svg></span><div><div style="font-size:15px">2 free meals</div><div class="txt small muted">Feeding wakes Mochi</div></div></div>
       </div>
     </div>
     <div class="dr">
       <div class="card li" style="display:flex;flex-direction:column;gap:10px">
-        <div style="font-size:20px">Feed to wake</div>
+        <div class="wt">Feed to wake</div>
         <span class="btn li full" style="font-size:18px;padding:15px"><svg class="i"><use href="#i-carrot"/></svg> Feed Mochi to wake · free</span>
         <div class="keep"><span>Mochi keeps</span><span><b>8,736</b> <s>12,480</s></span></div>
         <p class="txt">Mochi slept 3 days, so Mochi loses 30% of points (3,744). Each day asleep costs 10%; tomorrow it will be −40%.</p>
       </div>
-      <div class="card" style="--c:var(--soft)">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:20px">4 days left</span><span class="txt small muted">then Mochi passes away</span></div>
+      <div class="card co">
+        <div class="wt"><span style="font-size:20px">4 days left</span><span class="txt small muted">then Mochi passes away</span></div>
         <div class="drow"><i class="u"></i><i class="u"></i><i class="u"></i><i></i><i></i><i></i><i></i></div>
         <div class="dlab"><span>Day 1</span><span>Day 3 today</span><span>Day 7</span></div>
       </div>
@@ -420,5 +442,9 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;--hole:#fff}
   </div>
 </div>
 
+<script>
+/* Print effects toggle: off = flat colour (no halftone, screentone or misregister); outlines and hard shadows stay. */
+(function(){var b=document.getElementById("fx");b.addEventListener("click",function(){var off=document.body.classList.toggle("no-print");b.setAttribute("aria-pressed",String(!off));b.textContent="Print effects: "+(off?"off":"on");});})();
+</script>
 </body>
 </html>

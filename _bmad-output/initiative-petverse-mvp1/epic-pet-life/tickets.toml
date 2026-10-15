@@ -46,16 +46,17 @@ notes = ["High risk: outside check = the adversarial review in the gate (DECISIO
 [[entry]]
 id = 3
 type = "story"
-title = "Candy UI kit and app shell"
-description = "Sets up the shared UI layer every screen of this and later epics uses: DESIGN.md colour and type tokens with Baloo 2 + Nunito replacing the prototype pixel fonts, the chunky SVG icons this epic needs, pill / cooldown / text buttons, sticker card, number blob, timer chip, status and alert pills, pet badge, blob stage around the existing Stage, bottom sheet, step chip with progress dots, focus ring, a copy check that fails on the banned crypto words (EXPERIENCE Voice and Tone), and the top bar with avatar plus the phone tab bar / desktop top nav carrying only the Home tab (later epics add theirs)."
+title = "Pet Press UI kit and app shell"
+description = "Sets up the shared UI layer every screen of this and later epics uses: DESIGN.md colour and type tokens for the Pet Press theme (DECISIONS #58; token names unchanged) with Bricolage Grotesque (display) + Figtree (body) + Silkscreen (money, timers, stats, rarity tags only) via next/font/google replacing Baloo 2 + Nunito and the prototype pixel fonts, the Print effects setting (default on; off = flat colour, keeps ink outlines and hard shadows), the Night Arcade skin tokens for battle, Death Match and raid screens only, the chunky SVG icons this epic needs, pill / cooldown / text buttons, die-cut card (3px ink outline, hard offset shadow), number blob, timer chip, status and alert pills, pet badge, blob stage around the existing Stage, bottom sheet, step chip with progress dots, focus ring, a copy check that fails on the banned crypto words (EXPERIENCE Voice and Tone), and the top bar with avatar plus the phone tab bar / desktop top nav carrying only the Home tab (later epics add theirs). The 3D pets get an ink outline (inverted hull) and a halftone dot ground-shadow under the feet, with no post-processing passes on the 3D canvas."
 verify = "A kit page run locally at 390px and 1280px shows every listed component as DESIGN.md specifies, with the 3px ink focus ring reaching each one by Tab, the copy check fails on a planted \"gas\" string in a screen, and typecheck and lint pass."
 covers = []
 after = [1]
 hitl = false
 risk = "low"
-owns = ["src/components/ui/**", "src/components/ui.tsx", "src/components/shell/**", "src/app/layout.tsx", "src/app/globals.css", "src/app/kit/**", "scripts/copy-check.mjs"]
+owns = ["src/components/ui/**", "src/components/ui.tsx", "src/components/shell/**", "src/app/layout.tsx", "src/app/globals.css", "src/app/kit/**", "scripts/copy-check.mjs", "src/components/three/PetModel.tsx", "src/components/three/jelly.tsx", "src/components/three/Stage.tsx"]
 test = "src/components/ui/copy-check.test.ts"
-references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/.working/direction-candy.html"]
+references = ["_bmad-output/initiative-petverse-mvp1/ux-petverse/DESIGN.md", "docs/DECISIONS.md"]
+notes = ["DECISIONS #58: Pet Press replaces the Petverse Candy look (direction-candy.html is superseded). Owns widened (2026-10-15, recommended default) to PetModel.tsx, jelly.tsx and Stage.tsx for the 3D ink outline (inverted hull) and the halftone ground-shadow decal; no post-processing on the 3D canvas."]
 
 [[entry]]
 id = 4
