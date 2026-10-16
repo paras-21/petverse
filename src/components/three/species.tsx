@@ -6,6 +6,7 @@
 import { createContext, useContext, type ReactNode, type RefObject } from 'react';
 import * as THREE from 'three';
 import type { Palette, Species, V3 } from '@/lib/pets';
+import { BackSlot, Bow, Crown, FaceSlot, HandSlot, HatSlot, LoadoutContext, NeckSlot } from './cosmetics';
 import { Ball, frontZ, jellyMat, juicy, puffGeometry } from './jelly';
 
 /** True while rendering a baby: Face and Critter switch to extra-cute proportions. */
@@ -31,6 +32,18 @@ export function makeMats(pal: Palette, env: THREE.Texture) {
     leaf: jellyMat('#6cc35a', { env, shade: '#3f8f3a' }),
     seed: jellyMat('#5b4636', { env, shade: '#3a2a20' }),
     blush: new THREE.MeshBasicMaterial({ color: '#ff5c93', transparent: true, opacity: 0.62, depthWrite: false }),
+    // cosmetics: fixed fabric colours so items read on every coat
+    cloth: jellyMat('#ff6378', { env, shade: '#d43c5a' }),
+    cloth2: jellyMat('#5aa9ff', { env, shade: '#3a6fd6' }),
+    cream: jellyMat('#fff3dc', { env, glow: 0.08 }),
+    lens: new THREE.MeshStandardMaterial({ color: '#d8f0ff', transparent: true, opacity: 0.3, roughness: 0.05, depthWrite: false }),
+    berry: jellyMat('#ff5a7a', { env, shade: '#d12f55' }),
+    lav: jellyMat('#a98bff', { env, shade: '#6f52c9' }),
+    mint: jellyMat('#7fe3c4', { env, shade: '#3fb08f' }),
+    sun: jellyMat('#ffd24a', { env, shade: '#e09a1e', glow: 0.08 }),
+    choco: jellyMat('#7a4a32', { env, shade: '#4a2a1a' }),
+    batwing: jellyMat('#5d4b8c', { env, shade: '#352a5c', rim: 0.3, rimColor: '#b9a6ff' }),
+    cape: Object.assign(jellyMat('#e8344f', { env, shade: '#a8203a' }), { side: THREE.DoubleSide }),
   };
 }
 // materials that light up on hit / evolve
@@ -134,32 +147,13 @@ function Face({
             <torusGeometry args={[0.017, 0.0065, 8, 20, Math.PI]} />
           </mesh>
         ))}
+      <FaceSlot m={m} gap={gap} y={y} z={ez} k={eyeK} surf={surf} />
       {mouth === 'wide' && (
         <mesh material={m.ink} position={[0, y - 0.13, surf(0, y - 0.16) - 0.012]} rotation={[-0.35, 0, Math.PI]}>
           <torusGeometry args={[0.06, 0.008, 8, 28, Math.PI]} />
         </mesh>
       )}
     </>
-  );
-}
-
-/** Little gold crown with a gem. */
-function Crown({ m, p, s = 1 }: { m: Mats; p: V3; s?: number }) {
-  return (
-    <group position={p} rotation={[-0.1, 0, 0.12]} scale={s}>
-      <mesh material={m.gold} castShadow>
-        <cylinderGeometry args={[0.13, 0.12, 0.08, 24, 1, true]} />
-      </mesh>
-      {[0, 1, 2, 3, 4].map((i) => {
-        const a = (i / 5) * Math.PI * 2;
-        return (
-          <mesh key={i} material={m.gold} position={[Math.sin(a) * 0.12, 0.08, Math.cos(a) * 0.12]} castShadow>
-            <coneGeometry args={[0.035, 0.09, 12]} />
-          </mesh>
-        );
-      })}
-      <Ball p={[0, 0, 0.13]} r={0.028} mat={m.accent} />
-    </group>
   );
 }
 
@@ -174,17 +168,6 @@ function Collar({ m, c, r, y, bell, mat }: { m: Mats; c: V3; r: V3; y: number; b
         <torusGeometry args={[1, 0.022 / Math.min(rx, rz), 12, 48]} />
       </mesh>
       {bell && <Ball p={[0, -0.035, rz + 0.03]} r={0.045} mat={m.gold} />}
-    </group>
-  );
-}
-
-function Bow({ m, p, rot = [0, 0, 0], s = 1 }: { m: Mats; p: V3; rot?: V3; s?: number }) {
-  return (
-    <group position={p} rotation={rot} scale={s}>
-      {[-1, 1].map((k) => (
-        <Ball key={k} p={[k * 0.055, 0, 0]} r={[0.055, 0.04, 0.025]} rot={[0, 0, k * 0.3]} mat={m.accent} />
-      ))}
-      <Ball p={[0, 0, 0.01]} r={0.025} mat={m.accent} />
     </group>
   );
 }
@@ -269,6 +252,7 @@ function Critter({
   arms,
   hand,
   tuft = true,
+  hatAt,
 }: SpeciesProps & {
   C?: V3;
   R?: V3;
@@ -287,8 +271,13 @@ function Critter({
   hand?: ReactNode;
   /** baby hair curl; off when the head top is already busy (frog eye bumps) */
   tuft?: boolean;
+  /** hat placement tweak for this head: z offset and scale */
+  hatAt?: { z?: number; s?: number };
 }) {
   const body = adult ? ADULT_BODY : null;
+  const { hat, hand: held } = useContext(LoadoutContext);
+  // baby head ball is squashed by the [1.05, 0.94, 1.03] group below
+  const babyR: V3 = [R[0] * 1.05, R[1] * 0.94, R[2] * 1.03];
   const [bc, br] = body ?? [C, R];
   const rear: V3 = body ? [0, bc[1] - 0.04, bc[2] - br[2] + 0.03] : BABY_REAR;
   return (
@@ -302,13 +291,16 @@ function Critter({
             <Ball p={[0, 0.2, 0.17]} r={[0.22, 0.15, 0.2]} mat={m.belly} />
           ))}
         {bodyExtra?.(body)}
+        <NeckSlot m={m} c={body ? bc : C} r={body ? br : babyR} y={body ? neckY(body) : C[1] - R[1] * 0.55} />
+        <BackSlot m={m} c={body ? bc : C} r={body ? br : babyR} />
       </Part>
       <Part name="head" refs={refs} p={body ? ADULT_HEAD_C : C}>
         {/* babies are squishier mochi: a touch wider and shorter */}
         <group scale={body ? ADULT_HEAD_S : [1.05, 0.94, 1.03]}>
           <Ball p={HEAD0} r={R} mat={m.body} />
           {head}
-          {!body && tuft && <Tuft m={m} y={R[1]} />}
+          {!body && tuft && hat === 'none' && <Tuft m={m} y={R[1]} />}
+          <HatSlot m={m} y={R[1]} z={hatAt?.z} s={hatAt?.s} />
         </group>
       </Part>
       {tail && (
@@ -321,7 +313,7 @@ function Critter({
         [-1, 1].map((s) => (
           <Part key={s} name={s < 0 ? 'wingL' : 'wingR'} refs={refs} p={[s * (br[0] - 0.03), bc[1] + br[1] * 0.4, bc[2] + 0.05]}>
             <Ball p={[s * 0.035, -0.085, 0.02]} r={[0.065, 0.11, 0.07]} rot={[0.2, 0, s * 0.35]} mat={arms ?? m.body} />
-            {s > 0 && hand}
+            {s > 0 && (held === 'none' ? hand : <HandSlot m={m} p={[0, -0.18, 0.1]} />)}
           </Part>
         ))}
       {extra?.(body)}
@@ -353,19 +345,24 @@ const BLOB_GEO = puffGeometry(
 
 function Blob({ refs, m, adult }: SpeciesProps) {
   const k = adult ? 1.2 : 1;
+  const { hat } = useContext(LoadoutContext);
   return (
     <group scale={k}>
       <Part name="body" refs={refs} p={[0, 0.02, 0]}>
         <mesh geometry={BLOB_GEO} material={m.body} position={BLOB_C} castShadow />
         <Part name="head" refs={refs} p={BLOB_C}>
           <Face refs={refs} m={m} gap={0.11} y={0.04} surf={(x, y) => frontZ([0, 0, 0], BLOB_R, x, y)} />
-          {adult ? <Crown m={m} p={[0, 0.44, 0.02]} /> : <Tuft m={m} y={0.44} />}
+          {hat === 'none' && (adult ? <Crown m={m} p={[0, 0.44, 0.02]} /> : <Tuft m={m} y={0.44} />)}
+          <HatSlot m={m} y={0.38} s={0.95} />
         </Part>
+        <NeckSlot m={m} c={BLOB_C} r={BLOB_R} y={BLOB_C[1] - 0.17} />
+        <BackSlot m={m} c={BLOB_C} r={BLOB_R} />
       </Part>
       {adult &&
         [-1, 1].map((s) => (
           <Part key={s} name={s < 0 ? 'wingL' : 'wingR'} refs={refs} p={[s * 0.4, 0.34, 0.08]}>
             <Ball p={[s * 0.05, -0.02, 0]} r={[0.09, 0.075, 0.08]} mat={m.body} />
+            {s > 0 && <HandSlot m={m} p={[0.07, -0.06, 0.07]} />}
           </Part>
         ))}
     </group>
@@ -389,6 +386,7 @@ function Drako({ refs, m, adult }: SpeciesProps) {
       R={DRAKO_R}
       belly
       arms={false}
+      hatAt={{ s: 0.85 }}
       head={
         <>
           {[-1, 1].map((s) => (
@@ -440,6 +438,7 @@ function Drako({ refs, m, adult }: SpeciesProps) {
 // Mochi pup: floppy ears, button nose. Adult: longer ears, headphones.
 function Pup({ refs, m, adult }: SpeciesProps) {
   const surf = surfOf([HEAD0, CRIT_R]);
+  const { hat } = useContext(LoadoutContext);
   return (
     <Critter
       refs={refs}
@@ -452,7 +451,7 @@ function Pup({ refs, m, adult }: SpeciesProps) {
             <Ball key={s} p={[s * 0.36, adult ? 0.08 : 0.12, -0.02]} r={[0.09, adult ? 0.24 : 0.19, 0.08]} rot={[0, 0, s * 0.45]} mat={m.dark} />
           ))}
           <Face refs={refs} m={m} gap={0.13} y={0.07} surf={surf} nose="ink" />
-          {adult && (
+          {adult && hat === 'none' && (
             <group position={[0, 0.02, -0.02]}>
               <mesh material={m.gear} castShadow>
                 <torusGeometry args={[0.43, 0.03, 12, 48, Math.PI]} />
@@ -479,6 +478,7 @@ function Pup({ refs, m, adult }: SpeciesProps) {
 // Cat: pointy ears, tabby stripes, whiskers. Adult: cheek tufts, long curled tail, bell collar.
 function Cat({ refs, m, adult }: SpeciesProps) {
   const surf = surfOf([HEAD0, CRIT_R]);
+  const { neck } = useContext(LoadoutContext);
   const segs = adult ? 7 : 4;
   const tailH = adult ? 0.5 : 0.3;
   return (
@@ -489,7 +489,8 @@ function Cat({ refs, m, adult }: SpeciesProps) {
       belly
       feet={m.belly}
       arms={m.body}
-      bodyExtra={(b) => b && <Collar m={m} c={b[0]} r={b[1]} y={neckY(b)} bell />}
+      hatAt={{ s: 0.85 }}
+      bodyExtra={(b) => b && neck === 'none' && <Collar m={m} c={b[0]} r={b[1]} y={neckY(b)} bell />}
       head={
         <>
           {[-1, 1].map((s) => (
@@ -533,12 +534,14 @@ function Cat({ refs, m, adult }: SpeciesProps) {
 function Bunny({ refs, m, adult }: SpeciesProps) {
   const surf = surfOf([HEAD0, CRIT_R]);
   const ear = adult ? 1.25 : 1;
+  const { hat } = useContext(LoadoutContext);
   return (
     <Critter
       refs={refs}
       m={m}
       adult={adult}
       belly
+      hatAt={{ z: 0.07, s: 0.8 }}
       head={
         <>
           {[-1, 1].map((s) => (
@@ -547,7 +550,7 @@ function Bunny({ refs, m, adult }: SpeciesProps) {
               <Ball p={[0, 0.19, 0.035]} r={[0.042, 0.15, 0.025]} mat={m.pink} shadow={false} />
             </group>
           ))}
-          {adult && <Bow m={m} p={[0.15, 0.36, 0.03]} rot={[0, 0, -0.4]} />}
+          {adult && hat === 'none' && <Bow m={m} p={[0.15, 0.36, 0.03]} rot={[0, 0, -0.4]} />}
           <Face refs={refs} m={m} gap={0.13} y={0.06} surf={surf} nose="pink" mouth="cat" />
         </>
       }
@@ -571,14 +574,16 @@ function Bear({ refs, m, adult }: SpeciesProps) {
   const muzzleC: V3 = [0, -0.06, frontZ(HEAD0, CRIT_R, 0, -0.06) - 0.05];
   const muzzleR: V3 = [0.13, 0.09, 0.08];
   const surf = surfOf([HEAD0, CRIT_R], [muzzleC, muzzleR]);
+  const { neck } = useContext(LoadoutContext);
   return (
     <Critter
       refs={refs}
       m={m}
       adult={adult}
       belly={adult}
+      hatAt={{ s: 0.9 }}
       bodyExtra={(b) =>
-        b && (
+        b && neck === 'none' && (
           <>
             <Collar m={m} c={b[0]} r={b[1]} y={neckY(b)} />
             <Ball p={[0.13, neckY(b) - 0.08, b[1][2] - 0.02]} r={[0.05, 0.09, 0.03]} rot={[0.2, 0, 0.3]} mat={m.accent} />
@@ -615,6 +620,7 @@ function Fox({ refs, m, adult }: SpeciesProps) {
       belly
       feet={m.dark}
       arms={m.dark}
+      hatAt={{ s: 0.85 }}
       bodyExtra={(b) =>
         b && <Ball p={[0, neckY(b) - 0.02, b[0][2] + b[1][2] - 0.06]} r={[0.15, 0.11, 0.09]} mat={m.belly} />
       }
@@ -645,6 +651,7 @@ function Hamster({ refs, m, adult }: SpeciesProps) {
   const cheeks: Ell[] = [-1, 1].map((s) => [[s * 0.2, -0.07, frontZ(HEAD0, HAM_R, 0.2, -0.07) - 0.1], [0.13, 0.11, 0.12]]);
   const surf = surfOf([HEAD0, HAM_R], ...cheeks);
   const noseY = -0.02;
+  const { hat } = useContext(LoadoutContext);
   return (
     <Critter
       refs={refs}
@@ -676,7 +683,7 @@ function Hamster({ refs, m, adult }: SpeciesProps) {
           {cheeks.map(([c, r], i) => (
             <Ball key={i} p={c} r={r} mat={m.belly} />
           ))}
-          {adult && <Bow m={m} p={[-0.13, 0.31, 0.06]} rot={[-0.4, 0, 0.35]} />}
+          {adult && hat === 'none' && <Bow m={m} p={[-0.13, 0.31, 0.06]} rot={[-0.4, 0, 0.35]} />}
           <Face refs={refs} m={m} gap={0.12} y={0.07} surf={surf} nose="pink" noseY={noseY} mouth="cat" />
           {[-1, 1].map((s) => (
             <mesh key={s} material={m.white} position={[s * 0.011, noseY - 0.072, surf(0, noseY - 0.07) - 0.004]}>
@@ -696,6 +703,7 @@ const FROG_R: V3 = [0.46, 0.32, 0.4];
 function Frog({ refs, m, adult }: SpeciesProps) {
   const bumps: Ell[] = [-1, 1].map((s) => [[s * 0.17, 0.25, 0.04], [0.13, 0.13, 0.12]]);
   const surf = surfOf([HEAD0, FROG_R], ...bumps);
+  const { hat } = useContext(LoadoutContext);
   return (
     <Critter
       refs={refs}
@@ -704,6 +712,7 @@ function Frog({ refs, m, adult }: SpeciesProps) {
       C={FROG_C}
       R={FROG_R}
       tuft={false}
+      hatAt={{ s: 0.8 }}
       belly
       feet={m.dark}
       feetGap={0.2}
@@ -712,7 +721,7 @@ function Frog({ refs, m, adult }: SpeciesProps) {
           {bumps.map(([c, r], i) => (
             <Ball key={i} p={c} r={r} mat={m.body} />
           ))}
-          {adult && <Crown m={m} p={[0, 0.33, -0.04]} s={0.85} />}
+          {adult && hat === 'none' && <Crown m={m} p={[0, 0.33, -0.04]} s={0.85} />}
           <Face refs={refs} m={m} gap={0.17} y={0.27} surf={surf} mouth="wide" />
         </>
       }
@@ -729,20 +738,25 @@ function Penguin({ refs, m, adult }: SpeciesProps) {
   const surf = surfOf([HEAD0, R], [maskC, maskR]);
   const faceY = R[1] * 0.25;
   const flip = adult ? 1.3 : 1;
+  const { hat, neck } = useContext(LoadoutContext);
   return (
     <>
       <Part name="body" refs={refs} p={[0, 0, 0]}>
         <Ball p={C} r={R} mat={m.body} />
         <Ball p={[maskC[0], C[1] + maskC[1], maskC[2]]} r={maskR} mat={m.belly} />
-        {adult && <Bow m={m} p={[0, C[1] - R[1] * 0.32, surf(0, -R[1] * 0.32) + 0.01]} s={1.1} />}
+        {adult && neck === 'none' && <Bow m={m} p={[0, C[1] - R[1] * 0.32, surf(0, -R[1] * 0.32) + 0.01]} s={1.1} />}
+        <NeckSlot m={m} c={C} r={R} y={C[1] - R[1] * 0.32} />
+        <BackSlot m={m} c={C} r={R} />
       </Part>
       <Part name="head" refs={refs} p={C}>
         <Face refs={refs} m={m} gap={0.12} y={faceY} surf={surf} mouth="none" />
         <mesh material={m.orange} position={[0, faceY - 0.08, surf(0, faceY - 0.08) + 0.03]} rotation={[Math.PI / 2 - 0.15, 0, 0]} scale={[1.3, 1, 0.7]} castShadow>
           <coneGeometry args={[0.04, 0.08, 16]} />
         </mesh>
-        {!adult && <Tuft m={m} y={R[1]} />}
+        {!adult && hat === 'none' && <Tuft m={m} y={R[1]} />}
+        <HatSlot m={m} y={R[1] - 0.01} />
         {adult &&
+          hat === 'none' &&
           [-1, 0, 1].map((k) => (
             <mesh key={k} material={m.body} position={[k * 0.04, R[1] - 0.01, 0.02]} rotation={[0.2, 0, -k * 0.5]} castShadow>
               <coneGeometry args={[0.03, 0.12, 12]} />
@@ -752,6 +766,7 @@ function Penguin({ refs, m, adult }: SpeciesProps) {
       {[-1, 1].map((s) => (
         <Part key={s} name={s < 0 ? 'wingL' : 'wingR'} refs={refs} p={[s * (R[0] - 0.03), C[1] + 0.05, -0.02]}>
           <Ball p={[s * 0.02, -0.14 * flip, 0]} r={[0.05, 0.17 * flip, 0.1]} rot={[0, 0, s * 0.25]} mat={m.body} />
+          {s > 0 && <HandSlot m={m} p={[0.05, -0.28 * flip, 0.07]} />}
         </Part>
       ))}
       <Feet refs={refs} m={m.orange} gap={0.13} s={adult ? 1.15 : 1} />

@@ -1,0 +1,13 @@
+{
+  "cleanupPeriodDays": 2,
+  "autoCompactEnabled": true,
+  "permissions": {
+    "deny": [
+      "Read(./.env)", "Read(./.env.*)", "Read(./chain/.env)", "Read(./chain/.env.*)",
+      "Read(**/*.pem)", "Read(**/*.key)",
+      "Edit(.floor/config.json)", "Write(.floor/config.json)",
+      "Edit(.github/workflows/**)", "Write(.github/workflows/**)",
+      "Bash(git push:*)", "Bash(git push)"
+    ]
+  }
+}

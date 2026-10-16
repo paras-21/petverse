@@ -1,0 +1,10 @@
+// Petverse database (Supabase Postgres). Connection URLs live in prisma.config.ts / .env.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

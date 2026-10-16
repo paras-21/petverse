@@ -1,0 +1,58 @@
+{
+  "integration": "floor/mvp1",
+  "worktrees": "../bits-wt",
+  "judgeModel": "haiku",
+  "junk": [
+    ".claude/",
+    ".archon/",
+    "node_modules/",
+    ".env",
+    ".env.local",
+    "id_rsa",
+    ".pem"
+  ],
+  "gate": {
+    "mechanical": [
+      {
+        "name": "install",
+        "cmd": "npm ci"
+      },
+      {
+        "name": "install-chain",
+        "cmd": "npm --prefix chain ci"
+      },
+      {
+        "name": "typecheck",
+        "cmd": "npx tsc --noEmit"
+      },
+      {
+        "name": "lint",
+        "cmd": "npm run lint"
+      },
+      {
+        "name": "test",
+        "cmd": "npm test"
+      },
+      {
+        "name": "chain-compile",
+        "cmd": "npx --prefix chain hardhat compile"
+      },
+      {
+        "name": "chain-test",
+        "cmd": "npx --prefix chain hardhat test"
+      }
+    ],
+    "reviews": [
+      "code",
+      "security",
+      "adversarial"
+    ],
+    "reviewModel": "sonnet",
+    "parallel": 4,
+    "chunkChars": 60000,
+    "reviewTurns": 80,
+    "bigChunkChars": 40000,
+    "bigChunkTurns": 160,
+    "maxCycles": 3
+  }
+}

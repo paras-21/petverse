@@ -3,8 +3,10 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { NO_LOADOUT, type Loadout } from '@/lib/cosmetics';
 import { PALETTES, type Species, type V3 } from '@/lib/pets';
 import { contactShadowTexture, useGlossEnv, useMats } from './jelly';
+import { LoadoutContext } from './cosmetics';
 import { BabyContext, FLASHY, makeMats, SPECIES_VIEW } from './species';
 
 export type AnimName =
@@ -71,6 +73,8 @@ interface Props {
   dir?: [number, number]; // world xz direction for lunges
   lunge?: number;
   seed?: number;
+  /** cosmetics worn (hat / face / neck) */
+  loadout?: Loadout;
   onTap?: () => void;
 }
 
@@ -84,6 +88,7 @@ export function PetModel({
   dir = [0, 1],
   lunge = 1.2,
   seed = 0,
+  loadout = NO_LOADOUT,
   onTap,
 }: Props) {
   const env = useGlossEnv();
@@ -310,7 +315,9 @@ export function PetModel({
         }}
       >
         <BabyContext.Provider value={!adult}>
-          <View refs={refs} m={mats} adult={adult} />
+          <LoadoutContext.Provider value={loadout}>
+            <View refs={refs} m={mats} adult={adult} />
+          </LoadoutContext.Provider>
         </BabyContext.Provider>
       </group>
     </group>

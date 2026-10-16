@@ -51,3 +51,13 @@ Thumbs.db
 
 # local research dump (screenshots, notes)
 web3-pet-research/
+
+# claude code: skills are symlinks with absolute paths (recreate them by re-running `npx skills add` for the skills in skills-lock.json); local settings stay local
+.claude/skills/
+.claude/settings.local.json
+
+# bmad: personal answers
+_bmad/custom/*.user.toml
+
+# prisma generated client (rebuild with `npx prisma generate`)
+src/generated/

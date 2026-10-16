@@ -12,10 +12,11 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
     "@types/node": "^26.6.5",
     "hardhat": "^3.19.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "viem": "^2.57.5"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.6.1"
+    "@openzeppelin/contracts": "^5.6.1",
+    "@openzeppelin/contracts-upgradeable": "^5.6.1"
   }
 }
